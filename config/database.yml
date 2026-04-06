@@ -27,18 +27,18 @@ default: &default
 development:
   primary:
     <<: *default
-    database: new_rails_template_development
+    database: bookturf_development
   cache:
     <<: *default
-    database: new_rails_template_development_cache
+    database: bookturf_development_cache
     migrations_paths: db/cache_migrate
   queue:
     <<: *default
-    database: new_rails_template_development_queue
+    database: bookturf_development_queue
     migrations_paths: db/queue_migrate
   cable:
     <<: *default
-    database: new_rails_template_development_cable
+    database: bookturf_development_cable
     migrations_paths: db/cable_migrate
 
   # The specified database role being used to connect to PostgreSQL.
@@ -73,7 +73,7 @@ development:
 # Do not set this db to the same as development or production.
 test:
   <<: *default
-  database: new_rails_template_test
+  database: bookturf_test
 
 # As with config/credentials.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is
@@ -104,16 +104,16 @@ test:
 production:
   primary: &primary_production
     <<: *default
-    database: new_rails_template_production
+    database: bookturf_production
   cache:
     <<: *primary_production
-    database: new_rails_template_production_cache
+    database: bookturf_production_cache
     migrations_paths: db/cache_migrate
   queue:
     <<: *primary_production
-    database: new_rails_template_production_queue
+    database: bookturf_production_queue
     migrations_paths: db/queue_migrate
   cable:
     <<: *primary_production
-    database: new_rails_template_production_cable
+    database: bookturf_production_cable
     migrations_paths: db/cable_migrate

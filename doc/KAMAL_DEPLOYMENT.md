@@ -165,7 +165,7 @@ accessories:
     env:
       clear:
         POSTGRES_USER: rails_app
-        POSTGRES_DB: new_rails_template_production
+        POSTGRES_DB: bookturf_production
       secret:
         - POSTGRES_PASSWORD
     directories:
@@ -230,7 +230,7 @@ export RAILS_MASTER_KEY="your-rails-master-key"
 export SECRET_KEY_BASE="generate-with-rails-secret"
 
 # Database
-export DATABASE_URL="postgresql://user:password@db:5432/new_rails_template_production"
+export DATABASE_URL="postgresql://user:password@db:5432/bookturf_production"
 export POSTGRES_PASSWORD="secure-postgres-password"
 
 # Authentication
@@ -354,10 +354,10 @@ kamal app exec 'bin/rails db:seed'
 kamal app exec 'bin/rails console'
 
 # Database backup (from host)
-ssh deploy@your-server.com 'docker exec kamal-db-postgres pg_dump -U rails_app new_rails_template_production > backup.sql'
+ssh deploy@your-server.com 'docker exec kamal-db-postgres pg_dump -U rails_app bookturf_production > backup.sql'
 
 # Restore database
-cat backup.sql | ssh deploy@your-server.com 'docker exec -i kamal-db-postgres psql -U rails_app new_rails_template_production'
+cat backup.sql | ssh deploy@your-server.com 'docker exec -i kamal-db-postgres psql -U rails_app bookturf_production'
 ```
 
 ### Environment Variables
