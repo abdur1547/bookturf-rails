@@ -1,0 +1,43 @@
+%div{:style => "max-width: 800px; margin: 2rem auto; padding: 2rem; font-family: system-ui, -apple-system, sans-serif;"}
+  %h1{:style => "font-size: 2.5rem; margin-bottom: 1rem; color: #333;"} Welcome to Rails Starter
+  %p{:style => "font-size: 1.2rem; color: #666; margin-bottom: 2rem;"}
+    Your authentication system is ready to go!
+  %div{:style => "background: #f5f5f5; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem;"}
+    %h2{:style => "font-size: 1.5rem; margin-bottom: 1rem;"} Authentication Status
+    - if user_signed_in?
+      %p{:style => "color: #22c55e; font-weight: bold; margin-bottom: 1rem;"}
+        ✓ You are signed in as #{current_user.email}
+      %div{:style => "display: flex; gap: 1rem; flex-wrap: wrap;"}
+        = link_to "Edit Profile", edit_user_registration_path, style: "padding: 0.5rem 1rem; background: #3b82f6; color: white; text-decoration: none; border-radius: 4px;"
+        = button_to "Sign Out", destroy_user_session_path, method: :delete, style: "padding: 0.5rem 1rem; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer;"
+    - else
+      %p{:style => "color: #6b7280; margin-bottom: 1rem;"}
+        You are not signed in.
+      %div{:style => "display: flex; gap: 1rem; flex-wrap: wrap;"}
+        = link_to "Sign In", new_user_session_path, style: "padding: 0.5rem 1rem; background: #3b82f6; color: white; text-decoration: none; border-radius: 4px;"
+        = link_to "Sign Up", new_user_registration_path, style: "padding: 0.5rem 1rem; background: #10b981; color: white; text-decoration: none; border-radius: 4px;"
+  %div{:style => "background: #fff; border: 1px solid #e5e7eb; padding: 1.5rem; border-radius: 8px;"}
+    %h2{:style => "font-size: 1.5rem; margin-bottom: 1rem;"} Available Features
+    %ul{:style => "list-style: none; padding: 0; margin: 0;"}
+      %li{:style => "padding: 0.5rem 0; border-bottom: 1px solid #e5e7eb;"}
+        %strong ✓ Email/Password Authentication
+        \- Sign up and sign in with email
+      %li{:style => "padding: 0.5rem 0; border-bottom: 1px solid #e5e7eb;"}
+        %strong ✓ Google OAuth2
+        \- Sign in with your Google account
+      %li{:style => "padding: 0.5rem 0; border-bottom: 1px solid #e5e7eb;"}
+        %strong ✓ Password Reset
+        \- Recover your account via email
+      %li{:style => "padding: 0.5rem 0; border-bottom: 1px solid #e5e7eb;"}
+        %strong ✓ Account Management
+        \- Edit your profile and settings
+      %li{:style => "padding: 0.5rem 0;"}
+        %strong ✓ Session Tracking
+        \- Track sign-in history and IP addresses
+  %div{:style => "margin-top: 2rem; padding: 1rem; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 4px;"}
+    %h3{:style => "margin: 0 0 0.5rem 0; color: #92400e;"} 📝 Next Steps
+    %p{:style => "margin: 0; color: #78350f;"}
+      Customize your views in
+      %code app/views/devise/
+      and controllers in
+      %code app/controllers/users/

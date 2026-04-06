@@ -1,0 +1,2 @@
+# This directory contains external validation contracts for operations
+# Place contract classes here to keep validation logic separate from operations
