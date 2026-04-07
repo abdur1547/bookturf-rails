@@ -1,4 +1,4 @@
-class CreateBlacklistedTokens < ActiveRecord::Migration[7.1]
+class CreateBlacklistedTokens < ActiveRecord::Migration[8.1]
   def change
     create_table :blacklisted_tokens do |t|
       t.string :jti
