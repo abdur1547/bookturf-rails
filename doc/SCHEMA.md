@@ -1,7 +1,9 @@
 # Database Schema Design - Bookturf
 
 ## Overview
-A flexible sports court booking management system supporting multiple venues, dynamic time slots, role-based access control with custom permissions.
+A flexible sports court booking management system for **single venue** with dynamic time slots, role-based access control with custom permissions.
+
+**MVP Scope**: Single venue per owner. Multi-venue support planned for future phase.
 
 ---
 
@@ -9,18 +11,26 @@ A flexible sports court booking management system supporting multiple venues, dy
 
 ### Time Slots Strategy
 **Decision**: Dynamic slot generation (NOT stored in database)
-- Store only `minimum_slot_duration` and `maximum_slot_duration` in venue settings
+- Store only `minimum_slot_duration`, `maximum_slot_duration`, and `slot_interval` in venue settings
 - Backend generates available slots on-the-fly based on:
   - Venue operating hours
   - Existing bookings
   - Court availability
-  - Configured min/max durations
+  - Configured min/max durations and slot intervals
 - **Benefits**: Eliminates data bloat, maximum flexibility, easy to adjust durations
 
-### Multi-Tenancy Model
-- Support multiple venues per owner
-- Users can be assigned roles across multiple venues (configurable)
-- Each venue operates independently with its own settings
+**How Slot Durations Work:**
+- **minimum_slot_duration** (e.g., 60 minutes): Users cannot book less than this duration
+- **maximum_slot_duration** (e.g., 180 minutes): Users cannot book more than this duration  
+- **slot_interval** (e.g., 30 minutes): Time increments for generating slots
+  - Example: If venue opens at 9:00 AM with 30-min intervals, slots are: 9:00, 9:30, 10:00, 10:30...
+  - User can book: 9:00-10:00 (60 min) or 9:30-11:30 (120 min) or 10:00-1:00 PM (180 min)
+
+### Single Venue Model (MVP)
+- One venue per owner
+- All users (owner, staff, customers) operate within this single venue
+- Venue settings, operating hours, courts, and pricing all belong to one venue
+- **Future**: Multi-venue support with cross-venue role assignments
 
 ### Permission System
 - Action-based permissions: `create`, `read`, `update`, `delete` on specific resources
@@ -29,9 +39,14 @@ A flexible sports court booking management system supporting multiple venues, dy
 - Permissions are assigned to roles, roles are assigned to users per venue
 
 ### Payment Model
-- **Phase 1** (Current): Cash payment at venue - no payment gateway integration
-- **Phase 2** (Future): Online payments, partial payments, deposits
+- **MVP** (Current): Cash payment at venue - no payment gateway integration
+- **Future**: Online payments, partial payments, deposits
 - Store payment method and amount in bookings table for future extensibility
+
+### Google Maps Integration
+- Store `latitude` and `longitude` in venues table
+- Google Maps link is generated dynamically: `https://www.google.com/maps?q={latitude},{longitude}`
+- **Benefits**: Can use coordinates for distance calculations, multiple map providers, location-based features
 
 ---
 
@@ -82,13 +97,11 @@ Represents sports facilities/arenas.
 | state | string | indexed | State/Province |
 | country | string | indexed | Country |
 | postal_code | string | | Postal/ZIP code |
-| latitude | decimal(10,8) | | GPS latitude |
-| longitude | decimal(11,8) | | GPS longitude |
+| latitude | decimal(10,8) | | GPS latitude (for maps & distance calculations) |
+| longitude | decimal(11,8) | | GPS longitude (for maps & distance calculations) |
 | phone_number | string | | Venue contact |
 | email | string | | Venue email |
 | is_active | boolean | default: true | Venue operational status |
-| average_rating | decimal(3,2) | default: 0.0 | Cached average rating (0-5) |
-| total_reviews | integer | default: 0 | Total number of reviews |
 | created_at | datetime | not null | Record creation timestamp |
 | updated_at | datetime | not null | Record update timestamp |
 
@@ -102,8 +115,9 @@ Represents sports facilities/arenas.
 **Notes**:
 - `average_rating` and `total_reviews` are cached/calculated from venue_reviews table
 - Update these counters after review creation/update/deletion via callback or background job
-
----
+**Google Maps Link**: Generated from lat/long: `https://www.google.com/maps?q={latitude},{longitude}`
+- Latitude/longitude also enable future features: distance calculations, location-based search, etc.
+- For MVP: Single venue, so owner_id is straightforward one-to-one relationship
 
 ### 3. venue_settings
 Configuration settings per venue (operating hours, slot durations, policies).
@@ -115,8 +129,8 @@ Configuration settings per venue (operating hours, slot durations, policies).
 | minimum_slot_duration | integer | not null, default: 60 | Min booking duration (minutes) |
 | maximum_slot_duration | integer | not null, default: 180 | Max booking duration (minutes) |
 | slot_interval | integer | not null, default: 30 | Slot generation interval (minutes) |
-| advance_booking_days | integer | default: 30 | How far ahead users can book |
-| timezone | string | not null, default: 'UTC' | Venue timezone |
+| advance_booking_days | integer | defaultAsia/Karachi' | Venue timezone (Pakistan Time) |
+| currency | string | default: 'PKR' | Currency code (Pakistani Rupee)ue timezone |
 | currency | string | default: 'USD' | Currency code |
 | requires_approval | boolean | default: false | Booking needs approval |
 | cancellation_hours | integer | | Hours before booking to allow cancellation |
@@ -126,8 +140,13 @@ Configuration settings per venue (operating hours, slot durations, policies).
 **Indexes**:
 - `venue_id` (unique)
 
-**Notes**:
-- `slot_interval`: The granularity for generating time slots (e.g., 30min means slots start at :00 and :30)
+****Slot Duration Examples**:
+  - `minimum_slot_duration = 60`: Users must book at least 1 hour
+  - `maximum_slot_duration = 180`: Users can book up to 3 hours per booking
+  - `slot_interval = 30`: Slots start every 30 minutes (9:00, 9:30, 10:00, 10:30...)
+- `advance_booking_days`: Limits how far in advance bookings can be made
+- **Why separate table?** Even for single venue, keeps configuration values separate from venue identity data
+- **Future**: When expanding to multiple venues, just add more rows herin means slots start at :00 and :30)
 - `advance_booking_days`: Limits how far in advance bookings can be made
 
 ---
@@ -147,16 +166,11 @@ Daily operating hours for each venue.
 | updated_at | datetime | not null | Record update timestamp |
 
 **Indexes**:
+- **Why separate table?** Stores 7 rows (one per day of week) with different times - better normalized than 7 columns in settings
+- **Example**: Monday opens 9 AM-11 PM, but Sunday opens 10 AM-8 PM - each day can have unique hours
 - `venue_id, day_of_week` (composite unique)
 
-**Notes**:
-- If `is_closed` is true, venue doesn't operate on that day
-- Slots are generated between `opens_at` and `closes_at`
-
----
-
-### 5. court_types
-Generic sport types (Tennis, Basketball, Badminton, etc.).
+Sport types offered at the venue (Tennis, Basketball, Badminton, etc.).
 
 | Column | Type | Constraints | Description |
 |--------|------|-------------|-------------|
@@ -168,6 +182,15 @@ Generic sport types (Tennis, Basketball, Badminton, etc.).
 | created_at | datetime | not null | Record creation timestamp |
 | updated_at | datetime | not null | Record update timestamp |
 
+**Indexes**:
+- `name` (unique)
+- `slug` (unique)
+
+**Notes**:
+- **court_types = Sports Types** (Tennis, Basketball, Badminton, Squash, Volleyball, Futsal, etc.)
+- Each court in your venue links to a court_type to specify what sport it's for
+- **Example**: "Court 1" → Basketball, "Court 2" → Badminton, "Court 3" → Tennis
+- For MVP: Global types (not venue-specific). Future: venue-specific types if needed
 **Indexes**:
 - `name` (unique)
 - `slug` (unique)
@@ -220,13 +243,24 @@ Flexible pricing per court type, time-based (peak/off-peak).
 | created_at | datetime | not null | Record creation timestamp |
 | updated_at | datetime | not null | Record update timestamp |
 
-**Indexes**:
-- `venue_id, court_type_id` (composite)
-- `is_active`
+**Pricing Rules Example (Pakistani Rupees):**
+
+Your badminton courts have time-based pricing:
+```
+Rule 1: Weekday Morning (Mon-Fri, 6 AM-12 PM) = 1500 PKR/hour
+Rule 2: Weekday Evening (Mon-Fri, 6 PM-11 PM) = 2500 PKR/hour (peak)
+Rule 3: Weekend All Day (Sat-Sun) = 2000 PKR/hour
+```
+
+When user books:
+- **Friday at 7 PM** → Matches "Weekday Evening" → Charges **2500 PKR/hour**
+- **Saturday at 10 AM** → Matches "Weekend All Day" → Charges **2000 PKR/hour**
+- **Tuesday at 8 AM** → Matches "Weekday Morning" → Charges **1500 PKR/hour**
+
+If multiple rules match the same time, the one with highest `priority` value wins.
 - `priority`
 
-**Notes**:
-- Multiple rules can exist; highest `priority` wins when overlapping
+**Notcustom | boolean | default: false | Custom role (true) or System role (false)
 - `null` values for day/time mean "apply to all"
 - Examples:
   - Peak hours: Mon-Fri 6PM-10PM = $50/hr
@@ -239,19 +273,23 @@ Flexible pricing per court type, time-based (peak/off-peak).
 
 ### 8. roles
 Predefined and custom roles.
+custom`
 
-| Column | Type | Constraints | Description |
-|--------|------|-------------|-------------|
-| id | bigint | PK, auto | Primary key |
-| name | string | unique, not null, indexed | Role name |
-| slug | string | unique, indexed | URL-friendly identifier |
-| description | text | | Role description |
-| is_system_role | boolean | default: false | System-defined (can't be deleted) |
-| is_custom | boolean | default: false | Custom role created by owner/admin |
-| created_at | datetime | not null | Record creation timestamp |
-| updated_at | datetime | not null | Record update timestamp |
+**System Roles** (is_custom = false):
+1. **owner** - Full control of the venue (the person who created it)
+2. **admin** - Most permissions (venue management, user management, reports)
+3. **receptionist** - Manage bookings, view schedules, check-ins, assist customers
+4. **staff** - Basic operations (view bookings, assist customers)
+5. **customer** - Regular user who books courts
 
-**Indexes**:
+**Custom Roles** (is_custom = true):
+- Venue owner can create custom roles with specific permissions
+- Example: "Senior Receptionist" role with additional report access
+
+**Notes**:
+- **Simplified from original**: Removed `is_system_role` boolean (redundant with `is_custom`)
+- System roles cannot be deleted
+- `is_custom = false` → System role | `is_custom = true` → Custom role
 - `name` (unique)
 - `slug` (unique)
 - `is_system_role`
@@ -312,29 +350,35 @@ Granular action-based permissions.
 - `read:reports` - Can view reports
 - `update:settings` - Can modify venue settings
 - `delete:users` - Can delete users
-- `manage:courts` - Full CRUD on courts
-
----
-
-### 10. role_permissions
-Join table: roles ↔ permissions (many-to-many).
+- `manage:couroles
+Join table: users ↔ roles (many-to-many). Tracks all staff and customers in the venue.
 
 | Column | Type | Constraints | Description |
 |--------|------|-------------|-------------|
 | id | bigint | PK, auto | Primary key |
+| user_id | bigint | FK → users, not null, indexed | User reference |
 | role_id | bigint | FK → roles, not null, indexed | Role reference |
-| permission_id | bigint | FK → permissions, not null, indexed | Permission reference |
+| assigned_by | bigint | FK → users | Who assigned this role |
+| assigned_at | datetime | not null | When role was assigned |
 | created_at | datetime | not null | Record creation timestamp |
+| updated_at | datetime | not null | Record update timestamp |
 
 **Indexes**:
-- `role_id, permission_id` (composite unique)
+- `user_id, role_id` (composite unique)
+- `role_id`
 
----
+**What this table tracks:**
+- **Owner**: The user who created the venue
+- **Admins**: Senior staff with most permissions
+- **Receptionists**: Front desk staff managing bookings
+- **Staff**: General staff assisting customers
+- **Customers**: Regular users who book courts
 
-### 11. user_venue_roles
-Join table: users ↔ venues ↔ roles (many-to-many-to-many).
-
-| Column | Type | Constraints | Description |
+**Notes**:
+- **Simplified from original** `user_venue_roles`: Removed `venue_id` since MVP is single venue
+- A user can have multiple roles (e.g., someone can be both receptionist and admin)
+- `assigned_by` tracks who granted the role (audit trail)
+- **Future**: When multi-venue is added, this becomes `user_venue_roles` with venue_id column
 |--------|------|-------------|-------------|
 | id | bigint | PK, auto | Primary key |
 | user_id | bigint | FK → users, not null, indexed | User reference |
@@ -410,6 +454,45 @@ Core booking records.
 
 ---
 
+**How to display human-readable history to owner:**
+
+Database data:
+```json
+[
+  {
+    "action": "created",
+    "user_name": "Ahmed Khan",
+    "created_at": "2026-04-07 10:30:00"
+  },
+  {
+    "action": "updated",
+    "user_name": "Receptionist Sara",
+    "changes": {
+
+    },
+    "created_at": "2026-04-07 11:00:00"
+  },
+  {
+    "action": "cancelled",
+    "user_name": "Ahmed Khan",
+    "changes": {"cancellation_reason": "Personal emergency"},
+    "created_at": "2026-04-07 12:00:00"
+  }
+]
+```
+
+Display in UI:
+```
+• Apr 7, 10:30 AM - Ahmed Khan created this booking
+• **MVP**: One-time closures only (specific date/time blocks)
+- **Future**: R
+    - Start time: 2:00 PM → 3:00 PM  
+    - Court: Court 1 → Court 2
+• Apr 7, 12:00 PM - Ahmed Khan cancelled (Reason: Personal emergency)
+```
+
+Build readable messages using the `action` field and parsing the `changes` JSON.
+
 ### 13. booking_logs
 Audit trail for booking changes.
 
@@ -442,7 +525,8 @@ Block courts for maintenance, special events, or other reasons.
 |--------|------|-------------|-------------|
 | id | bigint | PK, auto | Primary key |
 | court_id | bigint | FK → courts, not null, indexed | Court being blocked |
-| venue_id | bigint | FK → venues, not null, indexed | Venue (denormalized for queries) |
+| **MVP**: In-app notifications only (displayed in web/mobile interface)
+- **Future**: Email and SMS notifications for important alertenormalized for queries) |
 | title | string | not null | Closure title (e.g., "Maintenance") |
 | description | text | | Detailed reason for closure |
 | start_time | datetime | not null, indexed | Closure start |
@@ -459,46 +543,7 @@ Block courts for maintenance, special events, or other reasons.
 - `start_time, end_time` (composite)
 
 **Notes**:
-- Blocks bookings for specified time periods
-- Visible to users when viewing availability (shows as "Maintenance" or custom title)
-- `recurrence_rule` uses iCalendar RRULE format for recurring closures (e.g., "Every Monday 6-8 AM for cleaning")
-- Application logic checks closures when generating available time slots
-
----
-
-### 15. notifications
-System notifications and alerts for users.
-
-| Column | Type | Constraints | Description |
-|--------|------|-------------|-------------|
-| id | bigint | PK, auto | Primary key |
-| user_id | bigint | FK → users, not null, indexed | Notification recipient |
-| venue_id | bigint | FK → venues, indexed | Related venue (optional) |
-| booking_id | bigint | FK → bookings, indexed | Related booking (optional) |
-| type | string | not null, indexed | Notification type (see below) |
-| title | string | not null | Notification title |
-| message | text | not null | Notification body |
-| action_url | string | | Link to related resource |
-| is_read | boolean | default: false, indexed | Read status |
-| read_at | datetime | | When user read it |
-| priority | string | default: 'normal' | low, normal, high, urgent |
-| sent_at | datetime | | When notification was sent |
-| created_at | datetime | not null | Record creation timestamp |
-
-**Indexes**:
-- `user_id, is_read` (composite)
-- `user_id, created_at` (composite - for inbox)
-- `type`
-- `priority`
-
-**Notification Types**:
-- `booking_confirmed` - Booking created
-- `booking_reminder` - Upcoming booking (1 hour, 1 day before)
-- `booking_cancelled` - Booking cancelled
-- `booking_modified` - Booking time/court changed
-- `court_closure` - Court closed during user's usual booking time
-- `payment_due` - Payment reminder (future)
-- `venue_announcement` - Venue-wide announcements
+-  Future Tables (Not in MVP)Venue-wide announcements
 - `system_alert` - System-level messages
 
 **Notes**:
@@ -538,63 +583,94 @@ User ratings and reviews for venues.
 **Check Constraints**:
 - `rating BETWEEN 1 AND 5`
 
-**Notes**:
-- Users can only review after a completed booking
-- One review per booking (prevent spam)
-- Venue owners/admins can respond to reviews
-- Average rating calculated on-the-fly or cached on venues table
-- `is_published` allows moderation (hide offensive reviews)
+**Not. Multiple Venues Support
+**Why deferred**: MVP focuses on single venue per owner. Multi-venue adds significant complexity.
+
+**Changes needed when implementing:**
+- Add back `venue_id` to `user_roles` table (becomes `user_venue_roles`)
+- Support multiple venue records per owner
+- Cross-venue role assignments
+- Venue switching in UI
 
 ---
 
-## Optional/Future Tables
+### 2. venue_reviews
+User ratings and reviews for venues.
 
-### 17. memberships (Future)
+**Why deferred**: Reviews are valuable but not essential for core booking functionality.
+
+**Schema when implemented:**
+```
+- venue_id → Venue being reviewed
+- user_id → Reviewer
+- booking_id → Related booking (proof of visit)
+- rating (1-5)
+- comment
+- owner response
+- is_published (moderation)
+```
+
+---
+
+### 3. Recurring Court Closures
+**Why deferred**: MVP only needs one-time closure blocks. Recurring patterns add complexity.
+
+**Schema changes when implemented:**
+- Add `is_recurring` boolean to `court_closures`
+- Add `recurrence_rule` (iCalendar RRULE format)
+- Example: "Every Monday 6-8 AM for cleaning"
+
+---
+
+### 4. Email/SMS Notifications
+**Why deferred**: In-app notifications sufficient for MVP. Email/SMS requires integration with services.
+
+**Implementation notes:**
+- Add notification channels (email, SMS, push)
+- Integrate with SendGrid/Twilio
+- User preferences for notification types
+
+---
+
+### 5. memberships
 For recurring memberships and reserved slots.
 
-| Column | Type | Constraints | Description |
-|--------|------|-------------|-------------|
-| id | bigint | PK, auto | Primary key |
-| user_id | bigint | FK → users, not null | Member |
-| venue_id | bigint | FK → venues, not null | Venue |
-| membership_plan_id | bigint | FK → membership_plans | Plan details |
-| starts_at | date | not null | Membership start |
-| ends_at | date | not null | Membership end |
-| status | string | not null | active, expired, cancelled |
-| created_at | datetime | not null | Record creation timestamp |
-| updated_at | datetime | not null | Record update timestamp |
-
-**Note**: Schema placeholder for future implementation.
+**Schema:**
+- user_id, venue_id
+- membership_plan_id
+- starts_at, ends_at
+- status (active, expired, cancelled)
 
 ---
 
-### 18. equipment_rentals (Future)
-Track equipment rented during bookings.
+### 6. equipment_rentals
+Track equipment rented during bookings (rackets, balls, etc.).
 
-| Column | Type | Constraints | Description |
-|--------|------|-------------|-------------|
-| id | bigint | PK, auto | Primary key |
-| booking_id | bigint | FK → bookings, not null | Associated booking |
-| equipment_id | bigint | FK → equipment | Equipment item |
-| quantity | integer | not null | Number rented |
-| rental_fee | decimal(10,2) | | Rental cost |
-| created_at | datetime | not null | Record creation timestamp |
-| updated_at | datetime | not null | Record update timestamp |
+**Schema:**
+- booking_id
+- equipment_id
+- quantity, rental_fee
 
-**Note**: Schema placeholder for future implementation.
+---
+roles(user_id, role_id)` - Simplified for single venue
+- `bookings.booking_number`
+- `venue_settings.venue_id`
+- `venue_operating_hours(venue_id, day_of_week)`
+- code, description
+- discount_type (percentage, fixed_amount)
+- discount_value
+- max_uses, used_count
+- valid_from, valid_until
 
 ---
 
-### 19. discounts_coupons (Future)
-Promotional codes and discounts.
+### 8. Online Payments
+**Why deferred**: MVP uses cash payments only. Online payments require payment gateway integration.
 
-| Column | Type | Constraints | Description |
-|--------|------|-------------|-------------|
-| id | bigint | PK, auto | Primary key |
-| venue_id | bigint | FK → venues | Venue-specific or global (null) |
-| code | string | unique, not null | Coupon code |
-| description | text | | Discount description |
-| discount_type | string | | percentage, fixed_amount |
+**Future integration:**
+- Stripe/Razorpay/JazzCash integration
+- Partial payments, deposits, refunds
+- Payment receipts and invoices fixed_amount |
 | discount_value | decimal(10,2) | | Discount value |
 | max_uses | integer | | Maximum redemptions |
 | used_count | integer | default: 0 | Times used |
@@ -610,11 +686,10 @@ Promotional codes and discounts.
 
 ## Database Constraints & Validations
 
-### Unique Constraints
-- `users.email`
-- `venues.slug`
-- `court_types.name`, `court_types.slug`
-- `courts(venue_id, name)` - Court name unique per venue
+### Uniqueroles → users, roles`
+  - `booking_logs → bookings`
+  - `court_closures → courts, venues`
+  - `notifications → users` (SET NULL for venue, booking if deleted)e per venue
 - `roles.name`, `roles.slug`
 - `permissions.name`, `permissions(resource, action)`
 - `role_permissions(role_id, permission_id)`
@@ -631,9 +706,9 @@ Promotional codes and discounts.
 - `bookings.end_time > start_time`
 - `bookings.duration_minutes > 0`
 - `bookings.paid_amount >= 0`
-- `bookings.paid_amount <= total_amount`
-- `pricing_rules.price_per_hour >= 0`
-- `pricing_rules.end_time > start_time` (when both set)
+- `bookingRoles**: 
+   - `(user_id, role_id)` - Simplified for single venue
+   - `role_id` - All users with specific role set)
 - `venue_operating_hours.closes_at > opens_at`
 - `venue_operating_hours.day_of_week BETWEEN 0 AND 6`
 - `court_closures.end_time > start_time`
@@ -648,11 +723,7 @@ All `FK →` references in tables above should have:
   - `courts → venues`
   - `pricing_rules → venues`
   - `role_permissions → roles, permissions`
-  - `user_venue_roles → users, venues, roles`
-  - `booking_logs → bookings`
-  - `court_closures → courts, venues`
-  - `notifications → users` (SET NULL for venue, booking if deleted)
-  - `venue_reviews → venues, users, bookings`
+  - `user_venue_roles → users, venues, ro
 
 ---
 
@@ -700,7 +771,7 @@ All `FK →` references in tables above should have:
 
 #### 1. Court Types
 ```
-- Tennis
+- Tennisrole_id)`: Fast permission checks per user
 - Basketball  
 - Badminton
 - Squash
@@ -742,7 +813,6 @@ Notifications: read:notifications, create:notifications (send announcements)
 **Admin**:
 - All permissions except:
   - delete:venues
-  - Full role management (only read:roles)
 
 **Receptionist**:
 - manage:bookings
@@ -764,8 +834,7 @@ Notifications: read:notifications, create:notifications (send announcements)
 **Customer**:
 - create:bookings (own)
 - read:bookings (own)
-- update:bookings (own - for cancellation)
-- read:courts
+- update:bookings (o
 - read:notifications (own)
 - create:reviews (after completed booking)
 
@@ -810,26 +879,23 @@ Output: Available time slots
 When a user has roles in multiple venues:
 ```ruby
 # Get all venues user has access to
-user.venues # Through user_venue_roles
-
-# Get user's roles for specific venue
-user.roles_for_venue(venue_id)
-
-# Check permission for specific venue
-user.can?(:create, :bookings, venue_id)
+user.venues # Through use (MVP - Single Venue)
+```
+1. If user.is_global_admin? → Grant access
+2. Get user's roles (user_roles)
+3. Get permissions for those roles (role_permissions)
+4. Check if required permission exists
+5. Grant/Deny access
 ```
 
----
+Example code:
+```ruby
+# Get user's roles
+user.roles # Through user_roles
 
-## Schema Migration Order
-
-When implementing, create migrations in this sequence:
-
-1. **Core User & Auth**
-   - users
-
-2. **Venue Foundation**
-   - venues
+# Check permission
+user.can?(:create, :bookings)
+user.can?(:read, :reports
    - venue_settings
    - venue_operating_hours
 
@@ -860,7 +926,7 @@ When implementing, create migrations in this sequence:
 
 ---
 
-## Schema Flexibility Points
+## Schema ility Points
 
 The schema is designed to be extensible:
 
@@ -868,9 +934,10 @@ The schema is designed to be extensible:
 2. **Custom roles**: `is_custom` flag allows venue-specific roles
 3. **Dynamic pricing**: Multiple pricing rules with priority system
 4. **Time slots**: No hardcoded slots, dynamically generated
-5. **Payment methods**: `payment_method` and `payment_status` ready for future gateway integration
-6. **Cancellation policies**: `cancellation_hours` in venue_settings, tracking in bookings
-7. **Multi-venue scaling**: Separate data per venue, efficient querying with indexes
+
+7. **Future Enhancements**
+   - venue_reviews (moved to future)
+   - multi-venue support (user_venue_roles): Separate data per venue, efficient querying with indexes
 8. **Audit trail**: booking_logs tracks all changes
 9. **Geographic search**: latitude/longitude ready for location-based queries
 10. **Court maintenance**: Flexible court_closures with recurring patterns support
@@ -882,42 +949,285 @@ The schema is designed to be extensible:
 ---
 
 ## Final Confirmation Checklist
-
-Before implementation, please confirm:
-
-1. ✅ **Guest bookings**: Not supported - users must register
-2. ✅ **Court maintenance**: Yes - court_closures table with name/description
-3. ✅ **Notifications**: Yes - notifications table for alerts and reminders
-4. ✅ **Reviews**: Yes - venue_reviews table with ratings and responses
-5. ✅ **Emergency contacts**: Yes - added to users table
-6. ⏸️ **Memberships**: Future feature - placeholder in schema
-7. ⏸️ **Payments**: Cash only for now - online payments in future
-8. ⏸️ **Recurring bookings**: Future feature - not in initial schema
-
-### Additional Questions (Optional)
+custom roles
+3. **Dynamic pricing**: Multiple pricing rules with priority system
+4. **Time slots**: No hardcoded slots, dynamically generated
+5. **Payment methods**: `payment_method` and `payment_status` ready for future gateway integration
+6. **Cancellation policies**: `cancellation_hours` in venue_settings, tracking in bookings
+7. **Audit trail**: booking_logs tracks all changes with human-readable history
+8. **Geographic search**: latitude/longitude ready for Google Maps integration and distance calculations
+9. **Court maintenance**: court_closures for blocking time periods
+10. **Notifications**: Extensible notification types (in-app for MVP)
+11. **Emergency contacts**: User safety and liability protection
+12. **Future expansion**: Easy to add multi-venue support (add venue_id to user_roles), reviews, recurring closures, email/SMS notification
 - **Booking number format**: Is `BK-{venue_code}-{YYYYMMDD}-{sequential}` acceptable?
 - **Average rating cache**: Should we cache average rating on venues table for performance?
 - **Review moderation**: Should reviews require approval before being published?
 - **Notification channels**: In-app only, or also email/SMS/push?
-- **Court images**: Should courts have a photos/gallery table?
-- **Venue amenities**: Need a separate table for amenities (parking, WiFi, lockers, etc.)?
+---
+
+## Summary of MVP Simplifications
+
+| Original Feature | MVP Change | Reason |
+|-----------------|------------|--------|
+| Multi-venue support | Single venue only | Reduces complexity, focus on core booking |
+| user_venue_roles | user_roles (no venue_id) | Simpler for single venue |
+| is_system_role + is_custom | Only is_custom boolean | One boolean sufficient |
+| venue_reviews | Moved to future | Not critical for booking operations |
+| Recurring closures | One-time only | Simpler for MVP |
+| Email/SMS notifications | In-app only | Avoid third-party integration initially |
+| average_rating in venues | Removed | No reviews in MVP |
+
+**Key MVP Features Retained:**
+- Dynamic time slot generation
+- Flexible pricing rules (time-based, court-type-based)
+- Role-based permissions with custom roles
+- Booking audit trail (booking_logs)
+- Court closures for maintenance
+- In-app notifications
+- Pakistan timezone (Asia/Karachi) and PKR currency defaults
+- Google Maps integration (lat/long)
+
+---
+
+*Last Updated: 2026-04-07*
+*Status: **MVP Schema - Ready for Implementation**
+
+**MVP Scope (Included):**
+1. ✅ **Single venue per owner**: Simplified from multi-venue
+2. ✅ **User roles**: Simplified `user_roles` (no venue_id)
+3. ✅ **Court maintenance**: court_closures (one-time only for MVP)
+4. ✅ **Notifications**: In-app only for MVP
+5. ✅ **Emergency contacts**: Added to users table
+6. ✅ **Dynamic time slots**: Generated on-the-fly with configurable durations
+7. ✅ **Flexible pricing**: Time-based pricing rules with examples in PKR
+8. ✅ **Audit trail**: booking_logs with human-readable history guide
+9. ✅ **Google Maps**: Latitude/longitude for map link generation
+10. ✅ **Payments**: Cash only for MVP
+
+**Deferred to Future (Not in MVP):**
+1. ⏸️ **Multiple venues**: Owner can have many venues
+2. ⏸️ **Reviews**: venue_reviews table
+3. ⏸️ **Recurring closures**: iCalendar RRULE support
+4. ⏸️ **Email/SMS notifications**: Only in-app for now
+5. ⏸️ **Memberships**: Reserved slots, recurring bookings
+6. ⏸️ **Equipment rentals**: Track rented items
+7. ⏸️ **Discounts/coupons**: Promotional codes
+8. ⏸️ **Online payments**: Stripe/Razorpay integration
+
+---
+
+## Database Relationships Overview
+
+Visual representation of how all tables connect to each other.
+
+### One-to-One Relationships
+
+| Parent Table | Child Table | Relationship | Description |
+|--------------|-------------|--------------|-------------|
+| venues | venue_settings | 1:1 | Each venue has exactly one settings record |
+
+**Notes:**
+- Enforced by unique constraint on `venue_settings.venue_id`
+- Settings are required for each venue
+
+---
+
+### One-to-Many Relationships
+
+| Parent (One) | Child (Many) | Foreign Key | Description |
+|--------------|--------------|-------------|-------------|
+| **users** | venues | venues.owner_id | One user owns one/many venues (MVP: one only) |
+| **venues** | venue_operating_hours | venue_operating_hours.venue_id | One venue has 7 operating hour records (Mon-Sun) |
+| **venues** | courts | courts.venue_id | One venue has many courts |
+| **venues** | pricing_rules | pricing_rules.venue_id | One venue has many pricing rules |
+| **venues** | court_closures | court_closures.venue_id | One venue has many court closures |
+| **venues** | bookings | bookings.venue_id | One venue has many bookings (denormalized) |
+| **court_types** | courts | courts.court_type_id | One sport type (Tennis) has many courts |
+| **courts** | bookings | bookings.court_id | One court has many bookings |
+| **courts** | court_closures | court_closures.court_id | One court has many closure periods |
+| **users** | bookings | bookings.user_id | One user (customer) makes many bookings |
+| **users** | bookings | bookings.created_by | One user (staff) creates many bookings |
+| **users** | bookings | bookings.cancelled_by | One user cancels many bookings |
+| **users** | bookings | bookings.checked_in_by | One user (receptionist) checks in many bookings |
+| **users** | user_roles | user_roles.user_id | One user has many roles |
+| **users** | user_roles | user_roles.assigned_by | One user assigns many roles to others |
+| **users** | booking_logs | booking_logs.user_id | One user creates many booking log entries |
+| **users** | court_closures | court_closures.created_by | One user creates many court closures |
+| **users** | notifications | notifications.user_id | One user receives many notifications |
+| **bookings** | booking_logs | booking_logs.booking_id | One booking has many log entries (audit trail) |
+| **bookings** | notifications | notifications.booking_id | One booking triggers many notifications |
+| **venues** | notifications | notifications.venue_id | One venue has many notifications |
+| **roles** | user_roles | user_roles.role_id | One role assigned to many users |
+| **roles** | role_permissions | role_permissions.role_id | One role has many permissions |
+| **permissions** | role_permissions | role_permissions.permission_id | One permission belongs to many roles |
+
+**Key Patterns:**
+- **Denormalization**: `bookings.venue_id` is denormalized from court for faster queries
+- **Multiple FKs to same table**: Users table has multiple relationships to bookings (user, creator, canceller, checker)
+- **Audit trails**: booking_logs, user_roles.assigned_by track who did what
+
+---
+
+### Many-to-Many Relationships
+
+| Table A | Table B | Join Table | Description |
+|---------|---------|------------|-------------|
+| **users** | **roles** | user_roles | Users can have multiple roles; roles can be assigned to multiple users |
+| **roles** | **permissions** | role_permissions | Roles have multiple permissions; permissions belong to multiple roles |
+
+**Join Table Details:**
+
+**user_roles** (users ↔ roles):
+```
+- user_id → users
+- role_id → roles
+- assigned_by → users (audit)
+- assigned_at
+```
+- **Example**: User "Ahmed" has roles: [customer, receptionist]
+- **Example**: Role "receptionist" assigned to users: [Sara, Ali, Fatima]
+
+**role_permissions** (roles ↔ permissions):
+```
+- role_id → roles
+- permission_id → permissions
+```
+- **Example**: Role "receptionist" has permissions: [create:bookings, read:bookings, update:bookings, read:courts]
+- **Example**: Permission "read:bookings" belongs to roles: [owner, admin, receptionist, staff]
+
+---
+
+### Complete Entity Relationship Diagram (Text Format)
+
+```
+users (Primary Entity)
+├─ owns → venues (1:many, MVP: 1:1)
+├─ has → user_roles (1:many)
+│  └─ connects to → roles (many:many via user_roles)
+├─ makes → bookings (1:many via user_id)
+├─ creates → bookings (1:many via created_by)
+├─ cancels → bookings (1:many via cancelled_by)
+├─ checks in → bookings (1:many via checked_in_by)
+├─ assigns → user_roles (1:many via assigned_by)
+├─ creates → court_closures (1:many)
+├─ logs → booking_logs (1:many)
+└─ receives → notifications (1:many)
+
+venues
+├─ has → venue_settings (1:1) ⭐
+├─ has → venue_operating_hours (1:many - 7 days)
+├─ has → courts (1:many)
+├─ has → pricing_rules (1:many)
+├─ has → court_closures (1:many)
+├─ has → bookings (1:many - denormalized)
+└─ has → notifications (1:many)
+
+venue_settings
+└─ belongs to → venues (1:1) ⭐
+
+venue_operating_hours
+└─ belongs to → venues (many:1)
+
+court_types
+└─ has → courts (1:many)
+
+courts
+├─ belongs to → venues (many:1)
+├─ is of type → court_types (many:1)
+├─ has → bookings (1:many)
+└─ has → court_closures (1:many)
+
+pricing_rules
+├─ belongs to → venues (many:1)
+└─ applies to → court_types (many:1)
+
+bookings
+├─ belongs to → users (many:1 via user_id)
+├─ created by → users (many:1 via created_by)
+├─ cancelled by → users (many:1 via cancelled_by)
+├─ checked in by → users (many:1 via checked_in_by)
+├─ belongs to → courts (many:1)
+├─ belongs to → venues (many:1 - denormalized)
+├─ has → booking_logs (1:many)
+└─ triggers → notifications (1:many)
+
+booking_logs
+├─ belongs to → bookings (many:1)
+└─ created by → users (many:1)
+
+court_closures
+├─ belongs to → courts (many:1)
+├─ belongs to → venues (many:1 - denormalized)
+└─ created by → users (many:1)
+
+roles
+├─ has → user_roles (1:many)
+│  └─ connects to → users (many:many via user_roles)
+└─ has → role_permissions (1:many)
+   └─ connects to → permissions (many:many via role_permissions)
+
+permissions
+└─ has → role_permissions (1:many)
+   └─ connects to → roles (many:many via role_permissions)
+
+user_roles (Join Table)
+├─ belongs to → users (many:1)
+├─ belongs to → roles (many:1)
+└─ assigned by → users (many:1 via assigned_by)
+
+role_permissions (Join Table)
+├─ belongs to → roles (many:1)
+└─ belongs to → permissions (many:1)
+
+notifications
+├─ belongs to → users (many:1)
+├─ related to → venues (many:1, optional)
+└─ related to → bookings (many:1, optional)
+```
+
+**Legend:**
+- `→` indicates direction of relationship
+- `⭐` indicates one-to-one relationship
+- `1:1` = one-to-one
+- `1:many` = one-to-many
+- `many:1` = many-to-one (reverse of 1:many)
+- `many:many` = many-to-many (through join table)
+
+---
+
+### Relationship Summary
+
+| Relationship Type | Count | Tables |
+|------------------|-------|--------|
+| **One-to-One** | 1 | venues ↔ venue_settings |
+| **One-to-Many** | 24 | See detailed list above |
+| **Many-to-Many** | 2 | users ↔ roles, roles ↔ permissions |
+| **Total Tables** | 16 | MVP Schema |
+
+**Central Tables (High Connectivity):**
+1. **users** - 10 relationships (owns venue, makes bookings, creates logs, etc.)
+2. **venues** - 7 relationships (settings, hours, courts, pricing, closures, bookings, notifications)
+3. **bookings** - 6 relationships (user, court, venue, logs, notifications, multiple user FKs)
+4. **courts** - 4 relationships (venue, court_type, bookings, closures)
+5. **roles** - 2 relationships (users, permissions)
+
+**Isolated Tables (Low Connectivity):**
+1. **court_types** - 1 relationship (courts)
+2. **permissions** - 1 relationship (roles)
+3. **venue_settings** - 1 relationship (venues)
 
 ---
 
 ## Next Steps
 
-1. **Review & Confirm**: Review this schema design and confirm all requirements are met
-2. **Refinement**: Answer questions above to finalize schema
-3. **Implementation**:
-   - Create Rails migrations
+1. **Review & Confirm**: ✅ MVP schema finalized
+2. **Implementation Order**:
+   - Create Rails migrations in sequence (see "Schema Migration Order" section)
    - Setup models with associations
    - Implement validation rules
-   - Create seed data
+   - Create seed data (court types, system roles, permissions)
    - Setup permission system (CanCanCan or Pundit)
    - Build time slot generation service
    - Implement booking service with double-booking prevention
-
----
-
-*Last Updated: 2026-04-06*
-*Status: Draft - Awaiting Review*
+3. **Start with**: Core user authentication and single venue setup
