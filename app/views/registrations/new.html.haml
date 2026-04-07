@@ -1,8 +1,8 @@
 %h2 Sign up
 
 = form_with model: @user, url: registration_path do |f|
-  - if @user.errors.any?
-    #error_explanation
+  - if @user&.errors&.any?
+    #error_explanation{style: "color: red; padding: 1rem; margin-bottom: 1rem; background: #fee; border-radius: 4px;"}
       %h3= "#{pluralize(@user.errors.count, "error")} prohibited this user from being saved:"
       %ul
         - @user.errors.full_messages.each do |message|

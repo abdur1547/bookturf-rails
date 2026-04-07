@@ -1,6 +1,10 @@
 %h2 Log in
 
-= form_with url: session_path, scope: :user do |f|
+- if flash[:alert]
+  .alert{style: "color: red; padding: 1rem; margin-bottom: 1rem; background: #fee; border-radius: 4px;"}
+    = flash[:alert]
+
+= form_with url: session_path do |f|
   .field
     = f.label :email
     %br/

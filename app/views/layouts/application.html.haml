@@ -16,4 +16,10 @@
     = stylesheet_link_tag :app, "data-turbo-track": "reload"
     = javascript_importmap_tags
   %body
+    - if flash.notice
+      .notice{style: "color: green; padding: 1rem; margin: 1rem; background: #d4edda; border-radius: 4px;"}
+        = flash.notice
+    - if flash.alert
+      .alert{style: "color: red; padding: 1rem; margin: 1rem; background: #f8d7da; border-radius: 4px;"}
+        = flash.alert
     = yield
