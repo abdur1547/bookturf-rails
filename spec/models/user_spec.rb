@@ -8,13 +8,98 @@ RSpec.describe User, type: :model do
     it { should have_many(:password_reset_tokens).dependent(:delete_all) }
     it { should have_many(:user_roles).dependent(:destroy) }
     it { should have_many(:roles).through(:user_roles) }
+
+    # Phase 2: Venue associations
+    it { should have_many(:owned_venues).class_name('Venue').with_foreign_key('owner_id').dependent(:restrict_with_error) }
+    it { should have_many(:venue_users).dependent(:destroy) }
+    it { should have_many(:venues).through(:venue_users) }
   end
 
   describe 'validations' do
     subject { build(:user) }
 
-    it { should validate_presence_of(:name) }
+    it { should validate_presence_of(:first_name) }
+    it { should validate_presence_of(:last_name) }
+    it { should validate_presence_of(:email) }
     it { should validate_uniqueness_of(:email).case_insensitive }
+
+    it 'validates first_name length' do
+      user = build(:user, first_name: 'a')
+      expect(user).not_to be_valid
+      expect(user.errors[:first_name]).to include('is too short (minimum is 2 characters)')
+    end
+
+    it 'validates last_name length' do
+      user = build(:user, last_name: 'a')
+      expect(user).not_to be_valid
+      expect(user.errors[:last_name]).to include('is too short (minimum is 2 characters)')
+    end
+
+    it 'validates phone number format' do
+      user = build(:user, phone_number: 'invalid')
+      expect(user).not_to be_valid
+      expect(user.errors[:phone_number]).to be_present
+    end
+
+    it 'allows valid phone number' do
+      user = build(:user, phone_number: '+92 300 1234567')
+      expect(user).to be_valid
+    end
+
+    it 'allows blank phone number' do
+      user = build(:user, phone_number: nil)
+      expect(user).to be_valid
+    end
+  end
+
+  describe 'scopes' do
+    let!(:active_user) { create(:user, is_active: true) }
+    let!(:inactive_user) { create(:user, :inactive) }
+    let!(:global_admin) { create(:user, :global_admin) }
+
+    describe '.active' do
+      it 'returns only active users' do
+        expect(User.active).to include(active_user, global_admin)
+        expect(User.active).not_to include(inactive_user)
+      end
+    end
+
+    describe '.inactive' do
+      it 'returns only inactive users' do
+        expect(User.inactive).to include(inactive_user)
+        expect(User.inactive).not_to include(active_user, global_admin)
+      end
+    end
+
+    describe '.global_admins' do
+      it 'returns only global admins' do
+        expect(User.global_admins).to include(global_admin)
+        expect(User.global_admins).not_to include(active_user, inactive_user)
+      end
+    end
+  end
+
+  describe 'instance methods' do
+    let(:user) { create(:user, first_name: 'John', last_name: 'Doe') }
+
+    describe '#full_name' do
+      it 'returns combined first and last name' do
+        expect(user.full_name).to eq('John Doe')
+      end
+    end
+
+    describe '#activate!' do
+      it 'sets is_active to true' do
+        user.update(is_active: false)
+        expect { user.activate! }.to change { user.is_active }.from(false).to(true)
+      end
+    end
+
+    describe '#deactivate!' do
+      it 'sets is_active to false' do
+        expect { user.deactivate! }.to change { user.is_active }.from(true).to(false)
+      end
+    end
   end
 
   describe 'role and permission methods' do
