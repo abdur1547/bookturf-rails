@@ -14,6 +14,7 @@ class Role < ApplicationRecord
   validates :slug, format: { with: /\A[a-z0-9\-_]+\z/, message: "only lowercase letters, numbers, hyphens, and underscores" }, allow_blank: true
 
   before_validation :generate_slug, if: -> { slug.blank? && name.present? }
+  before_update :regenerate_slug_on_name_change, if: -> { name_changed? && persisted? }
   before_destroy :prevent_system_role_deletion
 
   scope :system_roles, -> { where(is_custom: false) }
@@ -52,6 +53,10 @@ class Role < ApplicationRecord
 
   def generate_slug
     self.slug = name.parameterize(separator: "_")
+  end
+
+  def regenerate_slug_on_name_change
+    generate_slug
   end
 
   def prevent_system_role_deletion

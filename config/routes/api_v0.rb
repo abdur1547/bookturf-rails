@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+API_ONLY_ROUTES = [ :index, :show, :create, :update, :destroy ]
+
 namespace :api do
   namespace :v0 do
     scope :auth do
@@ -10,5 +12,7 @@ namespace :api do
       post :reset_password, to: "auth#reset_password"
       post :verify_reset_otp, to: "auth#verify_reset_otp"
     end
+
+    resources :roles, only: API_ONLY_ROUTES
   end
 end
