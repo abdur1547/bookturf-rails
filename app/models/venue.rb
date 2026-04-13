@@ -5,10 +5,11 @@ class Venue < ApplicationRecord
   has_many :venue_operating_hours, -> { order(:day_of_week) }, dependent: :destroy
   has_many :venue_users, dependent: :destroy
   has_many :staff_members, through: :venue_users, source: :user
-
-  # Phase 3: Courts
   has_many :courts, dependent: :destroy
   has_many :pricing_rules, dependent: :destroy
+  has_many :bookings, dependent: :restrict_with_error
+  has_many :court_closures, dependent: :destroy
+  has_many :notifications, dependent: :destroy
 
   # Accept nested attributes for settings and hours
   accepts_nested_attributes_for :venue_setting

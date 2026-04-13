@@ -12,6 +12,11 @@ class User < ApplicationRecord
 
   has_many :venue_users, dependent: :destroy
   has_many :venues, through: :venue_users
+  has_many :bookings, dependent: :restrict_with_error
+  has_many :created_bookings, class_name: "Booking", foreign_key: "created_by_id", dependent: :nullify
+  has_many :cancelled_bookings, class_name: "Booking", foreign_key: "cancelled_by_id", dependent: :nullify
+  has_many :checked_in_bookings, class_name: "Booking", foreign_key: "checked_in_by_id", dependent: :nullify
+  has_many :notifications, dependent: :destroy
 
   has_secure_password
 

@@ -9,22 +9,24 @@
 
 ## Overview
 
-This is the heart of the application - the booking system. Users can reserve courts for specific time slots, track payment status, and view booking history. Includes audit trail for all changes.
+This is the heart of the application - the booking system. Users can reserve courts for specific time slots, track payment status, and view booking history. Uses **public_activity** gem for complete audit trail.
 
 **What you'll build:**
 - Court booking creation and management
 - Double-booking prevention
 - Booking status workflow (confirmed → completed/cancelled/no_show)
 - Payment tracking (cash-based for MVP)
-- Complete audit trail (booking logs)
-- Human-readable booking history
+- Complete audit trail using **public_activity** gem
+- Activity tracking for all booking changes
 
 ---
 
 ## Tables in This Phase
 
 ### 1. bookings (Core booking records)
-### 2. booking_logs (Audit trail for all changes)
+### 2. activities (Activity tracking via public_activity gem)
+
+**Note**: We use the [public_activity](https://github.com/public-activity/public_activity) gem instead of a custom booking_logs table. This provides a standardized, flexible way to track all booking activities and changes.
 
 ---
 

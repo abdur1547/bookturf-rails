@@ -10,9 +10,25 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_13_100002) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_13_101733) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "activities", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "key"
+    t.bigint "owner_id"
+    t.string "owner_type"
+    t.text "parameters"
+    t.bigint "recipient_id"
+    t.string "recipient_type"
+    t.bigint "trackable_id"
+    t.string "trackable_type"
+    t.datetime "updated_at", null: false
+    t.index ["owner_type", "owner_id"], name: "index_activities_on_owner"
+    t.index ["recipient_type", "recipient_id"], name: "index_activities_on_recipient"
+    t.index ["trackable_type", "trackable_id"], name: "index_activities_on_trackable"
+  end
 
   create_table "blacklisted_tokens", force: :cascade do |t|
     t.datetime "created_at", null: false
@@ -22,6 +38,64 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_13_100002) do
     t.bigint "user_id", null: false
     t.index ["jti"], name: "index_blacklisted_tokens_on_jti", unique: true
     t.index ["user_id"], name: "index_blacklisted_tokens_on_user_id"
+  end
+
+  create_table "bookings", force: :cascade do |t|
+    t.string "booking_number", null: false
+    t.text "cancellation_reason"
+    t.datetime "cancelled_at"
+    t.bigint "cancelled_by_id"
+    t.datetime "checked_in_at"
+    t.bigint "checked_in_by_id"
+    t.bigint "court_id", null: false
+    t.datetime "created_at", null: false
+    t.bigint "created_by_id"
+    t.integer "duration_minutes", null: false
+    t.datetime "end_time", null: false
+    t.text "notes"
+    t.decimal "paid_amount", precision: 10, scale: 2, default: "0.0"
+    t.string "payment_method"
+    t.string "payment_status", default: "pending"
+    t.datetime "start_time", null: false
+    t.string "status", default: "confirmed", null: false
+    t.decimal "total_amount", precision: 10, scale: 2, default: "0.0"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.bigint "venue_id", null: false
+    t.index ["booking_number"], name: "index_bookings_on_booking_number", unique: true
+    t.index ["cancelled_by_id"], name: "index_bookings_on_cancelled_by_id"
+    t.index ["checked_in_by_id"], name: "index_bookings_on_checked_in_by_id"
+    t.index ["court_id", "start_time", "end_time"], name: "index_bookings_on_court_id_and_start_time_and_end_time"
+    t.index ["court_id"], name: "index_bookings_on_court_id"
+    t.index ["created_by_id"], name: "index_bookings_on_created_by_id"
+    t.index ["start_time", "end_time"], name: "index_bookings_on_start_time_and_end_time"
+    t.index ["status"], name: "index_bookings_on_status"
+    t.index ["user_id"], name: "index_bookings_on_user_id"
+    t.index ["venue_id", "start_time"], name: "index_bookings_on_venue_id_and_start_time"
+    t.index ["venue_id"], name: "index_bookings_on_venue_id"
+    t.check_constraint "duration_minutes > 0", name: "positive_duration"
+    t.check_constraint "end_time > start_time", name: "end_time_after_start_time"
+    t.check_constraint "paid_amount <= total_amount", name: "paid_not_exceeding_total"
+    t.check_constraint "paid_amount >= 0::numeric", name: "non_negative_paid_amount"
+  end
+
+  create_table "court_closures", force: :cascade do |t|
+    t.bigint "court_id", null: false
+    t.datetime "created_at", null: false
+    t.bigint "created_by_id"
+    t.text "description"
+    t.datetime "end_time", null: false
+    t.datetime "start_time", null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "venue_id", null: false
+    t.index ["court_id", "start_time", "end_time"], name: "index_court_closures_on_court_id_and_start_time_and_end_time"
+    t.index ["court_id"], name: "index_court_closures_on_court_id"
+    t.index ["created_by_id"], name: "index_court_closures_on_created_by_id"
+    t.index ["start_time", "end_time"], name: "index_court_closures_on_start_time_and_end_time"
+    t.index ["venue_id", "start_time"], name: "index_court_closures_on_venue_id_and_start_time"
+    t.index ["venue_id"], name: "index_court_closures_on_venue_id"
+    t.check_constraint "end_time > start_time", name: "closure_end_after_start"
   end
 
   create_table "court_types", force: :cascade do |t|
@@ -48,6 +122,29 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_13_100002) do
     t.index ["is_active"], name: "index_courts_on_is_active"
     t.index ["venue_id", "name"], name: "index_courts_on_venue_id_and_name", unique: true
     t.index ["venue_id"], name: "index_courts_on_venue_id"
+  end
+
+  create_table "notifications", force: :cascade do |t|
+    t.string "action_url"
+    t.bigint "booking_id"
+    t.datetime "created_at", null: false
+    t.boolean "is_read", default: false, null: false
+    t.text "message", null: false
+    t.string "notification_type", null: false
+    t.string "priority", default: "normal", null: false
+    t.datetime "read_at"
+    t.datetime "sent_at"
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.bigint "venue_id"
+    t.index ["booking_id"], name: "index_notifications_on_booking_id"
+    t.index ["notification_type"], name: "index_notifications_on_notification_type"
+    t.index ["priority"], name: "index_notifications_on_priority"
+    t.index ["user_id", "created_at"], name: "index_notifications_on_user_id_and_created_at"
+    t.index ["user_id", "is_read"], name: "index_notifications_on_user_id_and_is_read"
+    t.index ["user_id"], name: "index_notifications_on_user_id"
+    t.index ["venue_id"], name: "index_notifications_on_venue_id"
   end
 
   create_table "password_reset_tokens", force: :cascade do |t|
@@ -242,8 +339,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_13_100002) do
   end
 
   add_foreign_key "blacklisted_tokens", "users"
+  add_foreign_key "bookings", "courts"
+  add_foreign_key "bookings", "users"
+  add_foreign_key "bookings", "users", column: "cancelled_by_id"
+  add_foreign_key "bookings", "users", column: "checked_in_by_id"
+  add_foreign_key "bookings", "users", column: "created_by_id"
+  add_foreign_key "bookings", "venues"
+  add_foreign_key "court_closures", "courts"
+  add_foreign_key "court_closures", "users", column: "created_by_id"
+  add_foreign_key "court_closures", "venues"
   add_foreign_key "courts", "court_types"
   add_foreign_key "courts", "venues"
+  add_foreign_key "notifications", "bookings"
+  add_foreign_key "notifications", "users"
+  add_foreign_key "notifications", "venues"
   add_foreign_key "password_reset_tokens", "users"
   add_foreign_key "pricing_rules", "court_types"
   add_foreign_key "pricing_rules", "venues"
