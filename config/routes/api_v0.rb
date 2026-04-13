@@ -14,5 +14,6 @@ namespace :api do
     end
 
     resources :roles, only: API_ONLY_ROUTES
+    resources :venues, only: API_ONLY_ROUTES
   end
 end
