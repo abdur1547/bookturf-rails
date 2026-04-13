@@ -30,10 +30,16 @@ module Api::V0
              :postal_code,
              :phone_number,
              :email,
-             :latitude,
-             :longitude,
              :is_active,
              :created_at
+
+      field :latitude do |venue|
+        venue.latitude&.to_f
+      end
+
+      field :longitude do |venue|
+        venue.longitude&.to_f
+      end
 
       field :google_maps_url do |venue|
         venue.google_maps_url
@@ -57,11 +63,17 @@ module Api::V0
              :postal_code,
              :phone_number,
              :email,
-             :latitude,
-             :longitude,
              :is_active,
              :created_at,
              :updated_at
+
+      field :latitude do |venue|
+        venue.latitude&.to_f
+      end
+
+      field :longitude do |venue|
+        venue.longitude&.to_f
+      end
 
       field :google_maps_url do |venue|
         venue.google_maps_url

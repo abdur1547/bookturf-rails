@@ -96,7 +96,14 @@ class Venue < ApplicationRecord
   end
 
   def owner_can_have_only_one_venue
-    if owner && owner.owned_venues.exists?
+    return unless owner_id
+
+    # Query database directly to avoid association caching issues
+    query = Venue.where(owner_id: owner_id)
+    # Exclude the current venue if it's being updated (already persisted)
+    query = query.where.not(id: id) if persisted?
+
+    if query.exists?
       errors.add(:owner, "can only own one venue in MVP")
     end
   end

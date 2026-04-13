@@ -16,8 +16,8 @@ class VenuePolicy < ApplicationPolicy
   def update?
     return false unless user.present?
 
-    # Owner or Admin can update
-    owner? || admin?
+    # Owner or Global Admin can update
+    owner? || global_admin?
   end
 
   def destroy?
@@ -33,8 +33,7 @@ class VenuePolicy < ApplicationPolicy
     record.owner_id == user.id
   end
 
-  def admin?
-    # Check if user has admin role for this venue
-    user.venue_users.exists?(venue_id: record.id, role: "admin")
+  def global_admin?
+    user.admin?
   end
 end

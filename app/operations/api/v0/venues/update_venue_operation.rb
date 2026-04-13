@@ -31,11 +31,13 @@ module Api::V0::Venues
           end
 
           optional(:venue_operating_hours).maybe(:array) do
-            hash do
-              required(:day_of_week).filled(:integer)
-              optional(:opens_at).maybe(:string)
-              optional(:closes_at).maybe(:string)
-              optional(:is_closed).maybe(:bool)
+            each do
+              hash do
+                required(:day_of_week).filled(:integer)
+                optional(:opens_at).maybe(:string)
+                optional(:closes_at).maybe(:string)
+                optional(:is_closed).maybe(:bool)
+              end
             end
           end
         end
@@ -57,7 +59,7 @@ module Api::V0::Venues
         params: venue_params
       )
 
-      return Failure(errors: result.error) unless result.success?
+      return Failure(error: result.error) unless result.success?
 
       @venue = result.data
       json_data = serialize

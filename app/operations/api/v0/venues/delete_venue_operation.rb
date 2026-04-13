@@ -19,7 +19,7 @@ module Api::V0::Venues
 
       result = Venues::VenueDestroyerService.call(venue: @venue)
 
-      return Failure(errors: result.error) unless result.success?
+      return Failure(error: result.error) unless result.success?
 
       json_data = serialize
 

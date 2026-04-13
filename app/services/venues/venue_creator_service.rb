@@ -23,39 +23,32 @@ module Venues
           return failure(venue.errors.full_messages)
         end
 
-        update_settings(venue, setting_params)
-        update_operating_hours(venue, hours_params)
+        # Update settings if provided
+        if setting_params.present?
+          unless venue.venue_setting.update(setting_params)
+            return failure(venue.venue_setting.errors.full_messages)
+          end
+        end
+
+        # Update operating hours if provided
+        if hours_params.present?
+          hours_params.each do |hour_params|
+            day = hour_params[:day_of_week]
+            existing_hour = venue.venue_operating_hours.find_by(day_of_week: day)
+
+            if existing_hour
+              unless existing_hour.update(hour_params)
+                return failure(existing_hour.errors.full_messages)
+              end
+            end
+          end
+        end
 
         venue.reload
         success(venue)
       end
     rescue StandardError => e
       failure("Failed to create venue: #{e.message}")
-    end
-  end
-
-  private
-
-  def update_settings(venue, setting_params)
-    if setting_params.present?
-      unless venue.venue_setting.update(setting_params)
-        failure(venue.venue_setting.errors.full_messages)
-      end
-    end
-  end
-
-  def update_operating_hours(venue, hours_params)
-    if hours_params.present?
-      hours_params.each do |hour_params|
-        day = hour_params[:day_of_week]
-        existing_hour = venue.venue_operating_hours.find_by(day_of_week: day)
-
-        if existing_hour
-          unless existing_hour.update(hour_params)
-            failure(existing_hour.errors.full_messages)
-          end
-        end
-      end
     end
   end
 end

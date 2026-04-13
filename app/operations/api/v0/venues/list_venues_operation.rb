@@ -38,12 +38,16 @@ module Api::V0::Venues
       venues = Venue.all
 
       # Filter by active status (default: true for public listing)
-      if params[:is_active].nil?
+      # Handle boolean conversion from string params
+      if params.key?(:is_active)
+        if params[:is_active] == true || params[:is_active] == "true"
+          venues = venues.active
+        elsif params[:is_active] == false || params[:is_active] == "false"
+          venues = venues.inactive
+        end
+      else
+        # Default to active venues if no filter is specified
         venues = venues.active
-      elsif params[:is_active] == true
-        venues = venues.active
-      elsif params[:is_active] == false
-        venues = venues.inactive
       end
 
       venues = venues.where(city: params[:city]) if params[:city].present?
@@ -79,9 +83,17 @@ module Api::V0::Venues
     def paginate_venues(venues, page, per_page)
       page ||= 1
       per_page ||= 10
+
+      page = page.to_i
+      per_page = per_page.to_i
+
+      # Handle edge cases
+      page = 1 if page < 1
+      per_page = 10 if per_page < 1  # Minimum 1 per page
       per_page = 100 if per_page > 100 # Max 100 per page
 
-      venues.page(page).per(per_page)
+      offset = (page - 1) * per_page
+      venues.limit(per_page).offset(offset)
     end
 
     def serialize

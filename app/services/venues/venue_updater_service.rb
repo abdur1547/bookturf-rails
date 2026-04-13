@@ -6,8 +6,23 @@ module Venues
       venue_params = params.except(:venue_setting, :venue_operating_hours, :owner_id, :slug, :created_at)
       setting_params = params[:venue_setting]
       hours_params = params[:venue_operating_hours]
-      validate_activation(venue, venue_params[:is_active])
-      validate_operating_hours(hours_params)
+
+      # Validate activation if is_active is being changed
+      if venue_params.key?(:is_active) && venue.is_active != venue_params[:is_active]
+        validation_result = Venues::VenueActivationValidatorService.call(
+          venue: venue,
+          is_active: venue_params[:is_active]
+        )
+        return validation_result unless validation_result.success?
+      end
+
+      # Validate operating hours if provided
+      if hours_params.present?
+        validation_result = Venues::OperatingHoursValidatorService.call(
+          operating_hours: hours_params
+        )
+        return validation_result unless validation_result.success?
+      end
 
       ActiveRecord::Base.transaction do
         unless venue.update(venue_params)
@@ -46,27 +61,6 @@ module Venues
       end
     rescue StandardError => e
       failure("Failed to update venue: #{e.message}")
-    end
-  end
-
-  private
-
-  def validate_activation(venue, is_active)
-    if venue_params.key?(:is_active) && venue.is_active != venue_params[:is_active]
-      validation_result = Venues::VenueActivationValidatorService.call(
-        venue: venue,
-        is_active: venue_params[:is_active]
-      )
-      validation_result unless validation_result.success?
-    end
-  end
-
-  def validate_operating_hours(operating_hours)
-    if operating_hours.present?
-      validation_result = Venues::OperatingHoursValidatorService.call(
-        operating_hours: operating_hours
-      )
-      validation_result unless validation_result.success?
     end
   end
 end

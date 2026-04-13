@@ -41,8 +41,14 @@ module Venues
             opens = Time.parse(opens_at.to_s)
             closes = Time.parse(closes_at.to_s)
 
-            if closes <= opens
-              return failure("Day #{day}: closes_at must be after opens_at")
+            # Handle past-midnight closing times (e.g., opens 08:00, closes 00:00 next day)
+            # If closes_at is earlier than opens_at, assume it's next day
+            closes += 1.day if closes <= opens
+
+            # After adjusting for next day, check if it's actually valid
+            # (e.g., opens 23:00, closes 09:00 is valid - 10 hour shift)
+            if closes == opens
+              return failure("Day #{day}: closes_at must be different from opens_at")
             end
           rescue ArgumentError
             return failure("Day #{day}: Invalid time format")

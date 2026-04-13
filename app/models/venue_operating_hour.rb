@@ -35,8 +35,11 @@ class VenueOperatingHour < ApplicationRecord
   def closes_after_opens
     return if is_closed? || opens_at.blank? || closes_at.blank?
 
-    if closes_at <= opens_at
-      errors.add(:closes_at, "must be after opening time")
+    # Handle past-midnight closing times (e.g., opens 20:00, closes 02:00 next day)
+    # If closes_at <= opens_at, we assume it's next day, so it's valid
+    # Only fail if they're exactly equal (same time is not valid)
+    if closes_at == opens_at
+      errors.add(:closes_at, "must be different from opening time")
     end
   end
 end
