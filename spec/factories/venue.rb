@@ -43,6 +43,11 @@ FactoryBot.define do
       end
     end
 
+    # For testing scenarios where we need to bypass the one-venue-per-owner validation
+    trait :skip_validation do
+      to_create { |instance| instance.save(validate: false) }
+    end
+
     # Since venue auto-creates settings and hours, we can skip the callbacks for testing
     trait :skip_callbacks do
       after(:build) do |venue|

@@ -1,0 +1,120 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "required": [
+        "success",
+        "data"
+    ],
+    "properties": {
+        "success": {
+            "type": "boolean",
+            "enum": [
+                true
+            ]
+        },
+        "data": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/venue"
+            }
+        }
+    },
+    "definitions": {
+        "venue": {
+            "type": "object",
+            "required": [
+                "id",
+                "name",
+                "slug",
+                "address",
+                "city",
+                "is_active",
+                "created_at"
+            ],
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "address": {
+                    "type": "string"
+                },
+                "city": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "state": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "country": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "postal_code": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "phone_number": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "email": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "latitude": {
+                    "type": [
+                        "number",
+                        "null"
+                    ]
+                },
+                "longitude": {
+                    "type": [
+                        "number",
+                        "null"
+                    ]
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "google_maps_url": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "courts_count": {
+                    "type": "integer"
+                }
+            }
+        }
+    }
+}
