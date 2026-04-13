@@ -12,7 +12,7 @@ The endpoint should:
 - account for existing confirmed bookings
 - calculate slot pricing from `pricing_rules`
 - optionally include booked slots with a flag
-- allow filtering by date, court, and slot duration
+- allow filtering by date, court type, court, and slot duration
 
 ---
 
@@ -25,6 +25,7 @@ The endpoint should:
 - `start_date` (required) - first local date string for the venue, e.g. `2026-04-16`
 - `end_date` (optional) - last local date string for the venue; defaults to `start_date`
 - `duration_minutes` (optional) - requested slot length; defaults to `venue_settings.minimum_slot_duration`
+- `court_type_id` (optional) - restrict availability to courts of a single court type
 - `court_id` (optional) - restrict availability to a single court
 - `include_booked` (optional, boolean) - when `true`, return both available and blocked slots; when `false` or omitted, return available-only slots
 - `from_time` (optional) - local time boundary to start searching each day, e.g. `08:00`
@@ -145,7 +146,7 @@ Responsibilities:
 - Load venue and venue settings
 - Convert `date`, `from_time`, `to_time` in venue timezone
 - Load operating hours for the requested day
-- Load courts for the venue, optionally filtered by `court_id`
+- Load courts for the venue, optionally filtered by `court_type_id` and/or `court_id`
 - Delegate slot generation to a service
 - Serialize the results
 
