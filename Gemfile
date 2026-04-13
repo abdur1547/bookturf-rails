@@ -63,6 +63,9 @@ gem "pagy", "~> 43.4"
 # Authorization
 gem "pundit", "~> 2.4"
 
+# Activity tracking
+gem "public_activity", "~> 3.0"
+
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
   gem "bundler-audit", require: false
