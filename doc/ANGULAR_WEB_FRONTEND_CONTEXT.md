@@ -64,6 +64,7 @@ Current shared contents:
 - `shared/directives/click-outside.directive.ts`
 - `shared/dummy/user.dummy.ts`
 - `shared/models/chart-options.ts`
+- `shared/services/api-base.service.ts` — generic CRUD base service for API clients.
 - `shared/utils/ckassnames.ts`
 - `shared/validators/` — validator utilities.
 
@@ -107,11 +108,15 @@ Recommended API integration pattern:
    - Example: `apiBaseUrl: 'https://api.example.com'`
 
 2. Create shared API services under `src/app/shared/services/`:
-   - `api.service.ts` — common HTTP wrapper.
+   - `api-base.service.ts` — generic CRUD base service for typed API clients.
    - `auth.service.ts` — auth/sign-in, token storage, refresh.
    - `user.service.ts`, `booking.service.ts`, etc. for domain APIs.
 
-3. Use `HttpInterceptor` to attach auth tokens and handle API errors.
+3. Extend `ApiBaseService<T>` in feature-specific or domain services to keep requests dry and centralized.
+   - Example: `class BookingService extends ApiBaseService<Booking> {}`
+   - This helps keep HTTP methods, URL handling, and error handling consistent.
+
+4. Use `HttpInterceptor` to attach auth tokens and handle API errors.
    - Keep interceptor logic in `core/interceptor/`.
 
 4. Keep request/response DTOs in `shared/models/` for cross-feature use.
