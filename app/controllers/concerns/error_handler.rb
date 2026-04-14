@@ -3,20 +3,20 @@
 module ErrorHandler
   extend ActiveSupport::Concern
 
-  included do
-    rescue_from StandardError do |exception|
-      case exception.class.name
-      when ActiveRecord::RecordInvalid.name
-        unprocessable_entity(exception.message)
-      when ::Auth::InvalidTokenError.name, ::Auth::MissingTokenError.name
-        forbidden_response(exception.message)
-      when ::Auth::UnauthorizedError.name
-        unauthorized_response
-      else
-        process_standard_error(exception)
-      end
-    end
-  end
+  # included do
+  #   rescue_from StandardError do |exception|
+  #     case exception.class.name
+  #     when ActiveRecord::RecordInvalid.name
+  #       unprocessable_entity(exception.message)
+  #     when ::Auth::InvalidTokenError.name, ::Auth::MissingTokenError.name
+  #       forbidden_response(exception.message)
+  #     when ::Auth::UnauthorizedError.name
+  #       unauthorized_response
+  #     else
+  #       process_standard_error(exception)
+  #     end
+  #   end
+  # end
 
   private
 

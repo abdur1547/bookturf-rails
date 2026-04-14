@@ -2,7 +2,7 @@
 
 module Api::V0
   class VenuesController < ApiController
-    skip_before_action :authenticate_user!, only: [ :index, :show ]
+    skip_before_action :authenticate_user!, only: [ :index, :show, :availability ]
 
     # GET /api/v0/venues
     def index
@@ -14,6 +14,13 @@ module Api::V0
     # GET /api/v0/venues/:id
     def show
       result = Api::V0::Venues::GetVenueOperation.call(params.to_unsafe_h, current_user)
+
+      handle_operation_response(result)
+    end
+
+    # GET /api/v0/venues/:id/availability
+    def availability
+      result = Api::V0::Venues::ListAvailabilityOperation.call(params.to_unsafe_h)
 
       handle_operation_response(result)
     end

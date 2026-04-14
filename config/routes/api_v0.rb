@@ -14,7 +14,11 @@ namespace :api do
     end
 
     resources :roles, only: API_ONLY_ROUTES
-    resources :venues, only: API_ONLY_ROUTES
+    resources :venues, only: API_ONLY_ROUTES do
+      member do
+        get :availability
+      end
+    end
     resources :courts, only: API_ONLY_ROUTES
     resources :pricing_rules, only: API_ONLY_ROUTES
 
