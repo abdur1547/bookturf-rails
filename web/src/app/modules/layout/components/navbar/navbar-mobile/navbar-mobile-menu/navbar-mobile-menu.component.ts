@@ -16,8 +16,8 @@ import { NavbarMobileSubmenuComponent } from '../navbar-mobile-submenu/navbar-mo
     NgTemplateOutlet,
     RouterLink,
     RouterLinkActive,
-    NavbarMobileSubmenuComponent
-],
+    NavbarMobileSubmenuComponent,
+  ],
 })
 export class NavbarMobileMenuComponent implements OnInit {
   constructor(public menuService: MenuService) {}

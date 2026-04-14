@@ -11,14 +11,7 @@ import { SidebarSubmenuComponent } from '../sidebar-submenu/sidebar-submenu.comp
   templateUrl: './sidebar-menu.component.html',
   styleUrls: ['./sidebar-menu.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    NgClass,
-    AngularSvgIconModule,
-    NgTemplateOutlet,
-    RouterLink,
-    RouterLinkActive,
-    SidebarSubmenuComponent
-],
+  imports: [NgClass, AngularSvgIconModule, NgTemplateOutlet, RouterLink, RouterLinkActive, SidebarSubmenuComponent],
 })
 export class SidebarMenuComponent implements OnInit {
   constructor(public menuService: MenuService) {}

@@ -1,4 +1,3 @@
-
 import { Component, OnInit } from '@angular/core';
 import { Nft } from '../../../models/nft';
 import { NftAuctionsTableItemComponent } from '../nft-auctions-table-item/nft-auctions-table-item.component';

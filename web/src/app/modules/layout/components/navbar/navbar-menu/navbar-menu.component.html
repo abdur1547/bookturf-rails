@@ -2,11 +2,11 @@
   <div class="dropdown relative inline-block">
     <!-- Button -->
     <button
-    [ngClass]="
-      menu.selected || menu.active
-        ? 'bg-primary text-primary-foreground'
-        : 'text-muted-foreground/50 hover:bg-card hover:text-muted-foreground '
-    "
+      [ngClass]="
+        menu.selected || menu.active
+          ? 'bg-primary text-primary-foreground'
+          : 'text-muted-foreground/50 hover:bg-card hover:text-muted-foreground '
+      "
       class="mr-2 inline-flex rounded-md px-3 py-2 text-sm font-medium">
       <span>{{ menu.group }}</span>
     </button>
@@ -14,6 +14,6 @@
     <div
       class="dropdown-content absolute top-[100%] min-w-[200px] origin-top-left z-10"
       navbar-submenu
-    [submenu]="menu.items"></div>
+      [submenu]="menu.items"></div>
   </div>
 }
