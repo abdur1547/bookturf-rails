@@ -37,6 +37,17 @@ class CreateBookings < ActiveRecord::Migration[8.1]
 
       # Creation tracking
       t.references :created_by, foreign_key: { to_table: :users }
+      t.string :created_by_role # customer, staff, owner
+
+      # Walk-in support
+      t.string :walk_in_name # For anonymous walk-in customers
+
+      # Price snapshot (protects against future pricing changes)
+      t.decimal :price_at_booking, precision: 10, scale: 2
+
+      # Share token for shareable booking URLs
+      t.string :share_token # Unique token for /b/:share_token
+      t.boolean :deferred_link_claimed, default: false, null: false # Deep link redemption
 
       t.timestamps
     end
@@ -47,6 +58,7 @@ class CreateBookings < ActiveRecord::Migration[8.1]
     add_index :bookings, [ :venue_id, :start_time ]
     add_index :bookings, :status
     add_index :bookings, [ :start_time, :end_time ]
+    add_index :bookings, :share_token, unique: true
 
     # Check constraints
     add_check_constraint :bookings,

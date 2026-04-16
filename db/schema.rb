@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_13_101733) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_13_101615) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -50,24 +50,30 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_13_101733) do
     t.bigint "court_id", null: false
     t.datetime "created_at", null: false
     t.bigint "created_by_id"
+    t.string "created_by_role"
+    t.boolean "deferred_link_claimed", default: false, null: false
     t.integer "duration_minutes", null: false
     t.datetime "end_time", null: false
     t.text "notes"
     t.decimal "paid_amount", precision: 10, scale: 2, default: "0.0"
     t.string "payment_method"
     t.string "payment_status", default: "pending"
+    t.decimal "price_at_booking", precision: 10, scale: 2
+    t.string "share_token"
     t.datetime "start_time", null: false
     t.string "status", default: "confirmed", null: false
     t.decimal "total_amount", precision: 10, scale: 2, default: "0.0"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.bigint "venue_id", null: false
+    t.string "walk_in_name"
     t.index ["booking_number"], name: "index_bookings_on_booking_number", unique: true
     t.index ["cancelled_by_id"], name: "index_bookings_on_cancelled_by_id"
     t.index ["checked_in_by_id"], name: "index_bookings_on_checked_in_by_id"
     t.index ["court_id", "start_time", "end_time"], name: "index_bookings_on_court_id_and_start_time_and_end_time"
     t.index ["court_id"], name: "index_bookings_on_court_id"
     t.index ["created_by_id"], name: "index_bookings_on_created_by_id"
+    t.index ["share_token"], name: "index_bookings_on_share_token", unique: true
     t.index ["start_time", "end_time"], name: "index_bookings_on_start_time_and_end_time"
     t.index ["status"], name: "index_bookings_on_status"
     t.index ["user_id"], name: "index_bookings_on_user_id"
@@ -114,8 +120,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_13_101733) do
     t.datetime "created_at", null: false
     t.text "description"
     t.integer "display_order", default: 0, null: false
+    t.jsonb "images_data"
     t.boolean "is_active", default: true, null: false
     t.string "name", null: false
+    t.string "qr_code_url"
     t.datetime "updated_at", null: false
     t.bigint "venue_id", null: false
     t.index ["court_type_id"], name: "index_courts_on_court_type_id"
@@ -327,6 +335,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_13_101733) do
     t.bigint "owner_id", null: false
     t.string "phone_number"
     t.string "postal_code"
+    t.string "qr_code_url"
     t.string "slug", null: false
     t.string "state"
     t.datetime "updated_at", null: false

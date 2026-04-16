@@ -1,4 +1,4 @@
-class CreateCourts < ActiveRecord::Migration[7.1]
+class CreateCourts < ActiveRecord::Migration[8.1]
   def change
     create_table :courts do |t|
       t.references :venue, null: false, foreign_key: true
@@ -8,6 +8,12 @@ class CreateCourts < ActiveRecord::Migration[7.1]
       t.text :description
       t.boolean :is_active, default: true, null: false
       t.integer :display_order, default: 0, null: false
+
+      # Images (Shrine storage)
+      t.jsonb :images_data # Array of Shrine image objects
+
+      # QR code for check-in
+      t.string :qr_code_url # URL of generated QR PNG on S3
 
       t.timestamps
     end

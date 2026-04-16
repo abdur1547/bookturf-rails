@@ -17,6 +17,7 @@ class User < ApplicationRecord
   has_many :cancelled_bookings, class_name: "Booking", foreign_key: "cancelled_by_id", dependent: :nullify
   has_many :checked_in_bookings, class_name: "Booking", foreign_key: "checked_in_by_id", dependent: :nullify
   has_many :notifications, dependent: :destroy
+  has_many :audit_logs, foreign_key: "performed_by_id", dependent: :nullify
 
   has_secure_password
 

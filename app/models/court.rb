@@ -29,6 +29,43 @@ class Court < ApplicationRecord
     update(is_active: false)
   end
 
+  # Image handling - Shrine JSONB array
+  def images_array
+    images_data.is_a?(Array) ? images_data : []
+  end
+
+  def add_image(image_data)
+    current_images = images_array
+    current_images << image_data
+    update(images_data: current_images)
+  end
+
+  def remove_image(image_index)
+    current_images = images_array
+    current_images.delete_at(image_index)
+    update(images_data: current_images)
+  end
+
+  def primary_image
+    images_array.first
+  end
+
+  def has_images?
+    images_array.present?
+  end
+
+  # QR Code handling
+  def generate_qr_code_url
+    # This would typically be called by a background job
+    # to generate and upload QR code to S3
+    # For now, just set a placeholder
+    update(qr_code_url: "https://example.com/qr/court-#{id}-#{Time.current.to_i}.png")
+  end
+
+  def has_qr_code?
+    qr_code_url.present?
+  end
+
   # Check if court is available at a specific time
   def available_at?(start_time, end_time)
     return false unless is_active?
