@@ -70,7 +70,7 @@ module Api::V0::Auth
       )
         Success()
       else
-        Failure(user.errors.to_hash)
+        Failure(user.errors)
       end
     end
 

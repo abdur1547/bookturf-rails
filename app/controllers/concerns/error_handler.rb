@@ -3,20 +3,20 @@
 module ErrorHandler
   extend ActiveSupport::Concern
 
-  # included do
-  #   rescue_from StandardError do |exception|
-  #     case exception.class.name
-  #     when ActiveRecord::RecordInvalid.name
-  #       unprocessable_entity(exception.message)
-  #     when ::Auth::InvalidTokenError.name, ::Auth::MissingTokenError.name
-  #       forbidden_response(exception.message)
-  #     when ::Auth::UnauthorizedError.name
-  #       unauthorized_response
-  #     else
-  #       process_standard_error(exception)
-  #     end
-  #   end
-  # end
+  included do
+    rescue_from StandardError do |exception|
+      case exception.class.name
+      when ActiveRecord::RecordInvalid.name
+        unprocessable_entity(exception.message)
+      when ::Auth::InvalidTokenError.name, ::Auth::MissingTokenError.name
+        forbidden_response(exception.message)
+      when ::Auth::UnauthorizedError.name
+        unauthorized_response
+      else
+        process_standard_error(exception)
+      end
+    end
+  end
 
   private
 
@@ -37,7 +37,18 @@ module ErrorHandler
   end
 
   def unprocessable_entity(reason)
-    render json: { success: false, errors: reason }, status: :unprocessable_entity
+    # Ensure reason is always an array of strings
+    errors = case reason
+    when Array
+      reason
+    when Hash
+      reason.flat_map { |field, messages| Array(messages).map { |msg| "#{field} #{msg}".strip } }
+    when ActiveModel::Errors
+      reason.full_messages
+    else
+      Array(reason).map(&:to_s)
+    end
+    render json: { success: false, errors: }, status: :unprocessable_entity
   end
 
   def forbidden_response(reason = "forbidden")

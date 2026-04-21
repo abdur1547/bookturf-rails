@@ -119,7 +119,7 @@ RSpec.describe "Api::V0::Auth::VerifyResetOtp", type: :request do
         make_request
         signin_params = { email: user.email, password: "oldpassword123" }
         post "/api/v0/auth/signin", params: signin_params.to_json, headers: headers
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unauthorized)
       end
 
       include_examples "successful API response" do
@@ -443,7 +443,7 @@ RSpec.describe "Api::V0::Auth::VerifyResetOtp", type: :request do
         # Second attempt with same OTP - should fail
         post endpoint, params: params.to_json, headers: headers
         expect(response).to have_http_status(:unprocessable_entity)
-        expect(response.parsed_body[:errors][:error]).to include("Invalid or expired")
+        expect(response.parsed_body[:errors].first).to include("Invalid or expired")
       end
 
       it "does not allow password reset with different password on second attempt" do

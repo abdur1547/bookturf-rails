@@ -26,7 +26,7 @@ module Api::V0::Auth
 
     def validate_email
       email_regex = /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i
-      email_regex.match?(params[:email]) ? Success() : Failure(error_message(:email, "invalid email address"))
+      email_regex.match?(params[:email]) ? Success() : Failure([ "email invalid email address" ])
     end
 
     def create_user
@@ -36,7 +36,7 @@ module Api::V0::Auth
                         full_name: params[:full_name])
       return Success() if user.save
 
-      Failure(user.errors.to_hash)
+      Failure(user.errors)
     end
 
     def issue_new_tokens

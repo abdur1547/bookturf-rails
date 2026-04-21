@@ -66,6 +66,29 @@ class BaseOperation
 
   private
 
+  # Format errors into a flat array of strings
+  # Handles various error formats: hashes, arrays, objects with errors method
+  # @param errors [Hash, Array, Object] Errors in various formats
+  # @return [Array<String>] Flat array of error messages
+  def format_errors(errors)
+    case errors
+    when Array
+      # If already an array, ensure all elements are strings
+      errors.map { |e| e.is_a?(String) ? e : e.to_s }
+    when Hash
+      # Convert hash to array of "field message" strings
+      errors.flat_map do |field, messages|
+        Array(messages).map { |message| "#{field} #{message}".strip }
+      end
+    when ActiveModel::Errors
+      # Handle ActiveRecord/ActiveModel errors
+      errors.full_messages
+    else
+      # For other objects, try to convert to string array
+      Array(errors).map(&:to_s)
+    end
+  end
+
   # Validate parameters using the defined contract
   # @param params [Hash] Parameters to validate
   # @return [Dry::Validation::Result] Validation result
@@ -83,7 +106,8 @@ class BaseOperation
       Result.new(success: true, value: monad_result.value!)
     when Dry::Monads::Failure
       failure_value = monad_result.failure
-      Result.new(success: false, errors: failure_value)
+      formatted_errors = format_errors(failure_value)
+      Result.new(success: false, errors: formatted_errors)
     else
       # Fallback for unexpected result types
       Result.new(success: true, value: monad_result)

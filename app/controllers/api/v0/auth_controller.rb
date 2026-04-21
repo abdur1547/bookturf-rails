@@ -24,7 +24,7 @@ module Api::V0
         response.set_header("Authorization", result.value[:access_token])
         success_response(result.value)
       else
-        unprocessable_entity(result.errors)
+        unauthorized_response
       end
     end
 
@@ -35,7 +35,7 @@ module Api::V0
         response.set_header("Authorization", result.value[:access_token])
         success_response(result.value)
       else
-        unprocessable_entity(result.errors)
+        unauthorized_response
       end
     end
 
