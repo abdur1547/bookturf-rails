@@ -7,15 +7,10 @@ module Api::V0::Auth
         required(:email).filled(:string)
         required(:otp_code).filled(:string)
         required(:password).filled(:string)
-        required(:password_confirmation).filled(:string)
       end
 
       rule(:otp_code) do
         key.failure("must be a 6-digit code") unless value.match?(/^\d{6}$/)
-      end
-
-      rule(:password, :password_confirmation) do
-        key.failure("passwords must match") if values[:password] != values[:password_confirmation]
       end
 
       rule(:password) do
@@ -66,7 +61,7 @@ module Api::V0::Auth
     def update_password
       if user.update(
         password: params[:password],
-        password_confirmation: params[:password_confirmation]
+        password_confirmation: params[:password]
       )
         Success()
       else
@@ -93,9 +88,7 @@ module Api::V0::Auth
     end
 
     def error_message
-      {
-        error: "Invalid or expired OTP code. Please request a new password reset."
-      }
+      "Invalid or expired OTP code. Please request a new password reset."
     end
   end
 end

@@ -28,8 +28,7 @@ RSpec.describe "Api::V0::Auth::VerifyResetOtp", type: :request do
         {
           email: user.email,
           otp_code: otp_code,
-          password: new_password,
-          password_confirmation: new_password
+          password: new_password
         }
       end
 
@@ -91,8 +90,7 @@ RSpec.describe "Api::V0::Auth::VerifyResetOtp", type: :request do
         unique_params = {
           email: user.email,
           otp_code: unique_otp,
-          password: new_password,
-          password_confirmation: new_password
+          password: new_password
         }
         post endpoint, params: unique_params.to_json, headers: headers
         expect(response).to have_http_status(:ok)
@@ -132,8 +130,7 @@ RSpec.describe "Api::V0::Auth::VerifyResetOtp", type: :request do
         {
           email: user.email.upcase,
           otp_code: otp_code,
-          password: new_password,
-          password_confirmation: new_password
+          password: new_password
         }
       end
 
@@ -152,8 +149,7 @@ RSpec.describe "Api::V0::Auth::VerifyResetOtp", type: :request do
         {
           email: user.email,
           otp_code: "999999",
-          password: new_password,
-          password_confirmation: new_password
+          password: new_password
         }
       end
 
@@ -167,8 +163,7 @@ RSpec.describe "Api::V0::Auth::VerifyResetOtp", type: :request do
         {
           email: user.email,
           otp_code: otp_code,
-          password: new_password,
-          password_confirmation: new_password
+          password: new_password
         }
       end
 
@@ -185,8 +180,7 @@ RSpec.describe "Api::V0::Auth::VerifyResetOtp", type: :request do
         {
           email: user.email,
           otp_code: otp_code,
-          password: new_password,
-          password_confirmation: new_password
+          password: new_password
         }
       end
 
@@ -213,8 +207,7 @@ RSpec.describe "Api::V0::Auth::VerifyResetOtp", type: :request do
         {
           email: user.email,
           otp_code: "654321",
-          password: new_password,
-          password_confirmation: new_password
+          password: new_password
         }
       end
 
@@ -234,27 +227,11 @@ RSpec.describe "Api::V0::Auth::VerifyResetOtp", type: :request do
         {
           email: "nonexistent@example.com",
           otp_code: otp_code,
-          password: new_password,
-          password_confirmation: new_password
+          password: new_password
         }
       end
 
       include_examples "invalid OTP scenario"
-    end
-
-    context "with mismatched passwords" do
-      let(:params) do
-        {
-          email: user.email,
-          otp_code: otp_code,
-          password: new_password,
-          password_confirmation: "differentpassword"
-        }
-      end
-
-      before { reset_token }
-
-      include_examples "validation error scenario", :password
     end
 
     context "with short password" do
@@ -262,8 +239,7 @@ RSpec.describe "Api::V0::Auth::VerifyResetOtp", type: :request do
         {
           email: user.email,
           otp_code: otp_code,
-          password: "123",
-          password_confirmation: "123"
+          password: "123"
         }
       end
 
@@ -277,8 +253,7 @@ RSpec.describe "Api::V0::Auth::VerifyResetOtp", type: :request do
         {
           email: user.email,
           otp_code: otp_code,
-          password: "",
-          password_confirmation: ""
+          password: ""
         }
       end
 
@@ -293,8 +268,7 @@ RSpec.describe "Api::V0::Auth::VerifyResetOtp", type: :request do
           {
             email: user.email,
             otp_code: "12345",
-            password: new_password,
-            password_confirmation: new_password
+            password: new_password
           }
         end
 
@@ -306,8 +280,7 @@ RSpec.describe "Api::V0::Auth::VerifyResetOtp", type: :request do
           {
             email: user.email,
             otp_code: "1234567",
-            password: new_password,
-            password_confirmation: new_password
+            password: new_password
           }
         end
 
@@ -320,8 +293,7 @@ RSpec.describe "Api::V0::Auth::VerifyResetOtp", type: :request do
         {
           email: user.email,
           otp_code: "abcdef",
-          password: new_password,
-          password_confirmation: new_password
+          password: new_password
         }
       end
 
@@ -333,8 +305,7 @@ RSpec.describe "Api::V0::Auth::VerifyResetOtp", type: :request do
         {
           email: user.email,
           otp_code: "12@45#",
-          password: new_password,
-          password_confirmation: new_password
+          password: new_password
         }
       end
 
@@ -346,8 +317,7 @@ RSpec.describe "Api::V0::Auth::VerifyResetOtp", type: :request do
         let(:params) do
           {
             otp_code: otp_code,
-            password: new_password,
-            password_confirmation: new_password
+            password: new_password
           }
         end
 
@@ -358,8 +328,7 @@ RSpec.describe "Api::V0::Auth::VerifyResetOtp", type: :request do
         let(:params) do
           {
             email: user.email,
-            password: new_password,
-            password_confirmation: new_password
+            password: new_password
           }
         end
 
@@ -370,28 +339,13 @@ RSpec.describe "Api::V0::Auth::VerifyResetOtp", type: :request do
         let(:params) do
           {
             email: user.email,
-            otp_code: otp_code,
-            password_confirmation: new_password
+            otp_code: otp_code
           }
         end
 
         before { reset_token }
 
         include_examples "validation error scenario", :password
-      end
-
-      context "missing password_confirmation" do
-        let(:params) do
-          {
-            email: user.email,
-            otp_code: otp_code,
-            password: new_password
-          }
-        end
-
-        before { reset_token }
-
-        include_examples "validation error scenario", :password_confirmation
       end
     end
 
@@ -401,8 +355,7 @@ RSpec.describe "Api::V0::Auth::VerifyResetOtp", type: :request do
           {
             email: nil,
             otp_code: otp_code,
-            password: new_password,
-            password_confirmation: new_password
+            password: new_password
           }
         end
 
@@ -414,8 +367,7 @@ RSpec.describe "Api::V0::Auth::VerifyResetOtp", type: :request do
           {
             email: user.email,
             otp_code: nil,
-            password: new_password,
-            password_confirmation: new_password
+            password: new_password
           }
         end
 
@@ -428,8 +380,7 @@ RSpec.describe "Api::V0::Auth::VerifyResetOtp", type: :request do
         {
           email: user.email,
           otp_code: otp_code,
-          password: new_password,
-          password_confirmation: new_password
+          password: new_password
         }
       end
 
@@ -457,8 +408,7 @@ RSpec.describe "Api::V0::Auth::VerifyResetOtp", type: :request do
         post endpoint, params: {
           email: user.email,
           otp_code: otp_code,
-          password: different_password,
-          password_confirmation: different_password
+          password: different_password
         }.to_json, headers: headers
 
         expect(response).to have_http_status(:unprocessable_entity)
@@ -473,8 +423,7 @@ RSpec.describe "Api::V0::Auth::VerifyResetOtp", type: :request do
         {
           email: user.email,
           otp_code: otp_code,
-          password: new_password,
-          password_confirmation: new_password
+          password: new_password
         }
       end
 
@@ -496,8 +445,7 @@ RSpec.describe "Api::V0::Auth::VerifyResetOtp", type: :request do
         {
           email: user.email,
           otp_code: otp_code,
-          password: new_password,
-          password_confirmation: new_password
+          password: new_password
         }
       end
 
@@ -531,8 +479,7 @@ RSpec.describe "Api::V0::Auth::VerifyResetOtp", type: :request do
           {
             email: user.email,
             otp_code: otp_code,
-            password: long_password,
-            password_confirmation: long_password
+            password: long_password
           }
         end
 
@@ -550,8 +497,7 @@ RSpec.describe "Api::V0::Auth::VerifyResetOtp", type: :request do
           {
             email: user.email,
             otp_code: " 123456 ",
-            password: new_password,
-            password_confirmation: new_password
+            password: new_password
           }
         end
 

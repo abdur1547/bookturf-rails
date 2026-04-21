@@ -7,7 +7,10 @@ module Api::V0::Auth
         required(:full_name).filled(:string)
         required(:email).filled(:string)
         required(:password).filled(:string)
-        required(:password_confirmation).filled(:string)
+      end
+
+      rule(:password) do
+        key.failure("must be at least 6 characters") if value.length < 6
       end
     end
 
@@ -32,7 +35,7 @@ module Api::V0::Auth
     def create_user
       @user = User.new(email: params[:email],
                         password: params[:password],
-                        password_confirmation: params[:password_confirmation],
+                        password_confirmation: params[:password],
                         full_name: params[:full_name])
       return Success() if user.save
 
