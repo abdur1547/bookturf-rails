@@ -31,6 +31,7 @@ module Api::V0::Auth
     def send_reset_email
       invalidate_existing_tokens
       @reset_token = user.password_reset_tokens.create!
+      puts "OTP for user: #{user.email} is #{reset_token.otp_code}" if Rails.env == "development"
       PasswordResetMailer.reset_password_otp(user, reset_token.otp_code).deliver_later
     end
 
