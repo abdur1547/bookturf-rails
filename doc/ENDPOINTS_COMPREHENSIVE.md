@@ -686,8 +686,8 @@ List venues (public view and owner filtered).
     "description": "string|null",
     "address": "string",
     "city": "string",
-    "state": "string|null",
-    "country": "string|null",
+    "state": "string",
+    "country": "string",
     "postal_code": "string|null",
     "phone_number": "string|null",
     "email": "string|null",
@@ -721,8 +721,8 @@ Get venue details including operating hours.
   "description": "string|null",
   "address": "string",
   "city": "string",
-  "state": "string|null",
-  "country": "string|null",
+  "state": "string",
+  "country": "string",
   "postal_code": "string|null",
   "phone_number": "string|null",
   "email": "string|null",
@@ -739,12 +739,12 @@ Get venue details including operating hours.
   },
   "venue_setting": {
     "id": "integer",
-    "minimum_slot_duration": "integer|null",
-    "maximum_slot_duration": "integer|null",
-    "slot_interval": "integer|null",
-    "advance_booking_days": "integer|null",
+    "minimum_slot_duration": "integer",
+    "maximum_slot_duration": "integer",
+    "slot_interval": "integer",
+    "advance_booking_days": "integer",
     "requires_approval": "boolean",
-    "cancellation_hours": "integer|null",
+    "cancellation_hours": "integer",
     "timezone": "string",
     "currency": "string"
   },
@@ -754,9 +754,9 @@ Get venue details including operating hours.
       "day_of_week": "0-6",
       "day_name": "string",
       "is_closed": "boolean",
-      "opens_at": "string|null",
-      "closes_at": "string|null",
-      "formatted_hours": "string|null"
+      "opens_at": "string",
+      "closes_at": "string",
+      "formatted_hours": "string"
     }
   ]
 }
@@ -836,7 +836,7 @@ Update venue details.
 
 ---
 
-### PATCH /api/v0/venues/:id/operating_hours
+### ~~PATCH /api/v0/venues/:id/operating_hours~~
 
 Update venue operating hours (onboarding - Step 2).
 
