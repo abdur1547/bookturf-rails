@@ -5,7 +5,7 @@ services:
       dockerfile: .devcontainer/Dockerfile
 
     volumes:
-      - ../../Bookturf:/workspaces/Bookturf:cached
+      - ../../bookturf-rails:/workspaces/bookturf-rails:cached
       - ${HOME}/.ssh:/root/.ssh:cached
 
     command: sleep infinity
