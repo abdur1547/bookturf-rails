@@ -75,12 +75,14 @@ module Api::V0
       cookies[:access_token] = {
         value: access_token,
         httponly: true,
-        secure: true
+        secure: true,
+        expires: Constants::SESSION_LIFETIME.from_now
       }
       cookies[:refresh_token] = {
         value: refresh_token,
         httponly: true,
-        secure: true
+        secure: true,
+        expires: Constants::REFRESH_TOKEN_LIFETIME.from_now
       }
     end
 
