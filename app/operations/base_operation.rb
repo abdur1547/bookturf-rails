@@ -17,10 +17,8 @@ class BaseOperation
   end
 
   class << self
-    # Define an inline contract for parameter validation
-    # @yield Block containing dry-validation schema definition
-    def contract(&block)
-      @contract_class = Class.new(Dry::Validation::Contract, &block)
+    def contract(parent_class = Dry::Validation::Contract, &block)
+      @contract_class = Class.new(parent_class, &block)
     end
 
     # Set an external contract class for parameter validation
