@@ -11,6 +11,7 @@ module Api::V0
            :requires_approval,
            :cancellation_hours,
            :timezone,
-           :currency
+           :currency,
+           :venue_id
   end
 end

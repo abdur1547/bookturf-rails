@@ -2,16 +2,11 @@
 
 module Api::V0::Venues
   class UpdateVenueOperation < BaseOperation
-    contract Api::V0::Contracts::Venues::VenueContract do
-      params do
-        required(:id).filled
-      end
-    end
+    contract_class Api::V0::Contracts::Venues::UpdateVenueContract
 
     def call(params, current_user)
       @params = params
       @current_user = current_user
-      puts "** params:", params.inspect
 
       @venue = Venue.find_by(id: params[:id])
       return Failure(:not_found) unless @venue
