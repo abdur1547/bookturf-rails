@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["success", "data"],
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "enum": [true]
+    },
+    "data": {
+      "type": "object",
+      "required": ["access_token", "refresh_token", "user"],
+      "properties": {
+        "access_token": { "type": "string" },
+        "refresh_token": { "type": "string" },
+        "user": { "$ref": "#/definitions/user" }
+      }
+    }
+  },
+  "definitions": {
+    "user": {
+      "type": "object",
+      "required": ["id", "full_name", "email", "user_type", "preferences"],
+      "properties": {
+        "id": { "type": "integer" },
+        "full_name": { "type": "string" },
+        "email": { "type": "string" },
+        "avatar_url": { "type": ["string", "null"] },
+        "phone_number": { "type": ["string", "null"] },
+        "user_type": { "type": "string", "enum": ["owner", "staff", "customer"] },
+        "preferences": { "type": "object" },
+        "owner_data": {},
+        "staff_data": {},
+        "created_at": { "type": "string" },
+        "updated_at": { "type": "string" }
+      }
+    }
+  }
+}
