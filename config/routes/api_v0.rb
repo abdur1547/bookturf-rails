@@ -32,8 +32,6 @@ namespace :api do
     resources :venues, only: API_ONLY_ROUTES do
       member do
         get :availability
-        patch :update_operating_hours
-        patch :update_onboarding_step
       end
     end
     resources :courts, only: API_ONLY_ROUTES do

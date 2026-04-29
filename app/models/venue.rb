@@ -59,10 +59,6 @@ class Venue < ApplicationRecord
     venue_closures.overlapping(date.beginning_of_day, date.end_of_day).exists?
   end
 
-  def to_param
-    slug
-  end
-
   private
 
   def generate_slug

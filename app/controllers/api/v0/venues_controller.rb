@@ -194,37 +194,5 @@ module Api::V0
 
       handle_operation_response(result)
     end
-
-    api :PATCH, "/venues/:id/operating_hours", "Replace all operating hours for a venue"
-    header "Authorization", "Bearer <access_token>", required: true
-    param :id, Integer, required: true, desc: "Venue ID"
-    param :venue_operating_hours, Array, required: true, desc: "Full set of operating hours (all 7 days)" do
-      # param_group :venue_operating_hour
-    end
-    returns code: 200, desc: "Operating hours updated"
-    error code: 401, desc: "Not authenticated"
-    error code: 403, desc: "Not the venue owner or insufficient permissions"
-    error code: 404, desc: "Venue not found"
-    error code: 422, desc: "Validation error"
-    def update_operating_hours
-      result = Api::V0::Venues::UpdateVenueOperatingHoursOperation.call(params.to_unsafe_h, current_user)
-
-      handle_operation_response(result)
-    end
-
-    api :PATCH, "/venues/:id/onboarding_step", "Advance or set the venue's onboarding step"
-    header "Authorization", "Bearer <access_token>", required: true
-    param :id, Integer, required: true, desc: "Venue ID"
-    param :onboarding_step, String, required: true, desc: "Target onboarding step identifier"
-    returns code: 200, desc: "Onboarding step updated"
-    error code: 401, desc: "Not authenticated"
-    error code: 403, desc: "Not the venue owner or insufficient permissions"
-    error code: 404, desc: "Venue not found"
-    error code: 422, desc: "Validation error"
-    def update_onboarding_step
-      result = Api::V0::Venues::UpdateVenueOnboardingStepOperation.call(params.to_unsafe_h, current_user)
-
-      handle_operation_response(result)
-    end
   end
 end
