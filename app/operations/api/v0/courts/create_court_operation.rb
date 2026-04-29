@@ -11,6 +11,8 @@ module Api::V0::Courts
           optional(:sport_type_name).maybe(:string)
           required(:name).filled(:string)
           optional(:description).maybe(:string)
+          optional(:slot_interval).maybe(:integer)
+          optional(:requires_approval).maybe(:bool)
           optional(:is_active).maybe(:bool)
           optional(:display_order).maybe(:integer)
         end
@@ -36,6 +38,8 @@ module Api::V0::Courts
         :venue_id,
         :name,
         :description,
+        :slot_interval,
+        :requires_approval,
         :is_active,
         :display_order
       ).merge(court_type_id: court_type_id)

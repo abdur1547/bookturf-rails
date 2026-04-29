@@ -179,6 +179,8 @@ One venue per owner (v1 constraint enforced by unique index on owner\_id). Holds
 |**longitude**|decimal|nullable|Precision 10, scale 7|
 |**images\_data**|jsonb|nullable|Shrine array of venue images (max 10). Ordered array.|
 |**onboarding\_step**|integer|not null, default: 0|Enum: 0=not\_started … 4=completed|
+|**timezone**|string|not null, default: 'Asia/Karachi'|IANA timezone identifier. Used by availability service to generate local-time slots|
+|**currency**|string|not null, default: 'PKR'|ISO 4217 currency code. Displayed in pricing responses|
 |**is\_active**|boolean|not null, default: false|Set to true after onboarding\_step = completed|
 |**created\_at**|datetime|not null||
 |**updated\_at**|datetime|not null||
@@ -199,14 +201,17 @@ Seven rows per venue (one per day of week). Created during onboarding Step 2. Ch
 ⚑  *Unique index on [venue\_id, day\_of\_week] — a venue cannot have two rows for the same day.*
 
 ## **3.7  venue\_closures**
-Ad-hoc full-day closures. Blocks all courts on the given date. Does NOT auto-cancel existing bookings — owner must do that manually (app warns them).
+Ad-hoc datetime window closures for an entire venue (e.g. public holiday, private event). Blocks all courts for any slot that overlaps the window. Does NOT auto-cancel existing bookings — owner must do that manually (app warns them).
 
 |**Column**|**Type**|**Constraints**|**Notes**|
 | :- | :- | :- | :- |
 |**id**|bigint|PK, not null||
 |**venue\_id**|bigint|FK → venues, not null||
-|**date**|date|not null|The specific calendar date that is fully closed|
-|**reason**|string|nullable|e.g. Public holiday, Owner away|
+|**title**|string|not null|Short label shown to staff, e.g. "Public Holiday", "Private Event"|
+|**description**|string|nullable|Optional longer note for internal context|
+|**start\_time**|datetime|not null|UTC start of the closure window|
+|**end\_time**|datetime|not null|UTC end of the closure window. Must be > start\_time (check constraint)|
+|**created\_by\_id**|bigint|FK → users, nullable|Owner or staff who created the closure|
 |**created\_at**|datetime|not null||
 |**updated\_at**|datetime|not null||
 
@@ -219,16 +224,16 @@ Each court belongs to a venue and defines the bookable unit: sport type, slot du
 |**venue\_id**|bigint|FK → venues, not null||
 |**name**|string|not null|e.g. Court A, Padel 1. Unique per sport within venue|
 |**sport**|string|not null|Stored as string: cricket, football, badminton, tennis, padel, basketball, squash, volleyball. Easy to extend by adding to seed list|
-|**slot\_duration**|integer|not null|Duration in minutes: 30, 45, 60, 90, 120|
-|**booking\_mode**|string|not null, default: "instant"|instant or manual — determines if bookings auto-confirm|
+|**minimum\_slot\_duration**|integer|not null, default: 60|Shortest bookable slot in minutes. Must be > 0. (check constraint)|
+|**maximum\_slot\_duration**|integer|not null, default: 180|Longest bookable slot in minutes. Must be >= minimum\_slot\_duration. (check constraint)|
+|**slot\_interval**|integer|not null, default: 30|Step size in minutes between slot start times. Must be > 0. (check constraint)|
+|**requires\_approval**|boolean|not null, default: false|true = bookings require owner/staff confirmation before they are confirmed|
 |**images\_data**|jsonb|nullable|Shrine array (max 8 images)|
 |**qr\_code\_url**|string|nullable|URL of generated QR PNG stored on S3. Set after court creation by background job|
 |**is\_active**|boolean|not null, default: true|Paused courts are hidden from discovery|
 |**created\_at**|datetime|not null||
 |**updated\_at**|datetime|not null||
 ⚑  *sport is a plain string column. Add a Rails validation for inclusion in a constant list rather than a DB enum — easier to extend without a migration.*
-
-⚑  *booking\_mode is also stored as a string (instant / manual) for the same reason.*
 
 ## **3.9  pricing\_rules**
 Flexible per-court pricing. Each row covers one day of week and a time window. Multiple rows cover multiple days or time bands. The slot price is resolved at booking time by finding the matching rule.
@@ -414,7 +419,8 @@ All foreign keys get an index automatically via Rails. The following are additio
 
 |**Columns**|**Type**|**Purpose**|
 | :- | :- | :- |
-|**venue\_id, date**|BTREE|Check if venue is closed on a given date|
+|**venue\_id, start\_time, end\_time**|BTREE|Check if venue is closed during a given window (range query)|
+|**start\_time, end\_time**|BTREE|Cross-venue closure range queries|
 
 ## **courts**
 
@@ -532,14 +538,14 @@ This section documents how the backend resolves available slots for a court on a
 ## **Step 1 — Check venue is open**
 Query operating\_hours WHERE venue\_id = ? AND day\_of\_week = [day of requested date] AND is\_open = true. If no row or is\_open = false → no slots.
 
-Check venue\_closures WHERE venue\_id = ? AND date = [requested date]. If any row exists → no slots.
+Check venue\_closures WHERE venue\_id = ? AND start\_time < [day end] AND end\_time > [day start]. If any row overlaps the day → no slots.
 
 ## **Step 2 — Generate candidate slots**
-Using opens\_at and closes\_at from operating\_hours and court.slot\_duration, generate an ordered array of slot windows:
+Using opens\_at and closes\_at from operating\_hours and the per-court slot config (court.minimum\_slot\_duration as default slot size, court.slot\_interval as step), generate an ordered array of slot windows:
 
-slots = (opens\_at .. closes\_at - slot\_duration).step(slot\_duration)
+slots = (opens\_at .. closes\_at - slot\_duration).step(slot\_interval)
 
-Each slot is a [slot\_start, slot\_end] pair in UTC.
+Each slot is a [slot\_start, slot\_end] pair in UTC. slot\_duration defaults to court.minimum\_slot\_duration but can be overridden by the caller (up to court.maximum\_slot\_duration).
 
 ## **Step 3 — Remove court closures**
 Query court\_closures WHERE court\_id = ? AND starts\_at < slot\_end AND ends\_at > slot\_start. Remove any generated slot that overlaps a closure window.

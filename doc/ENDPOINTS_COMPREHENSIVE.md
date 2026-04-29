@@ -695,6 +695,8 @@ List venues (public view and owner filtered).
     "latitude": "number|null",
     "longitude": "number|null",
     "google_maps_url": "string|null",
+    "timezone": "string",
+    "currency": "string",
     "courts_count": "integer",
     "created_at": "ISO8601 string"
   }
@@ -730,23 +732,14 @@ Get venue details including operating hours.
   "latitude": "number|null",
   "longitude": "number|null",
   "google_maps_url": "string|null",
+  "timezone": "string",
+  "currency": "string",
   "courts_count": "integer",
   "created_at": "ISO8601 string",
   "updated_at": "ISO8601 string",
   "owner": {
     "id": "integer",
     "full_name": "string"
-  },
-  "venue_setting": {
-    "id": "integer",
-    "minimum_slot_duration": "integer",
-    "maximum_slot_duration": "integer",
-    "slot_interval": "integer",
-    "advance_booking_days": "integer",
-    "requires_approval": "boolean",
-    "cancellation_hours": "integer",
-    "timezone": "string",
-    "currency": "string"
   },
   "venue_operating_hours": [
     {
@@ -787,16 +780,8 @@ Create a new venue (owner onboarding - Step 1).
   "phone_number": "string|null",
   "email": "string|null",
   "is_active": "boolean|null",
-  "venue_setting": { // optional
-    "minimum_slot_duration": "integer|null", // default to 60 (minutes)
-    "maximum_slot_duration": "integer|null", // default to 60 (minutes)
-    "slot_interval": "integer|null",         // default to 60 (minutes)
-    "advance_booking_days": "integer|null",  // default to 7
-    "requires_approval": "boolean|null",     // default true
-    "cancellation_hours": "integer|null",    // hours before booking for free cancellation
-    "timezone": "string|null",               // default to "Asia/Karachi"
-    "currency": "string|null"                // default to "PKR"
-  },
+  "timezone": "string|null",               // default to "Asia/Karachi" — IANA timezone identifier
+  "currency": "string|null",               // default to "PKR" — ISO 4217 currency code
   "venue_operating_hours": [ // optional
     {
       "day_of_week": "integer (0-6)",  // 0=Monday, 6=Sunday
@@ -979,7 +964,10 @@ List courts with filtering.
     "venue_id": "integer",
     "venue_name": "string",
     "city": "string",
-    "slot_duration_minutes": "integer",
+    "minimum_slot_duration": "integer",
+    "maximum_slot_duration": "integer",
+    "slot_interval": "integer",
+    "requires_approval": "boolean",
     "is_active": "boolean",
     "display_order": "integer|null",
     "price_range": {
@@ -1015,10 +1003,12 @@ Get court details.
   "sport_type_name": "string",
   "venue_id": "integer",
   "venue_name": "string",
-  "slot_duration_minutes": "integer",
+  "minimum_slot_duration": "integer",
+  "maximum_slot_duration": "integer",
+  "slot_interval": "integer",
+  "requires_approval": "boolean",
   "is_active": "boolean",
   "display_order": "integer|null",
-  "booking_requires_approval": "boolean",
   "price_range": {
     "min": "number",
     "max": "number"
@@ -1066,8 +1056,10 @@ Create a new court (onboarding - Step 3).
   "description": "string|null",
   "sport_type_id": "integer",
   "sport_type_name": "string",
-  "slot_duration_minutes": "integer",
-  "booking_requires_approval": "boolean",
+  "minimum_slot_duration": "integer|null",  // default: 60 (minutes)
+  "maximum_slot_duration": "integer|null",  // default: 180 (minutes)
+  "slot_interval": "integer|null",          // default: 30 (minutes)
+  "requires_approval": "boolean|null",      // default: false
   "is_active": "boolean|null",
   "display_order": "integer|null"
 }

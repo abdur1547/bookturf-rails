@@ -12,4 +12,6 @@ Rails.application.routes.draw do
   root "welcome#index"
 
   mount MissionControl::Jobs::Engine, at: "/jobs"
+
+  apipie
 end

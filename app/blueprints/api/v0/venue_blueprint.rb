@@ -14,6 +14,8 @@ module Api::V0
            :postal_code,
            :phone_number,
            :email,
+           :timezone,
+           :currency,
            :is_active,
            :created_at
 
@@ -30,6 +32,8 @@ module Api::V0
              :postal_code,
              :phone_number,
              :email,
+             :timezone,
+             :currency,
              :is_active,
              :created_at
 
@@ -63,6 +67,8 @@ module Api::V0
              :postal_code,
              :phone_number,
              :email,
+             :timezone,
+             :currency,
              :is_active,
              :created_at,
              :updated_at
@@ -81,10 +87,6 @@ module Api::V0
 
       association :owner, blueprint: Api::V0::UserBlueprint, view: :minimal do |venue|
         venue.owner
-      end
-
-      association :venue_setting, blueprint: Api::V0::VenueSettingBlueprint do |venue|
-        venue.venue_setting
       end
 
       association :venue_operating_hours, blueprint: Api::V0::VenueOperatingHourBlueprint do |venue|

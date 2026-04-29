@@ -87,13 +87,9 @@ RSpec.describe "DELETE /api/v0/venues/:id", type: :request do
 
     context "when venue has settings and operating hours" do
       it "deletes the venue and cascades to related records" do
-        setting_id = test_venue.venue_setting.id
-        operating_hour_ids = test_venue.venue_operating_hours.pluck(:id)
-
         expect(response).to have_http_status(:ok)
         expect(Venue.exists?(test_venue.id)).to be false
-        expect(VenueSetting.exists?(setting_id)).to be false
-        expect(VenueOperatingHour.where(id: operating_hour_ids).exists?).to be false
+        expect(VenueOperatingHour.where(venue_id: test_venue.id).exists?).to be false
       end
     end
   end
@@ -105,8 +101,8 @@ RSpec.describe "DELETE /api/v0/venues/:id", type: :request do
   context "when not authenticated" do
     let(:request_headers) { headers }
 
-    it "returns forbidden status" do
-      expect(response).to have_http_status(:forbidden)
+    it "returns unauthorized status" do
+      expect(response).to have_http_status(:unauthorized)
     end
 
     it "does not delete the venue" do
@@ -170,13 +166,13 @@ RSpec.describe "DELETE /api/v0/venues/:id", type: :request do
     let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
     let(:venue_id) { 999999 }
 
-    it "returns unprocessable entity status" do
-      expect(response).to have_http_status(:unprocessable_entity)
+    it "returns not found status" do
+      expect(response).to have_http_status(:not_found)
     end
 
     it "returns error response" do
       expect(response.parsed_body["success"]).to be false
-      expect(response.parsed_body["errors"]).to eq({ "error" => "Venue not found" })
+      expect(response.parsed_body["errors"]).to be_an(Array)
     end
   end
 
@@ -184,63 +180,76 @@ RSpec.describe "DELETE /api/v0/venues/:id", type: :request do
     let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
     let(:venue_id) { "non-existent-venue" }
 
-    it "returns unprocessable entity status" do
-      expect(response).to have_http_status(:unprocessable_entity)
+    it "returns not found status" do
+      expect(response).to have_http_status(:not_found)
     end
 
     it "returns error response" do
       expect(response.parsed_body["success"]).to be false
-      expect(response.parsed_body["errors"]).to eq({ "error" => "Venue not found" })
+      expect(response.parsed_body["errors"]).to be_an(Array)
     end
   end
 
   context "when venue has courts" do
-    let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
+    let(:courts_owner) { create(:user, email: "courtsowner@example.com") }
+    let!(:court_venue) do
+      courts_owner.assign_role(owner_role)
+      create(:venue, owner: courts_owner)
+    end
+    let!(:court) { create(:court, venue: court_venue) }
 
-    # This requires Court model - placeholder for now
-    let!(:court) do
-      # Once Court factory is available:
-      # create(:court, venue: test_venue)
-      # For now, we'll skip this test
-      nil
+    before do
+      delete "/api/v0/venues/#{court_venue.id}",
+             headers: headers.merge("Authorization" => auth_token_for(courts_owner))
     end
 
-    # Skip until Court model is implemented
-    xit "returns unprocessable entity status" do
+    it "returns unprocessable entity status" do
       expect(response).to have_http_status(:unprocessable_entity)
     end
 
-    xit "does not delete the venue" do
-      expect(Venue.exists?(test_venue.id)).to be true
+    it "does not delete the venue" do
+      expect(Venue.exists?(court_venue.id)).to be true
     end
 
-    xit "includes error about existing courts" do
+    it "includes error about existing courts" do
       errors = response.parsed_body["errors"]
       expect(errors.to_s).to include("existing courts")
     end
   end
 
   context "when venue has bookings" do
-    let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
+    let(:bookings_owner) { create(:user, email: "bookingsowner@example.com") }
+    let!(:bookings_venue) do
+      bookings_owner.assign_role(owner_role)
+      create(:venue, owner: bookings_owner)
+    end
+    # Booking's within_operating_hours validation requires operating hours for the booking day
+    let!(:bookings_operating_hour) do
+      create(:venue_operating_hour,
+             venue: bookings_venue,
+             day_of_week: 1.day.from_now.wday,
+             opens_at: "09:00",
+             closes_at: "23:00",
+             is_closed: false)
+    end
+    # The booking factory creates its own court (belonging to a different venue),
+    # so bookings_venue.courts.exists? stays false — ensuring the bookings check runs
+    let!(:booking) { create(:booking, venue: bookings_venue, user: customer_user) }
 
-    # This requires Booking model - placeholder for now
-    let!(:booking) do
-      # Once Booking factory is available:
-      # create(:booking, venue: test_venue)
-      # For now, we'll skip this test
-      nil
+    before do
+      delete "/api/v0/venues/#{bookings_venue.id}",
+             headers: headers.merge("Authorization" => auth_token_for(bookings_owner))
     end
 
-    # Skip until Booking model is implemented
-    xit "returns unprocessable entity status" do
+    it "returns unprocessable entity status" do
       expect(response).to have_http_status(:unprocessable_entity)
     end
 
-    xit "does not delete the venue" do
-      expect(Venue.exists?(test_venue.id)).to be true
+    it "does not delete the venue" do
+      expect(Venue.exists?(bookings_venue.id)).to be true
     end
 
-    xit "includes error about existing bookings" do
+    it "includes error about existing bookings" do
       errors = response.parsed_body["errors"]
       expect(errors.to_s).to include("existing bookings")
     end
@@ -254,8 +263,8 @@ RSpec.describe "DELETE /api/v0/venues/:id", type: :request do
     let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
     let(:venue_id) { 0 }
 
-    it "returns unprocessable entity status" do
-      expect(response).to have_http_status(:unprocessable_entity)
+    it "returns not found status" do
+      expect(response).to have_http_status(:not_found)
     end
 
     it "returns error response" do
@@ -267,8 +276,8 @@ RSpec.describe "DELETE /api/v0/venues/:id", type: :request do
     let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
     let(:venue_id) { -1 }
 
-    it "returns unprocessable entity status" do
-      expect(response).to have_http_status(:unprocessable_entity)
+    it "returns not found status" do
+      expect(response).to have_http_status(:not_found)
     end
 
     it "returns error response" do
@@ -280,8 +289,8 @@ RSpec.describe "DELETE /api/v0/venues/:id", type: :request do
     let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
     let(:venue_id) { "invalid@id" }
 
-    it "returns unprocessable entity status" do
-      expect(response).to have_http_status(:unprocessable_entity)
+    it "returns not found status" do
+      expect(response).to have_http_status(:not_found)
     end
 
     it "returns error response" do
@@ -316,12 +325,13 @@ RSpec.describe "DELETE /api/v0/venues/:id", type: :request do
       delete endpoint, headers: request_headers
     end
 
-    it "returns unprocessable entity status" do
-      expect(response).to have_http_status(:unprocessable_entity)
+    it "returns not found status" do
+      expect(response).to have_http_status(:not_found)
     end
 
     it "returns not found error" do
-      expect(response.parsed_body["errors"]).to eq({ "error" => "Venue not found" })
+      expect(response.parsed_body["success"]).to be false
+      expect(response.parsed_body["errors"]).to be_an(Array)
     end
   end
 

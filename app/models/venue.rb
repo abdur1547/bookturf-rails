@@ -1,8 +1,8 @@
 class Venue < ApplicationRecord
   belongs_to :owner, class_name: "User", foreign_key: "owner_id"
 
-  has_one :venue_setting, dependent: :destroy
   has_many :venue_operating_hours, -> { order(:day_of_week) }, dependent: :destroy
+  has_many :venue_closures, dependent: :destroy
   has_many :venue_users, dependent: :destroy
   has_many :staff_members, through: :venue_users, source: :user
   has_many :courts, dependent: :destroy
@@ -11,8 +11,6 @@ class Venue < ApplicationRecord
   has_many :court_closures, dependent: :destroy
   has_many :notifications, dependent: :destroy
 
-  # Accept nested attributes for settings and hours
-  accepts_nested_attributes_for :venue_setting
   accepts_nested_attributes_for :venue_operating_hours, allow_destroy: true
 
   validates :name, presence: true, length: { minimum: 3, maximum: 100 }
@@ -23,6 +21,8 @@ class Venue < ApplicationRecord
   validates :email, format: { with: URI::MailTo::EMAIL_REGEXP, allow_blank: true }
   validates :latitude, numericality: { greater_than_or_equal_to: -90, less_than_or_equal_to: 90 }, allow_nil: true
   validates :longitude, numericality: { greater_than_or_equal_to: -180, less_than_or_equal_to: 180 }, allow_nil: true
+  validates :timezone, presence: true
+  validates :currency, presence: true
 
   # One venue per owner (MVP constraint)
   validate :owner_can_have_only_one_venue, on: :create
@@ -55,8 +55,8 @@ class Venue < ApplicationRecord
     hours.present? && !hours.is_closed
   end
 
-  def to_param
-    slug
+  def closed_on?(date)
+    venue_closures.overlapping(date.beginning_of_day, date.end_of_day).exists?
   end
 
   private
@@ -66,7 +66,6 @@ class Venue < ApplicationRecord
     slug_candidate = base_slug
     counter = 2
 
-    # Handle slug conflicts by adding a counter
     while Venue.exists?(slug: slug_candidate)
       slug_candidate = "#{base_slug}-#{counter}"
       counter += 1
@@ -78,9 +77,7 @@ class Venue < ApplicationRecord
   def owner_can_have_only_one_venue
     return unless owner_id
 
-    # Query database directly to avoid association caching issues
     query = Venue.where(owner_id: owner_id)
-    # Exclude the current venue if it's being updated (already persisted)
     query = query.where.not(id: id) if persisted?
 
     if query.exists?

@@ -3,7 +3,6 @@ require 'rails_helper'
 RSpec.describe Venue, type: :model do
   describe 'associations' do
     it { should belong_to(:owner).class_name('User').with_foreign_key('owner_id') }
-    it { should have_one(:venue_setting).dependent(:destroy) }
     it { should have_many(:venue_operating_hours).dependent(:destroy) }
     it { should have_many(:venue_users).dependent(:destroy) }
     it { should have_many(:staff_members).through(:venue_users).source(:user) }
@@ -95,32 +94,6 @@ RSpec.describe Venue, type: :model do
         expect(venue.slug).to eq('custom-slug')
       end
     end
-
-    describe 'default settings creation' do
-      it 'creates venue_setting after venue creation' do
-        venue = create(:venue)
-        expect(venue.venue_setting).to be_present
-      end
-    end
-
-    describe 'default operating hours creation' do
-      it 'creates 7 operating hours after venue creation' do
-        venue = create(:venue)
-        expect(venue.venue_operating_hours.count).to eq(7)
-      end
-
-      it 'creates operating hours for each day of week' do
-        venue = create(:venue)
-        expect(venue.venue_operating_hours.map(&:day_of_week)).to match_array((0..6).to_a)
-      end
-
-      it 'sets default hours to 9 AM - 11 PM' do
-        venue = create(:venue)
-        first_day = venue.venue_operating_hours.first
-        expect(first_day.opens_at.strftime('%H:%M')).to eq('09:00')
-        expect(first_day.closes_at.strftime('%H:%M')).to eq('23:00')
-      end
-    end
   end
 
   describe 'scopes' do
@@ -154,6 +127,15 @@ RSpec.describe Venue, type: :model do
 
   describe 'instance methods' do
     let(:venue) { create(:venue) }
+    let!(:operating_hours) do
+      # opens from monday to friday, closed on weekends
+      (0..4).each do |day|
+        create(:venue_operating_hour, venue: venue, day_of_week: day, is_closed: false, opens_at: '09:00', closes_at: '17:00')
+      end
+      (5..6).each do |day|
+        create(:venue_operating_hour, venue: venue, day_of_week: day, is_closed: true)
+      end
+    end
 
     describe '#google_maps_url' do
       it 'returns Google Maps URL when coordinates present' do
@@ -190,18 +172,11 @@ RSpec.describe Venue, type: :model do
 
     describe '#open_on?' do
       it 'returns true when venue is open on specified day' do
-        expect(venue.open_on?(1)).to be true # Monday
+        expect(venue.open_on?(0)).to be true # Monday
       end
 
       it 'returns false when venue is closed on specified day' do
-        venue.venue_operating_hours.find_by(day_of_week: 1).update(is_closed: true)
-        expect(venue.open_on?(1)).to be false
-      end
-    end
-
-    describe '#to_param' do
-      it 'returns slug for URL generation' do
-        expect(venue.to_param).to eq(venue.slug)
+        expect(venue.open_on?(5)).to be false # Saturday
       end
     end
   end

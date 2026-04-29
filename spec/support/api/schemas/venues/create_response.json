@@ -24,11 +24,12 @@
                 "name",
                 "slug",
                 "address",
+                "timezone",
+                "currency",
                 "is_active",
                 "created_at",
                 "updated_at",
                 "owner",
-                "venue_setting",
                 "venue_operating_hours",
                 "courts_count"
             ],
@@ -99,6 +100,12 @@
                         "null"
                     ]
                 },
+                "timezone": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
                 "is_active": {
                     "type": "boolean"
                 },
@@ -122,9 +129,6 @@
                 "owner": {
                     "$ref": "#/definitions/user_minimal"
                 },
-                "venue_setting": {
-                    "$ref": "#/definitions/venue_setting"
-                },
                 "venue_operating_hours": {
                     "type": "array",
                     "items": {
@@ -137,63 +141,17 @@
             "type": "object",
             "required": [
                 "id",
-                "email",
-                "name"
+                "full_name"
             ],
             "properties": {
                 "id": {
                     "type": "integer"
                 },
-                "email": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "venue_setting": {
-            "type": "object",
-            "required": [
-                "id",
-                "minimum_slot_duration",
-                "maximum_slot_duration",
-                "slot_interval",
-                "advance_booking_days",
-                "requires_approval",
-                "timezone",
-                "currency"
-            ],
-            "properties": {
-                "id": {
-                    "type": "integer"
-                },
-                "minimum_slot_duration": {
-                    "type": "integer"
-                },
-                "maximum_slot_duration": {
-                    "type": "integer"
-                },
-                "slot_interval": {
-                    "type": "integer"
-                },
-                "advance_booking_days": {
-                    "type": "integer"
-                },
-                "requires_approval": {
-                    "type": "boolean"
-                },
-                "cancellation_hours": {
+                "full_name": {
                     "type": [
-                        "integer",
+                        "string",
                         "null"
                     ]
-                },
-                "timezone": {
-                    "type": "string"
-                },
-                "currency": {
-                    "type": "string"
                 }
             }
         },

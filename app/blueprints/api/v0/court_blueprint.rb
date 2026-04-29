@@ -8,17 +8,16 @@ module Api::V0
            :description,
            :court_type_id,
            :venue_id,
+           :slot_interval,
+           :requires_approval,
            :is_active,
            :display_order,
            :created_at,
            :updated_at
 
     view :list do
-      fields :sport_type_name,
-             :venue_name,
-             :city,
-             :slot_duration_minutes,
-             :price_range
+      fields :slot_interval,
+             :requires_approval
 
       field :sport_type_name do |court|
         court.sport_type_name
@@ -30,10 +29,6 @@ module Api::V0
 
       field :city do |court|
         court.venue&.city
-      end
-
-      field :slot_duration_minutes do |court|
-        court.slot_duration_minutes
       end
 
       field :price_range do |court|
@@ -60,12 +55,8 @@ module Api::V0
     end
 
     view :detailed do
-      fields :sport_type_name,
-             :venue_name,
-             :city,
-             :slot_duration_minutes,
-             :booking_requires_approval,
-             :price_range
+      fields :slot_interval,
+             :requires_approval
 
       field :sport_type_name do |court|
         court.sport_type_name
@@ -77,14 +68,6 @@ module Api::V0
 
       field :city do |court|
         court.venue&.city
-      end
-
-      field :slot_duration_minutes do |court|
-        court.slot_duration_minutes
-      end
-
-      field :booking_requires_approval do |court|
-        court.booking_requires_approval
       end
 
       field :price_range do |court|

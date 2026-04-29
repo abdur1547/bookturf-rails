@@ -67,6 +67,9 @@ gem "pundit", "~> 2.4"
 # Activity tracking
 gem "public_activity", "~> 3.0"
 
+# API Documentation
+gem "apipie-rails", "~> 1.4"
+
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
   gem "bundler-audit", require: false

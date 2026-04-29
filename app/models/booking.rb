@@ -31,7 +31,6 @@ class Booking < ApplicationRecord
   validate :no_overlapping_bookings
   validate :duration_matches_time_difference
   validate :within_operating_hours
-  validate :respects_slot_durations
 
   before_validation :set_venue, if: -> { court.present? && venue.blank? }
   before_validation :calculate_duration, if: -> { start_time.present? && end_time.present? }
@@ -263,21 +262,6 @@ class Booking < ApplicationRecord
 
     if start_time_of_day < opens_at || end_time_of_day > closes_at
       errors.add(:base, "Booking must be within operating hours (#{operating_hours.formatted_hours})")
-    end
-  end
-
-  def respects_slot_durations
-    return if duration_minutes.blank? || venue.blank?
-
-    settings = venue.venue_setting
-    return if settings.blank?
-
-    if duration_minutes < settings.minimum_slot_duration
-      errors.add(:duration_minutes, "must be at least #{settings.minimum_slot_duration} minutes")
-    end
-
-    if duration_minutes > settings.maximum_slot_duration
-      errors.add(:duration_minutes, "cannot exceed #{settings.maximum_slot_duration} minutes")
     end
   end
 end

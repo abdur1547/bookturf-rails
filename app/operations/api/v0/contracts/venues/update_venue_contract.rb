@@ -13,18 +13,9 @@ module Api::V0::Contracts::Venues
       optional(:longitude).maybe(:decimal)
       optional(:phone_number).maybe(:string)
       optional(:email).maybe(:string)
+      optional(:timezone).maybe(:string)
+      optional(:currency).maybe(:string)
       optional(:is_active).maybe(:bool)
-
-      optional(:venue_setting).maybe(:hash) do
-        optional(:minimum_slot_duration).maybe(:integer)
-        optional(:maximum_slot_duration).maybe(:integer)
-        optional(:slot_interval).maybe(:integer)
-        optional(:advance_booking_days).maybe(:integer)
-        optional(:requires_approval).maybe(:bool)
-        optional(:cancellation_hours).maybe(:integer)
-        optional(:timezone).maybe(:string)
-        optional(:currency).maybe(:string)
-      end
 
       optional(:venue_operating_hours).maybe(:array) do
         each do

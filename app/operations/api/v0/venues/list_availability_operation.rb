@@ -16,6 +16,7 @@ module Api::V0::Venues
 
     def call(params)
       @params = params
+
       venue = find_venue
       return Failure(:not_found) unless venue
 
@@ -27,21 +28,11 @@ module Api::V0::Venues
 
       return Failure("end_date must be on or after start_date") if end_date < start_date
 
-      settings = venue.venue_setting
-      return Failure("Venue settings are required") unless settings
-
-      duration_minutes = parse_duration(params[:duration_minutes], settings.minimum_slot_duration)
-      return Failure("Invalid duration_minutes") unless duration_minutes
-
-      unless valid_duration?(duration_minutes, settings)
-        return Failure("duration_minutes must be between #{settings.minimum_slot_duration} and #{settings.maximum_slot_duration} and a multiple of #{settings.slot_interval}")
-      end
-
       availability = Venues::AvailabilityService.call(
         venue: venue,
         start_date: start_date,
         end_date: end_date,
-        duration_minutes: duration_minutes,
+        duration_minutes: parse_integer(params[:duration_minutes]),
         court_type_id: parse_integer(params[:court_type_id]),
         court_id: parse_integer(params[:court_id]),
         include_booked: parse_boolean(params[:include_booked])
@@ -64,19 +55,6 @@ module Api::V0::Venues
       Date.iso8601(value)
     rescue ArgumentError, TypeError
       nil
-    end
-
-    def parse_duration(value, default_duration)
-      return default_duration if value.nil? || value.to_s.strip.empty?
-      Integer(value)
-    rescue ArgumentError, TypeError
-      nil
-    end
-
-    def valid_duration?(duration, settings)
-      duration >= settings.minimum_slot_duration &&
-        duration <= settings.maximum_slot_duration &&
-        (duration % settings.slot_interval).zero?
     end
 
     def parse_integer(value)

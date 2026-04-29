@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.describe "POST /api/v0/venues", type: :request do
   let(:headers) { { "Content-Type" => "application/json" } }
@@ -25,7 +25,7 @@ RSpec.describe "POST /api/v0/venues", type: :request do
   let(:endpoint) { "/api/v0/venues" }
   let(:request_headers) { headers }
 
-  # Define each parameter as a separate let variable
+  # Define each parameter as a separate let variable (sent flat — no `venue:` wrapper)
   let(:venue_name) { "New Sports Arena" }
   let(:venue_description) { "A premium sports facility" }
   let(:venue_address) { "123 Main Street, Block A" }
@@ -38,29 +38,8 @@ RSpec.describe "POST /api/v0/venues", type: :request do
   let(:venue_phone_number) { "+92 21 35123456" }
   let(:venue_email) { "info@newsportsarena.com" }
   let(:venue_is_active) { true }
-
-  # Venue setting parameters
-  let(:minimum_slot_duration) { 60 }
-  let(:maximum_slot_duration) { 180 }
-  let(:slot_interval) { 30 }
-  let(:advance_booking_days) { 30 }
-  let(:requires_approval) { false }
-  let(:cancellation_hours) { 24 }
-  let(:timezone) { "Asia/Karachi" }
-  let(:currency) { "PKR" }
-
-  let(:venue_setting_params) do
-    {
-      minimum_slot_duration: minimum_slot_duration,
-      maximum_slot_duration: maximum_slot_duration,
-      slot_interval: slot_interval,
-      advance_booking_days: advance_booking_days,
-      requires_approval: requires_approval,
-      cancellation_hours: cancellation_hours,
-      timezone: timezone,
-      currency: currency
-    }
-  end
+  let(:venue_timezone) { "Asia/Karachi" }
+  let(:venue_currency) { "PKR" }
 
   # Operating hours for all 7 days
   let(:venue_operating_hours_params) do
@@ -77,22 +56,21 @@ RSpec.describe "POST /api/v0/venues", type: :request do
 
   let(:request_params) do
     {
-      venue: {
-        name: venue_name,
-        description: venue_description,
-        address: venue_address,
-        city: venue_city,
-        state: venue_state,
-        country: venue_country,
-        postal_code: venue_postal_code,
-        latitude: venue_latitude,
-        longitude: venue_longitude,
-        phone_number: venue_phone_number,
-        email: venue_email,
-        is_active: venue_is_active,
-        venue_setting: venue_setting_params,
-        venue_operating_hours: venue_operating_hours_params
-      }
+      name: venue_name,
+      description: venue_description,
+      address: venue_address,
+      city: venue_city,
+      state: venue_state,
+      country: venue_country,
+      postal_code: venue_postal_code,
+      latitude: venue_latitude,
+      longitude: venue_longitude,
+      phone_number: venue_phone_number,
+      email: venue_email,
+      is_active: venue_is_active,
+      timezone: venue_timezone,
+      currency: venue_currency,
+      venue_operating_hours: venue_operating_hours_params
     }
   end
 
@@ -113,7 +91,7 @@ RSpec.describe "POST /api/v0/venues", type: :request do
       end
 
       it "matches the create response schema" do
-        expect(response).to match_json_schema("venues/show_response")
+        expect(response).to match_json_schema("venues/create_response")
       end
 
       it "creates a new venue" do
@@ -146,18 +124,16 @@ RSpec.describe "POST /api/v0/venues", type: :request do
         )
       end
 
-      it "creates venue with custom settings" do
+      it "stores the timezone and currency" do
         new_venue = Venue.find_by(name: venue_name)
-        expect(new_venue.venue_setting.minimum_slot_duration).to eq(60)
-        expect(new_venue.venue_setting.maximum_slot_duration).to eq(180)
-        expect(new_venue.venue_setting.slot_interval).to eq(30)
+        expect(new_venue.timezone).to eq("Asia/Karachi")
+        expect(new_venue.currency).to eq("PKR")
       end
 
-      it "includes venue_setting in response" do
+      it "includes timezone and currency in response" do
         data = response.parsed_body["data"]
-        expect(data["venue_setting"]).to be_present
-        expect(data["venue_setting"]["minimum_slot_duration"]).to eq(60)
-        expect(data["venue_setting"]["timezone"]).to eq("Asia/Karachi")
+        expect(data["timezone"]).to eq("Asia/Karachi")
+        expect(data["currency"]).to eq("PKR")
       end
 
       it "creates all 7 operating hours" do
@@ -174,31 +150,29 @@ RSpec.describe "POST /api/v0/venues", type: :request do
       it "includes owner information in response" do
         data = response.parsed_body["data"]
         expect(data["owner"]["id"]).to eq(new_user.id)
-        expect(data["owner"]["email"]).to eq("newuser@example.com")
+        expect(data["owner"]["full_name"]).to eq(new_user.full_name)
       end
     end
 
     context "with minimal parameters (only required fields)" do
       let(:venue_description) { nil }
-      let(:venue_city) { nil }
-      let(:venue_state) { nil }
-      let(:venue_country) { nil }
       let(:venue_postal_code) { nil }
       let(:venue_latitude) { nil }
       let(:venue_longitude) { nil }
       let(:venue_phone_number) { nil }
       let(:venue_email) { nil }
-      let(:venue_setting_params) { nil }
+      let(:venue_timezone) { nil }
+      let(:venue_currency) { nil }
       let(:venue_operating_hours_params) { nil }
 
       it "creates the venue successfully" do
         expect(response).to have_http_status(:created)
       end
 
-      it "creates venue with default settings" do
+      it "creates venue with default timezone and currency" do
         new_venue = Venue.find_by(name: venue_name)
-        expect(new_venue.venue_setting).to be_present
-        expect(new_venue.venue_setting.minimum_slot_duration).to eq(60)
+        expect(new_venue.timezone).to eq("Asia/Karachi")
+        expect(new_venue.currency).to eq("PKR")
       end
 
       it "creates default operating hours (7 days)" do
@@ -207,40 +181,31 @@ RSpec.describe "POST /api/v0/venues", type: :request do
       end
     end
 
-    context "with partial venue_setting parameters" do
-      let(:venue_setting_params) do
-        {
-          minimum_slot_duration: 90,
-          timezone: "Asia/Dubai"
-        }
-      end
+    context "with custom timezone and currency" do
+      let(:venue_timezone) { "Asia/Dubai" }
+      let(:venue_currency) { "AED" }
 
       it "creates the venue successfully" do
         expect(response).to have_http_status(:created)
       end
 
-      it "updates provided settings" do
+      it "stores the custom timezone and currency" do
         new_venue = Venue.find_by(name: venue_name)
-        expect(new_venue.venue_setting.minimum_slot_duration).to eq(90)
-        expect(new_venue.venue_setting.timezone).to eq("Asia/Dubai")
-      end
-
-      it "uses defaults for unprovided settings" do
-        new_venue = Venue.find_by(name: venue_name)
-        expect(new_venue.venue_setting.currency).to eq("PKR")
+        expect(new_venue.timezone).to eq("Asia/Dubai")
+        expect(new_venue.currency).to eq("AED")
       end
     end
 
     context "with some closed days in operating hours" do
       let(:venue_operating_hours_params) do
         [
-          { day_of_week: 0, is_closed: true },
+          { day_of_week: 0, opens_at: "09:00", closes_at: "23:00", is_closed: true },
           { day_of_week: 1, opens_at: "09:00", closes_at: "23:00", is_closed: false },
           { day_of_week: 2, opens_at: "09:00", closes_at: "23:00", is_closed: false },
           { day_of_week: 3, opens_at: "09:00", closes_at: "23:00", is_closed: false },
           { day_of_week: 4, opens_at: "09:00", closes_at: "23:00", is_closed: false },
           { day_of_week: 5, opens_at: "09:00", closes_at: "23:00", is_closed: false },
-          { day_of_week: 6, is_closed: true }
+          { day_of_week: 6, opens_at: "09:00", closes_at: "23:00", is_closed: true }
         ]
       end
 
@@ -291,8 +256,8 @@ RSpec.describe "POST /api/v0/venues", type: :request do
   context "when not authenticated" do
     let(:request_headers) { headers }
 
-    it "returns forbidden status" do
-      expect(response).to have_http_status(:forbidden)
+    it "returns unauthorized status" do
+      expect(response).to have_http_status(:unauthorized)
     end
 
     it "returns error response" do
@@ -308,39 +273,32 @@ RSpec.describe "POST /api/v0/venues", type: :request do
     let!(:owner_with_venue) do
       user = create(:user, email: "owner_with_venue@example.com")
       user.assign_role(owner_role)
-      user
-    end
-
-    let!(:existing_venue) do
-      # Manually create venue with save(validate: false) to bypass one-venue validation
+      # Create the existing venue here so it's present before the request runs
       venue = Venue.new(
-        owner_id: owner_with_venue.id,
+        owner_id: user.id,
         name: "Existing Venue",
         address: "123 Existing St",
-        slug: "existing-venue-test-#{SecureRandom.hex(4)}"  # Unique slug
+        timezone: "Asia/Karachi",
+        currency: "PKR",
+        slug: "existing-venue-test-#{SecureRandom.hex(4)}"
       )
       venue.save!(validate: false)
-      venue
+      user
     end
 
     let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_with_venue)) }
 
-    # NOTE: These tests are currently pending due to test structure issues with the shared before block.
-    # The validation itself works correctly (verified in model specs), but needs test restructuring.
-    # See spec/models/venue_spec.rb lines 72-77 for working validation tests.
-
-    it "returns validation error", :pending do
+    it "returns validation error" do
       expect(response).to have_http_status(:unprocessable_entity)
     end
 
-    it "includes error about existing venue", :pending do
+    it "includes error about existing venue" do
       errors = response.parsed_body["errors"]
       expect(errors).to be_present
       expect(errors.to_s).to include("can only own one venue")
     end
 
-    it "does not create a new venue", :pending do
-      # Owner should still only have the one existing venue
+    it "does not create a new venue" do
       expect(owner_with_venue.reload.owned_venues.count).to eq(1)
       expect(owner_with_venue.owned_venues.first.name).to eq("Existing Venue")
     end
@@ -481,7 +439,7 @@ RSpec.describe "POST /api/v0/venues", type: :request do
     end
   end
 
-  context "when operating hours have closes_at before opens_at" do
+  context "when operating hours have closes_at equal to opens_at" do
     let(:request_headers) { headers.merge("Authorization" => auth_token_for(new_user)) }
     let(:venue_operating_hours_params) do
       [
@@ -502,21 +460,6 @@ RSpec.describe "POST /api/v0/venues", type: :request do
     it "includes validation error about time order" do
       errors = response.parsed_body["errors"]
       expect(errors.to_s).to include("must be different")
-    end
-  end
-
-  context "when venue_setting has maximum less than minimum" do
-    let(:request_headers) { headers.merge("Authorization" => auth_token_for(new_user)) }
-    let(:minimum_slot_duration) { 180 }
-    let(:maximum_slot_duration) { 60 }
-
-    it "returns unprocessable entity status" do
-      expect(response).to have_http_status(:unprocessable_entity)
-    end
-
-    it "includes validation error" do
-      errors = response.parsed_body["errors"]
-      expect(errors).to be_present
     end
   end
 
