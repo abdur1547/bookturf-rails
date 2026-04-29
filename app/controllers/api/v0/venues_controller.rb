@@ -76,15 +76,64 @@ module Api::V0
     param :timezone, String, required: false, desc: "IANA timezone identifier (e.g. Asia/Karachi)"
     param :currency, String, required: false, desc: "ISO 4217 currency code (e.g. PKR)"
     param :is_active, :bool, required: false, desc: "Whether the venue is publicly visible (default: false)"
-    param :venue_operating_hours, Array, required: false, desc: "Operating hours per day" do
-      param :day_of_week, Integer, required: true, desc: "0 = Sunday … 6 = Saturday"
+    param :venue_operating_hours, Array, desc: "Operating hours per day" do
+      param :day_of_week, Integer, required: true, desc: "0 = Monday … 6 = Sunday"
       param :opens_at, String, required: false, desc: "Opening time (HH:MM)"
       param :closes_at, String, required: false, desc: "Closing time (HH:MM)"
       param :is_closed, :bool, required: false, desc: "Mark day as closed"
     end
     returns code: 201, desc: "Venue created" do
       property :success, [ true ]
-      property :data, Hash, desc: "Created venue object (detailed view)"
+      property :data, Hash, desc: "Created venue object" do
+        property :id, Integer, desc: "Venue ID"
+        property :name, String, desc: "Venue name"
+        property :slug, String, desc: "URL-friendly identifier"
+        property :address, String, desc: "Street address"
+        property :city, String, desc: "City"
+        property :state, String, desc: "State / province"
+        property :country, String, desc: "Country"
+        property :postal_code, String, desc: "Postal / ZIP code"
+        property :description, String, desc: "Venue description"
+        property :phone_number, String, desc: "Contact phone number"
+        property :email, String, desc: "Contact email"
+        property :latitude, Float, desc: "GPS latitude"
+        property :longitude, Float, desc: "GPS longitude"
+        property :google_maps_url, String, desc: "Google Maps link derived from lat/lng"
+        property :timezone, String, desc: "IANA timezone identifier"
+        property :currency, String, desc: "ISO 4217 currency code"
+        property :is_active, :bool, desc: "Whether the venue is publicly visible"
+        property :courts_count, Integer, desc: "Number of courts at this venue"
+        property :created_at, String, desc: "ISO 8601 creation timestamp"
+        property :updated_at, String, desc: "ISO 8601 last-update timestamp"
+        property :owner, Hash, desc: "Venue owner user object" do
+          property :id, Integer
+          property :email, String
+          property :full_name, String
+          property :phone_number, String
+          property :user_type, String
+          property :avatar_url, String
+          property :owner_data, Hash
+          property :staff_data, Hash
+          property :preferences, Hash, desc: "Notification and location preferences" do
+            property :preferred_city, String
+            property :preferred_town, String
+            property :notification_reminders, :bool
+            property :notification_30min, :bool
+          end
+          property :created_at, String
+          property :updated_at, String
+        end
+        property :venue_operating_hours, Array, desc: "Operating hours for each day of the week" do
+          property :id, Integer
+          property :venue_id, Integer
+          property :day_of_week, Integer, desc: "0 = Monday … 6 = Sunday"
+          property :day_name, String, desc: "Full day name (e.g. Monday)"
+          property :opens_at, String, desc: "ISO 8601 open time"
+          property :closes_at, String, desc: "ISO 8601 close time"
+          property :formatted_hours, String, desc: "Human-readable range or 'Closed'"
+          property :is_closed, :bool
+        end
+      end
     end
     error code: 401, desc: "Not authenticated"
     error code: 403, desc: "Insufficient permissions (only venue owners / admins)"
@@ -144,10 +193,7 @@ module Api::V0
     header "Authorization", "Bearer <access_token>", required: true
     param :id, Integer, required: true, desc: "Venue ID"
     param :venue_operating_hours, Array, required: true, desc: "Full set of operating hours (all 7 days)" do
-      param :day_of_week, Integer, required: true, desc: "0 = Sunday … 6 = Saturday"
-      param :opens_at, String, required: false, desc: "Opening time (HH:MM)"
-      param :closes_at, String, required: false, desc: "Closing time (HH:MM)"
-      param :is_closed, :bool, required: false, desc: "Mark day as closed"
+      param_group :venue_operating_hour
     end
     returns code: 200, desc: "Operating hours updated"
     error code: 401, desc: "Not authenticated"
