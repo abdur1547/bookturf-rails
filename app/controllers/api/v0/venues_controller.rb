@@ -162,6 +162,12 @@ module Api::V0
     param :timezone, String, required: false, desc: "IANA timezone identifier"
     param :currency, String, required: false, desc: "ISO 4217 currency code"
     param :is_active, :bool, required: false, desc: "Publicly visible toggle"
+    param :venue_operating_hours, Array, desc: "Operating hours per day", required: false do
+      param :day_of_week, Integer, required: true, desc: "0 = Monday … 6 = Sunday"
+      param :opens_at, String, required: false, desc: "Opening time (HH:MM)"
+      param :closes_at, String, required: false, desc: "Closing time (HH:MM)"
+      param :is_closed, :bool, required: false, desc: "Mark day as closed"
+    end
     returns code: 200, desc: "Updated venue" do
       property :success, [ true ]
       property :data, Hash, desc: "Updated venue object (detailed view)"
@@ -193,7 +199,7 @@ module Api::V0
     header "Authorization", "Bearer <access_token>", required: true
     param :id, Integer, required: true, desc: "Venue ID"
     param :venue_operating_hours, Array, required: true, desc: "Full set of operating hours (all 7 days)" do
-      param_group :venue_operating_hour
+      # param_group :venue_operating_hour
     end
     returns code: 200, desc: "Operating hours updated"
     error code: 401, desc: "Not authenticated"
