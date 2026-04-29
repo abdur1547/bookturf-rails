@@ -8,14 +8,14 @@ module Api::V0::Venues
       @params = params
       @current_user = current_user
 
-      @venue = Venue.find_by(id: params[:id])
+      @venue = find_venue(params[:id])
       return Failure(:not_found) unless @venue
 
       return Failure(:forbidden) unless authorize
 
       result = Venues::VenueUpdaterService.call(
         venue: @venue,
-        params: params
+        params: params[:venue] || {}
       )
 
       return Failure(result.error) unless result.success?
