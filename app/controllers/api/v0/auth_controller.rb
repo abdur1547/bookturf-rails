@@ -21,7 +21,7 @@ module Api::V0
     param :email, String, required: true, desc: "Unique email address"
     param :password, String, required: true, desc: "Password (minimum 6 characters)"
     returns code: 200, desc: "User created successfully" do
-      property :success, [true], desc: "Always true on success"
+      property :success, [ true ], desc: "Always true on success"
       property :data, Hash, desc: "Response payload" do
         property :access_token, String, desc: "Bearer JWT access token"
         property :refresh_token, String, desc: "Opaque refresh token string"
@@ -44,7 +44,7 @@ module Api::V0
     param :email, String, required: true, desc: "Registered email address"
     param :password, String, required: true, desc: "Account password"
     returns code: 200, desc: "Authenticated successfully" do
-      property :success, [true], desc: "Always true on success"
+      property :success, [ true ], desc: "Always true on success"
       property :data, Hash, desc: "Response payload" do
         property :access_token, String, desc: "Bearer JWT access token"
         property :refresh_token, String, desc: "Opaque refresh token string"
@@ -70,7 +70,7 @@ module Api::V0
     DESC
     param :refresh_token, String, required: false, desc: "Refresh token (falls back to cookie)"
     returns code: 200, desc: "Tokens refreshed successfully" do
-      property :success, [true], desc: "Always true on success"
+      property :success, [ true ], desc: "Always true on success"
       property :data, Hash, desc: "Response payload" do
         property :access_token, String, desc: "New Bearer JWT access token"
         property :refresh_token, String, desc: "New opaque refresh token string"
@@ -91,7 +91,7 @@ module Api::V0
     api :DELETE, "/auth/signout", "Invalidate the current session and clear auth cookies"
     header "Authorization", "Bearer <access_token>", required: true
     returns code: 200, desc: "Signed out successfully" do
-      property :success, [true], desc: "Always true on success"
+      property :success, [ true ], desc: "Always true on success"
       property :data, Hash, desc: "Response payload" do
         property :message, String, desc: "Confirmation message"
       end
@@ -117,7 +117,7 @@ module Api::V0
     DESC
     param :email, String, required: true, desc: "Email address of the account to reset"
     returns code: 200, desc: "Reset email dispatched (or silently skipped if account not found)" do
-      property :success, [true], desc: "Always true on success"
+      property :success, [ true ], desc: "Always true on success"
       property :data, Hash, desc: "Response payload" do
         property :message, String, desc: "Generic confirmation message"
       end
@@ -136,7 +136,7 @@ module Api::V0
     param :otp_code, String, required: true, desc: "6-digit OTP code received via email"
     param :password, String, required: true, desc: "New password (minimum 6 characters)"
     returns code: 200, desc: "Password reset successfully" do
-      property :success, [true], desc: "Always true on success"
+      property :success, [ true ], desc: "Always true on success"
       property :data, Hash, desc: "Response payload" do
         property :message, String, desc: "Confirmation message"
       end

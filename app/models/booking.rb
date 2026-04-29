@@ -264,5 +264,4 @@ class Booking < ApplicationRecord
       errors.add(:base, "Booking must be within operating hours (#{operating_hours.formatted_hours})")
     end
   end
-
 end

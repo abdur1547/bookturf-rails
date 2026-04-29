@@ -89,5 +89,4 @@ class Court < ApplicationRecord
     return false unless Booking.slot_available?(self, start_time, end_time)
     true
   end
-
 end
