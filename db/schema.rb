@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_13_101615) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_29_095634) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -279,6 +279,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_13_101615) do
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true
   end
 
+  create_table "venue_closures", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "created_by_id"
+    t.text "description"
+    t.datetime "end_time", null: false
+    t.datetime "start_time", null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "venue_id", null: false
+    t.index ["created_by_id"], name: "index_venue_closures_on_created_by_id"
+    t.index ["start_time", "end_time"], name: "index_venue_closures_on_start_time_and_end_time"
+    t.index ["venue_id", "start_time", "end_time"], name: "index_venue_closures_on_venue_id_and_start_time_and_end_time"
+    t.index ["venue_id", "start_time"], name: "index_venue_closures_on_venue_id_and_start_time"
+    t.index ["venue_id"], name: "index_venue_closures_on_venue_id"
+    t.check_constraint "end_time > start_time", name: "closure_end_after_start"
+  end
+
   create_table "venue_operating_hours", force: :cascade do |t|
     t.time "closes_at", null: false
     t.datetime "created_at", null: false
@@ -358,6 +375,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_13_101615) do
   add_foreign_key "user_roles", "roles"
   add_foreign_key "user_roles", "users"
   add_foreign_key "user_roles", "users", column: "assigned_by_id"
+  add_foreign_key "venue_closures", "users", column: "created_by_id"
+  add_foreign_key "venue_closures", "venues"
   add_foreign_key "venue_operating_hours", "venues"
   add_foreign_key "venue_users", "users"
   add_foreign_key "venue_users", "users", column: "added_by_id"
