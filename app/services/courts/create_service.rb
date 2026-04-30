@@ -3,15 +3,10 @@
 module Courts
   class CreateService < BaseService
     def call(params:)
-      court = Court.new(params)
-
-      unless court.save
-        return failure(court.errors.full_messages)
-      end
-
+      court = Court.create!(params)
       success(court)
-    rescue StandardError => e
-      failure("Failed to create court: #{e.message}")
+    rescue ActiveRecord::RecordInvalid => e
+      failure(e.record.errors.full_messages)
     end
   end
 end
