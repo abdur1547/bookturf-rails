@@ -544,6 +544,358 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "3. Update venue",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"",
+									"if (response.success === true) {",
+									"    pm.collectionVariables.set(\"access_token\", response.data.access_token);",
+									"    pm.collectionVariables.set(\"refresh_token\", response.data.refresh_token);",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    // \"name\": \"Downtown Sports Complex\",\n    // \"description\": \"A multi-purpose sports and events venue\",\n    // \"address\": \"123 Main Street\",\n    // \"city\": \"Rawalpindi\",\n    // \"state\": \"Punjab\",\n    // \"country\": \"Pakistan\",\n    // \"postal_code\": \"46000\",\n    // \"latitude\": 33.6844,\n    // \"longitude\": 73.0479,\n    // \"phone_number\": \"+92-300-1234567\",\n    // \"email\": \"info@downtownsports.com\",\n    \"is_active\": false\n    // \"venue_setting\": {\n    //     \"minimum_slot_duration\": 60,\n    //     \"maximum_slot_duration\": 60,\n    //     \"slot_interval\": 60,\n    //     \"advance_booking_days\": 7,\n    //     \"requires_approval\": false,\n    //     \"cancellation_hours\": 2,\n    //     \"timezone\": \"Asia/Karachi\",\n    //     \"currency\": \"PKR\"\n    // },\n    // \"venue_operating_hours\": [\n    //     {\n    //         \"day_of_week\": 0,\n    //         \"opens_at\": \"10:00\",\n    //         \"closes_at\": \"22:00\",\n    //         \"is_closed\": false\n    //     }\n    //     // {\n    //     //     \"day_of_week\": 1,\n    //     //     \"opens_at\": \"09:00\",\n    //     //     \"closes_at\": \"22:00\",\n    //     //     \"is_closed\": false\n    //     // },\n    //     // {\n    //     //     \"day_of_week\": 2,\n    //     //     \"opens_at\": \"09:00\",\n    //     //     \"closes_at\": \"22:00\",\n    //     //     \"is_closed\": false\n    //     // },\n    //     // {\n    //     //     \"day_of_week\": 3,\n    //     //     \"opens_at\": \"09:00\",\n    //     //     \"closes_at\": \"22:00\",\n    //     //     \"is_closed\": false\n    //     // },\n    //     // {\n    //     //     \"day_of_week\": 4,\n    //     //     \"opens_at\": \"09:00\",\n    //     //     \"closes_at\": \"22:00\",\n    //     //     \"is_closed\": false\n    //     // },\n    //     // {\n    //     //     \"day_of_week\": 5,\n    //     //     \"opens_at\": \"10:00\",\n    //     //     \"closes_at\": \"20:00\",\n    //     //     \"is_closed\": false\n    //     // },\n    //     // {\n    //     //     \"day_of_week\": 6,\n    //     //     \"opens_at\": \"10:00\",\n    //     //     \"closes_at\": \"20:00\",\n    //     //     \"is_closed\": true\n    //     // }\n    // ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_v0_base_url}}/venues/1",
+							"host": [
+								"{{api_v0_base_url}}"
+							],
+							"path": [
+								"venues",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "4. Delete venue",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"",
+									"if (response.success === true) {",
+									"    pm.collectionVariables.set(\"access_token\", response.data.access_token);",
+									"    pm.collectionVariables.set(\"refresh_token\", response.data.refresh_token);",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_v0_base_url}}/venues/1",
+							"host": [
+								"{{api_v0_base_url}}"
+							],
+							"path": [
+								"venues",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Courts",
+			"item": [
+				{
+					"name": "1. All Courts",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"",
+									"if (response.success === true) {",
+									"    pm.collectionVariables.set(\"access_token\", response.data.access_token);",
+									"    pm.collectionVariables.set(\"refresh_token\", response.data.refresh_token);",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"page\": 1,\n    \"per_page\": 10,\n    \"venue_id\": 1,\n    \"court_type_id\": 1,\n    \"is_active\": true,\n    \"search\": \"\",\n    \"sort_by\": \"\",\n    \"order_by\": \"\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_v0_base_url}}/courts",
+							"host": [
+								"{{api_v0_base_url}}"
+							],
+							"path": [
+								"courts"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2. Create court",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"",
+									"if (response.success === true) {",
+									"    pm.collectionVariables.set(\"access_token\", response.data.access_token);",
+									"    pm.collectionVariables.set(\"refresh_token\", response.data.refresh_token);",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"venue_id\": 1, //required, integer\n    \"court_type_id\": 1, // required, integer\n    \"name\": \"Venue 3, Cricket Court 01\" // required, string\n    // \"description\": \"Best cricket court in Rawalpindi\" // optional, string\n    // \"slot_interval\": 60, // optional, string, default to 60, it represent mints\n    // \"requires_approval\": true, // optional, boolean, default to true\n    // \"is_active\": true // optional, boolean, default to true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_v0_base_url}}/courts",
+							"host": [
+								"{{api_v0_base_url}}"
+							],
+							"path": [
+								"courts"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "3. Update court",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"",
+									"if (response.success === true) {",
+									"    pm.collectionVariables.set(\"access_token\", response.data.access_token);",
+									"    pm.collectionVariables.set(\"refresh_token\", response.data.refresh_token);",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    // \"venue_id\": 1, //optional, integer\n    // \"court_type_id\": 1, // optional, integer\n    \"name\": \"Venue 1, Cricket Court 01\" // optional, string\n    // \"description\": \"Best cricket court in Rawalpindi\" // optional, string\n    // \"slot_interval\": 60, // optional, string, default to 60, it represent mints\n    // \"requires_approval\": true, // optional, boolean, default to true\n    // \"is_active\": true // optional, boolean, default to true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_v0_base_url}}/courts/1",
+							"host": [
+								"{{api_v0_base_url}}"
+							],
+							"path": [
+								"courts",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "4. Delete venue",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"",
+									"if (response.success === true) {",
+									"    pm.collectionVariables.set(\"access_token\", response.data.access_token);",
+									"    pm.collectionVariables.set(\"refresh_token\", response.data.refresh_token);",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_v0_base_url}}/venues/1",
+							"host": [
+								"{{api_v0_base_url}}"
+							],
+							"path": [
+								"venues",
+								"1"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
