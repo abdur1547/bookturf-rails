@@ -119,39 +119,39 @@ RSpec.describe VenueOperatingHour, type: :model do
 
   describe 'instance methods' do
     describe '#day_name' do
-      it 'returns Sunday for day 0' do
-        hour = build(:venue_operating_hour, :sunday)
-        expect(hour.day_name).to eq('Sunday')
-      end
-
-      it 'returns Monday for day 1' do
+      it 'returns Monday for day 0' do
         hour = build(:venue_operating_hour, :monday)
         expect(hour.day_name).to eq('Monday')
       end
 
-      it 'returns Tuesday for day 2' do
+      it 'returns Tuesday for day 1' do
         hour = build(:venue_operating_hour, :tuesday)
         expect(hour.day_name).to eq('Tuesday')
       end
 
-      it 'returns Wednesday for day 3' do
+      it 'returns Wednesday for day 2' do
         hour = build(:venue_operating_hour, :wednesday)
         expect(hour.day_name).to eq('Wednesday')
       end
 
-      it 'returns Thursday for day 4' do
+      it 'returns Thursday for day 3' do
         hour = build(:venue_operating_hour, :thursday)
         expect(hour.day_name).to eq('Thursday')
       end
 
-      it 'returns Friday for day 5' do
+      it 'returns Friday for day 4' do
         hour = build(:venue_operating_hour, :friday)
         expect(hour.day_name).to eq('Friday')
       end
 
-      it 'returns Saturday for day 6' do
+      it 'returns Saturday for day 5' do
         hour = build(:venue_operating_hour, :saturday)
         expect(hour.day_name).to eq('Saturday')
+      end
+
+      it 'returns Sunday for day 6' do
+        hour = build(:venue_operating_hour, :sunday)
+        expect(hour.day_name).to eq('Sunday')
       end
     end
 
@@ -176,13 +176,13 @@ RSpec.describe VenueOperatingHour, type: :model do
   describe 'DAYS_OF_WEEK constant' do
     it 'has correct mapping' do
       expect(VenueOperatingHour::DAYS_OF_WEEK).to eq({
-        0 => 'Sunday',
-        1 => 'Monday',
-        2 => 'Tuesday',
-        3 => 'Wednesday',
-        4 => 'Thursday',
-        5 => 'Friday',
-        6 => 'Saturday'
+        0 => 'Monday',
+        1 => 'Tuesday',
+        2 => 'Wednesday',
+        3 => 'Thursday',
+        4 => 'Friday',
+        5 => 'Saturday',
+        6 => 'Sunday'
       })
     end
   end
