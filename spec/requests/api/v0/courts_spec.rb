@@ -94,6 +94,9 @@ RSpec.describe 'API V0 Courts', type: :request do
     let(:court_is_active) { true }
     let(:court_venue_id) { venue.id }
     let(:court_court_type_id) { court_type.id }
+    let(:court_pricing_rules) do
+      [ { name: 'Standard Rate', price_per_hour: 1500.0, day_of_week: 'all_days', priority: 1, is_active: true } ]
+    end
 
     let(:request_params) do
       {
@@ -101,7 +104,8 @@ RSpec.describe 'API V0 Courts', type: :request do
         court_type_id: court_court_type_id,
         name: court_name,
         description: court_description,
-        is_active: court_is_active
+        is_active: court_is_active,
+        pricing_rules: court_pricing_rules
       }
     end
 
@@ -266,7 +270,8 @@ RSpec.describe 'API V0 Courts', type: :request do
         court_type_id: court_type.id,
         name: 'Court Unauthorized',
         description: 'Unauthorized court',
-        is_active: true
+        is_active: true,
+        pricing_rules: [ { name: 'Standard Rate', price_per_hour: 1500.0, day_of_week: 'all_days', priority: 1, is_active: true } ]
       }
     end
 

@@ -35,9 +35,9 @@ module Api::V0::Courts
       @current_user = current_user
 
       @venue = Venue.find_by(id: params[:venue_id])
-      return Failure("Venue not found") unless @venue
+      return Failure(:not_found) unless @venue
       @court_type = CourtType.find_by(id: params[:court_type_id])
-      return Failure("Court type not found") unless @court_type
+      return Failure(:not_found) unless @court_type
       return Failure(:forbidden) unless authorize?
 
       court_params = params.slice(

@@ -78,8 +78,7 @@ class PricingRule < ApplicationRecord
   end
 
   def day_name
-    return "All days" if day_of_week.blank?
-    Date::DAYNAMES[day_of_week]
+    day_of_week.humanize
   end
 
   private

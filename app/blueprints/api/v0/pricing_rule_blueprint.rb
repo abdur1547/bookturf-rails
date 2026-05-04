@@ -5,7 +5,7 @@ module Api::V0
     identifier :id
 
     fields :venue_id,
-           :court_type_id,
+           :court_id,
            :name,
            :price_per_hour,
            :day_of_week,
@@ -19,13 +19,5 @@ module Api::V0
            :time_range,
            :created_at,
            :updated_at
-
-    view :list do
-      association :court_type, blueprint: Api::V0::CourtTypeBlueprint, view: :minimal
-    end
-
-    view :detailed do
-      association :court_type, blueprint: Api::V0::CourtTypeBlueprint, view: :minimal
-    end
   end
 end
