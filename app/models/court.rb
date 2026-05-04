@@ -2,6 +2,7 @@ class Court < ApplicationRecord
   belongs_to :venue
   belongs_to :court_type
 
+  has_many :pricing_rules, dependent: :destroy
   has_many :bookings, dependent: :restrict_with_error
   has_many :court_closures, dependent: :destroy
 
@@ -68,11 +69,6 @@ class Court < ApplicationRecord
 
   def venue_name
     venue&.name
-  end
-
-  def pricing_rules
-    return PricingRule.none unless venue && court_type
-    venue.pricing_rules.where(court_type_id: court_type_id)
   end
 
   def price_range

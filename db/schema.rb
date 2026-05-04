@@ -182,9 +182,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_29_095634) do
   end
 
   create_table "pricing_rules", force: :cascade do |t|
-    t.bigint "court_type_id", null: false
+    t.bigint "court_id", null: false
     t.datetime "created_at", null: false
-    t.integer "day_of_week"
+    t.integer "day_of_week", default: 7, null: false
     t.date "end_date"
     t.time "end_time"
     t.boolean "is_active", default: true, null: false
@@ -195,10 +195,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_29_095634) do
     t.time "start_time"
     t.datetime "updated_at", null: false
     t.bigint "venue_id", null: false
-    t.index ["court_type_id"], name: "index_pricing_rules_on_court_type_id"
+    t.index ["court_id"], name: "index_pricing_rules_on_court_id"
     t.index ["is_active"], name: "index_pricing_rules_on_is_active"
     t.index ["priority"], name: "index_pricing_rules_on_priority"
-    t.index ["venue_id", "court_type_id"], name: "index_pricing_rules_on_venue_id_and_court_type_id"
+    t.index ["venue_id", "court_id"], name: "index_pricing_rules_on_venue_id_and_court_id"
     t.index ["venue_id"], name: "index_pricing_rules_on_venue_id"
     t.check_constraint "price_per_hour >= 0::numeric", name: "price_non_negative"
   end
@@ -365,7 +365,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_29_095634) do
   add_foreign_key "notifications", "users"
   add_foreign_key "notifications", "venues"
   add_foreign_key "password_reset_tokens", "users"
-  add_foreign_key "pricing_rules", "court_types"
+  add_foreign_key "pricing_rules", "courts"
   add_foreign_key "pricing_rules", "venues"
   add_foreign_key "refresh_tokens", "users"
   add_foreign_key "role_permissions", "permissions"

@@ -2,13 +2,13 @@ class CreatePricingRules < ActiveRecord::Migration[7.1]
   def change
     create_table :pricing_rules do |t|
       t.references :venue, null: false, foreign_key: true
-      t.references :court_type, null: false, foreign_key: true
+      t.references :court, null: false, foreign_key: true
 
       t.string :name, null: false
       t.decimal :price_per_hour, precision: 10, scale: 2, null: false
 
-      # Time-based rules (nullable for "all day" rules)
-      t.integer :day_of_week  # 0-6, null = all days
+      # Time-based rules
+      t.integer :day_of_week, null: false, default: 7 # 0 = Monday, 6 = Sunday, 7 = all days, 8 = weekdays, 9 = weekends
       t.time :start_time
       t.time :end_time
 
@@ -24,7 +24,7 @@ class CreatePricingRules < ActiveRecord::Migration[7.1]
     end
 
     # Indexes
-    add_index :pricing_rules, [ :venue_id, :court_type_id ]
+    add_index :pricing_rules, [ :venue_id, :court_id ]
     add_index :pricing_rules, :is_active
     add_index :pricing_rules, :priority
 

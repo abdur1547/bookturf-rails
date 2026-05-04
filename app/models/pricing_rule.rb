@@ -1,26 +1,29 @@
 class PricingRule < ApplicationRecord
-  # ============================================================================
-  # ASSOCIATIONS
-  # ============================================================================
   belongs_to :venue
-  belongs_to :court_type
+  belongs_to :court
 
-  # ============================================================================
-  # VALIDATIONS
-  # ============================================================================
+  enum :day_of_week, {
+    monday: 0,
+    tuesday: 1,
+    wednesday: 2,
+    thursday: 3,
+    friday: 4,
+    saturday: 5,
+    sunday: 6,
+    all_days: 7,
+    weekdays: 8,
+    weekends: 9
+  }
+
   validates :name, presence: true
   validates :price_per_hour, presence: true, numericality: { greater_than_or_equal_to: 0 }
-  validates :day_of_week, inclusion: { in: 0..6, allow_nil: true }
   validates :priority, presence: true, numericality: { only_integer: true }
 
   validate :end_time_after_start_time
   validate :end_date_after_start_date
 
-  # ============================================================================
-  # SCOPES
-  # ============================================================================
   scope :active, -> { where(is_active: true) }
-  scope :for_court_type, ->(court_type) { where(court_type: court_type) }
+  scope :for_court, ->(court) { where(court: court) }
   scope :by_priority, -> { order(priority: :desc) }
 
   # Scope to find rules that apply to a specific date/time
@@ -39,23 +42,15 @@ class PricingRule < ApplicationRecord
     )
   end
 
-  # ============================================================================
-  # CLASS METHODS
-  # ============================================================================
-
-  # Find the applicable price for a given court type at a specific time
-  def self.price_for(court_type, datetime)
-    rule = for_court_type(court_type)
+  # Find the applicable price for a given court at a specific time
+  def self.price_for(court, datetime)
+    rule = for_court(court)
            .applicable_at(datetime)
            .by_priority
            .first
 
     rule&.price_per_hour || 0
   end
-
-  # ============================================================================
-  # INSTANCE METHODS
-  # ============================================================================
 
   def applies_to?(datetime)
     return false unless is_active?
