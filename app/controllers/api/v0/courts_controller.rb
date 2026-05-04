@@ -9,7 +9,7 @@ module Api::V0
       api_versions "v0"
       short "Manage courts within a venue — listing, creation, updates, reordering, and deletion"
       description <<~DESC
-        Courts belong to a venue. Creating, updating, reordering, and deleting courts requires
+        Courts belong to a venue. Creating, updating and deleting courts requires
         the authenticated user to have venue-owner or admin permissions for the parent venue.
         Public endpoints (index, show) do not require authentication.
       DESC
