@@ -63,7 +63,7 @@ class Court < ApplicationRecord
     qr_code_url.present?
   end
 
-  def sport_type_name
+  def court_type_name
     court_type&.name
   end
 

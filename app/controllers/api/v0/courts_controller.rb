@@ -42,7 +42,7 @@ module Api::V0
         property :slot_interval, Integer, desc: "Booking slot duration in minutes"
         property :requires_approval, :bool, desc: "Whether bookings require manual approval"
         property :is_active, :bool, desc: "Whether the court is publicly visible"
-        property :sport_type_name, String, desc: "Sport type derived from the court type"
+        property :court_type_name, String, desc: "Sport type derived from the court type"
         property :venue_name, String, desc: "Parent venue name"
         property :city, String, desc: "City inherited from the parent venue"
         property :created_at, String, desc: "ISO 8601 creation timestamp"
@@ -76,6 +76,66 @@ module Api::V0
       handle_operation_response(result)
     end
 
+    api :GET, "/courts/:id", "Retrieve a single court by ID"
+    description <<~DESC
+      Public endpoint — no authentication required. Returns the full detail view of a
+      court, including embedded court type, venue, pricing rules, images, and price range.
+      Responds with 404 when no court with the given ID exists.
+    DESC
+    param :id, Integer, required: true, desc: "ID of the court to retrieve"
+    returns code: 200, desc: "Court retrieved successfully" do
+      property :success, [ true ], desc: "Always true on success"
+      property :data, Hash, desc: "Court object (detailed view)" do
+        property :id, Integer, desc: "Court ID"
+        property :name, String, desc: "Court name"
+        property :description, String, desc: "Court description"
+        property :court_type_id, Integer, desc: "Court type ID"
+        property :venue_id, Integer, desc: "Parent venue ID"
+        property :slot_interval, Integer, desc: "Booking slot duration in minutes"
+        property :requires_approval, :bool, desc: "Whether bookings require manual approval"
+        property :is_active, :bool, desc: "Whether the court is publicly visible"
+        property :court_type_name, String, desc: "Sport type derived from the court type"
+        property :venue_name, String, desc: "Parent venue name"
+        property :city, String, desc: "City inherited from the parent venue"
+        property :created_at, String, desc: "ISO 8601 creation timestamp"
+        property :updated_at, String, desc: "ISO 8601 last-update timestamp"
+        property :price_range, Hash, desc: "Derived min/max price across active pricing rules" do
+          property :min, Float
+          property :max, Float
+        end
+        property :images, Array, desc: "Attached court images" do
+          property :id, Integer
+          property :url, String
+          property :alt_text, String
+        end
+        property :court_type, Hash, desc: "Embedded court type (minimal)" do
+          property :id, Integer
+          property :name, String
+          property :slug, String
+        end
+        property :venue, Hash, desc: "Embedded parent venue (minimal)" do
+          property :id, Integer
+          property :name, String
+          property :slug, String
+          property :city, String
+        end
+        property :pricing_rules, Array, desc: "Pricing rules for this court" do
+          property :id, Integer
+          property :name, String
+          property :price_per_hour, Float
+          property :day_of_week, String, desc: "Enum value (e.g. all_days, monday)"
+          property :day_name, String, desc: "Human-readable day label"
+          property :start_time, String
+          property :end_time, String
+          property :start_date, String
+          property :end_date, String
+          property :priority, Integer
+          property :is_active, :bool
+          property :time_range, String, desc: "Formatted time range string"
+        end
+      end
+    end
+    error code: 404, desc: "Court not found"
     # GET /api/v0/courts/:id
     def show
       result = Api::V0::Courts::GetCourtOperation.call(params.to_unsafe_h, current_user)
@@ -105,7 +165,7 @@ module Api::V0
         property :is_active, :bool, desc: "Whether the court is publicly visible"
         property :created_at, String, desc: "ISO 8601 creation timestamp"
         property :updated_at, String, desc: "ISO 8601 last-update timestamp"
-        property :sport_type_name, String, desc: "Sport type derived from the court type"
+        property :court_type_name, String, desc: "Sport type derived from the court type"
         property :venue_name, String, desc: "Parent venue name"
         property :city, String, desc: "City inherited from the parent venue"
         property :price_range, Hash, desc: "Derived min/max price across active pricing rules" do
@@ -178,7 +238,7 @@ module Api::V0
         property :is_active, :bool, desc: "Whether the court is publicly visible"
         property :created_at, String, desc: "ISO 8601 creation timestamp"
         property :updated_at, String, desc: "ISO 8601 last-update timestamp"
-        property :sport_type_name, String, desc: "Sport type derived from the court type"
+        property :court_type_name, String, desc: "Sport type derived from the court type"
         property :venue_name, String, desc: "Parent venue name"
         property :city, String, desc: "City inherited from the parent venue"
         property :price_range, Hash, desc: "Derived min/max price across active pricing rules" do
@@ -228,6 +288,16 @@ module Api::V0
       handle_operation_response(result)
     end
 
+    api :DELETE, "/courts/:id", "Delete a court by ID"
+    header "Authorization", "Bearer <access_token>", required: true
+    param :id, Integer, required: true, desc: "ID of the court to delete"
+    returns code: 200, desc: "Court deleted successfully" do
+      property :success, [ true ], desc: "Always true on success"
+      property :message, String, desc: "Confirmation message"
+    end
+    error code: 401, desc: "Not authenticated"
+    error code: 403, desc: "Authenticated user does not have permission to manage this court"
+    error code: 404, desc: "Court not found"
     # DELETE /api/v0/courts/:id
     def destroy
       result = Api::V0::Courts::DeleteCourtOperation.call(params.to_unsafe_h, current_user)

@@ -12,15 +12,12 @@ module Api::V0
            :requires_approval,
            :is_active,
            :created_at,
-           :updated_at
+           :updated_at,
+           :court_type_name
 
     view :list do
       fields :slot_interval,
              :requires_approval
-
-      field :sport_type_name do |court|
-        court.sport_type_name
-      end
 
       field :venue_name do |court|
         court.venue_name
@@ -56,10 +53,6 @@ module Api::V0
     view :detailed do
       fields :slot_interval,
              :requires_approval
-
-      field :sport_type_name do |court|
-        court.sport_type_name
-      end
 
       field :venue_name do |court|
         court.venue_name

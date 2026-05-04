@@ -960,7 +960,7 @@ List courts with filtering.
     "name": "string",
     "description": "string|null",
     "sport_type_id": "integer",
-    "sport_type_name": "string",
+    "court_type_name": "string",
     "venue_id": "integer",
     "venue_name": "string",
     "city": "string",
@@ -1000,7 +1000,7 @@ Get court details.
   "name": "string",
   "description": "string|null",
   "sport_type_id": "integer",
-  "sport_type_name": "string",
+  "court_type_name": "string",
   "venue_id": "integer",
   "venue_name": "string",
   "minimum_slot_duration": "integer",
@@ -1055,7 +1055,7 @@ Create a new court (onboarding - Step 3).
   "name": "string",
   "description": "string|null",
   "sport_type_id": "integer",
-  "sport_type_name": "string",
+  "court_type_name": "string",
   "minimum_slot_duration": "integer|null",  // default: 60 (minutes)
   "maximum_slot_duration": "integer|null",  // default: 180 (minutes)
   "slot_interval": "integer|null",          // default: 30 (minutes)
