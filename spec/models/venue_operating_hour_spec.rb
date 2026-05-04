@@ -40,16 +40,15 @@ RSpec.describe VenueOperatingHour, type: :model do
     end
 
     describe 'closes_after_opens validation' do
-      it 'is invalid when closes_at is before opens_at' do
+      it 'is valid when closes_at is before opens_at (past-midnight scenario)' do
         hour = build(:venue_operating_hour, opens_at: '18:00', closes_at: '09:00')
-        expect(hour).not_to be_valid
-        expect(hour.errors[:closes_at]).to include('must be after opening time')
+        expect(hour).to be_valid
       end
 
       it 'is invalid when closes_at equals opens_at' do
         hour = build(:venue_operating_hour, opens_at: '09:00', closes_at: '09:00')
         expect(hour).not_to be_valid
-        expect(hour.errors[:closes_at]).to include('must be after opening time')
+        expect(hour.errors[:closes_at]).to include('must be different from opening time')
       end
 
       it 'is valid when closes_at is after opens_at' do
