@@ -121,7 +121,7 @@ module Api::V0
     param :address, String, required: true, desc: "Street address"
     param :city, String, required: true, desc: "City"
     param :state, String, required: true, desc: "State / province"
-    param :country, String, required: true, desc: "Country"
+    param :country, String, required: false, desc: "Country, defaults to 'Pakistan'"
     param :description, String, required: false, desc: "Venue description"
     param :postal_code, String, required: false, desc: "Postal / ZIP code"
     param :phone_number, String, required: false, desc: "Contact phone number"

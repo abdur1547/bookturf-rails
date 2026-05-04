@@ -6,7 +6,7 @@ module Api::V0::Contracts::Venues
       required(:address).filled(:string)
       required(:city).filled(:string)
       required(:state).filled(:string)
-      required(:country).filled(:string)
+      optional(:country).maybe(:string)
       optional(:postal_code).maybe(:string)
       optional(:latitude).maybe(:decimal)
       optional(:longitude).maybe(:decimal)

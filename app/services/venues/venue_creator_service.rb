@@ -34,7 +34,7 @@ module Venues
         address: params[:address],
         city: params[:city],
         state: params[:state],
-        country: params[:country],
+        country: params[:country] || "Pakistan",
         postal_code: params[:postal_code],
         latitude: params[:latitude],
         longitude: params[:longitude],
