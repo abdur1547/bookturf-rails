@@ -1,9 +1,9 @@
 {
 	"info": {
-		"_postman_id": "f4238e4f-e046-4ed7-bdd2-b515f7b268c2",
+		"_postman_id": "2d193f18-1cbb-4a35-b5c7-a4a42623fe03",
 		"name": "API::V0",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "30110916"
+		"_exporter_id": "28960420"
 	},
 	"item": [
 		{
@@ -16,7 +16,7 @@
 							"listen": "prerequest",
 							"script": {
 								"exec": [
-									"if (pm.environment.get(\"create_new_user\") === \"true\") {",
+									"if (pm.collectionVariables.get(\"create_new_user\") === \"true\") {",
 									"    pm.collectionVariables.set(\"name\", pm.variables.replaceIn('{{$randomFullName}}'));",
 									"    pm.collectionVariables.set(\"email\", pm.variables.replaceIn('{{$randomEmail}}'));",
 									"    pm.collectionVariables.set(\"password\", pm.variables.replaceIn('{{$randomPassword}}'));",
@@ -440,12 +440,7 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"const response = pm.response.json();",
-									"",
-									"if (response.success === true) {",
-									"    pm.collectionVariables.set(\"access_token\", response.data.access_token);",
-									"    pm.collectionVariables.set(\"refresh_token\", response.data.refresh_token);",
-									"}"
+									""
 								],
 								"type": "text/javascript",
 								"packages": {},
@@ -471,7 +466,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "",
+							"raw": "{\n    \"page\": 1,\n    \"per_page\": 25,\n    \"city\": \"\",\n    \"state\": \"\",\n    \"country\": \"\",\n    \"is_active\": true,\n    \"search\": \"\",\n    \"sort\": \"\",\n    \"order\": \"\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -508,12 +503,7 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"const response = pm.response.json();",
-									"",
-									"if (response.success === true) {",
-									"    pm.collectionVariables.set(\"access_token\", response.data.access_token);",
-									"    pm.collectionVariables.set(\"refresh_token\", response.data.refresh_token);",
-									"}"
+									""
 								],
 								"type": "text/javascript",
 								"packages": {},
@@ -526,7 +516,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"Downtown Sports Complex\",\n    \"description\": \"A multi-purpose sports and events venue\",\n    \"address\": \"123 Main Street\",\n    \"city\": \"Rawalpindi\",\n    \"state\": \"Punjab\",\n    \"country\": \"Pakistan\",\n    \"postal_code\": \"46000\",\n    \"latitude\": 33.6844,\n    \"longitude\": 73.0479,\n    \"phone_number\": \"+92-300-1234567\",\n    \"email\": \"info@downtownsports.com\",\n    \"is_active\": true,\n    \"venue_setting\": {\n        \"minimum_slot_duration\": 60,\n        \"maximum_slot_duration\": 60,\n        \"slot_interval\": 60,\n        \"advance_booking_days\": 7,\n        \"requires_approval\": false,\n        \"cancellation_hours\": 24,\n        \"timezone\": \"Asia/Karachi\",\n        \"currency\": \"PKR\"\n    },\n    \"venue_operating_hours\": [\n        {\n            \"day_of_week\": 0,\n            \"opens_at\": \"09:00\",\n            \"closes_at\": \"22:00\",\n            \"is_closed\": false\n        },\n        {\n            \"day_of_week\": 1,\n            \"opens_at\": \"09:00\",\n            \"closes_at\": \"22:00\",\n            \"is_closed\": false\n        },\n        {\n            \"day_of_week\": 2,\n            \"opens_at\": \"09:00\",\n            \"closes_at\": \"22:00\",\n            \"is_closed\": false\n        },\n        {\n            \"day_of_week\": 3,\n            \"opens_at\": \"09:00\",\n            \"closes_at\": \"22:00\",\n            \"is_closed\": false\n        },\n        {\n            \"day_of_week\": 4,\n            \"opens_at\": \"09:00\",\n            \"closes_at\": \"22:00\",\n            \"is_closed\": false\n        },\n        {\n            \"day_of_week\": 5,\n            \"opens_at\": \"10:00\",\n            \"closes_at\": \"20:00\",\n            \"is_closed\": false\n        },\n        {\n            \"day_of_week\": 6,\n            \"opens_at\": \"10:00\",\n            \"closes_at\": \"20:00\",\n            \"is_closed\": true\n        }\n    ]\n}",
+							"raw": "{\n    \"name\": \"Downtown Sports Complex\",\n    // \"description\": \"A multi-purpose sports and events venue\", // optional\n    \"address\": \"123 Main Street\",\n    \"city\": \"Rawalpindi\",\n    \"state\": \"Punjab\",\n    \"country\": \"Pakistan\",\n    // \"postal_code\": \"46000\", // optional\n    // \"latitude\": 33.6844, // optional\n    // \"longitude\": 73.0479, // optional\n    // \"phone_number\": \"+92-300-1234567\", // optional\n    // \"email\": \"info@downtownsports.com\", // optional\n    // \"is_active\": true, // optional, by default true\n    // \"timezone\": \"Asia/Karachi\", // optional, default to \"Asia/Karachi\"\n    // \"currency\": \"PKR\", // optional, default to PKR\n    \"venue_operating_hours\": [\n        {\n            \"day_of_week\": 0,\n            \"opens_at\": \"09:00\",\n            \"closes_at\": \"22:00\",\n            \"is_closed\": false\n        },\n        {\n            \"day_of_week\": 1,\n            \"opens_at\": \"09:00\",\n            \"closes_at\": \"22:00\",\n            \"is_closed\": false\n        },\n        {\n            \"day_of_week\": 2,\n            \"opens_at\": \"09:00\",\n            \"closes_at\": \"22:00\",\n            \"is_closed\": false\n        },\n        {\n            \"day_of_week\": 3,\n            \"opens_at\": \"09:00\",\n            \"closes_at\": \"22:00\",\n            \"is_closed\": false\n        },\n        {\n            \"day_of_week\": 4,\n            \"opens_at\": \"09:00\",\n            \"closes_at\": \"22:00\",\n            \"is_closed\": false\n        },\n        {\n            \"day_of_week\": 5,\n            \"opens_at\": \"10:00\",\n            \"closes_at\": \"20:00\",\n            \"is_closed\": false\n        },\n        {\n            \"day_of_week\": 6,\n            \"opens_at\": \"10:00\",\n            \"closes_at\": \"20:00\",\n            \"is_closed\": true\n        }\n    ]\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -563,12 +553,7 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"const response = pm.response.json();",
-									"",
-									"if (response.success === true) {",
-									"    pm.collectionVariables.set(\"access_token\", response.data.access_token);",
-									"    pm.collectionVariables.set(\"refresh_token\", response.data.refresh_token);",
-									"}"
+									""
 								],
 								"type": "text/javascript",
 								"packages": {},
@@ -581,7 +566,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    // \"name\": \"Downtown Sports Complex\",\n    // \"description\": \"A multi-purpose sports and events venue\",\n    // \"address\": \"123 Main Street\",\n    // \"city\": \"Rawalpindi\",\n    // \"state\": \"Punjab\",\n    // \"country\": \"Pakistan\",\n    // \"postal_code\": \"46000\",\n    // \"latitude\": 33.6844,\n    // \"longitude\": 73.0479,\n    // \"phone_number\": \"+92-300-1234567\",\n    // \"email\": \"info@downtownsports.com\",\n    \"is_active\": false\n    // \"venue_setting\": {\n    //     \"minimum_slot_duration\": 60,\n    //     \"maximum_slot_duration\": 60,\n    //     \"slot_interval\": 60,\n    //     \"advance_booking_days\": 7,\n    //     \"requires_approval\": false,\n    //     \"cancellation_hours\": 2,\n    //     \"timezone\": \"Asia/Karachi\",\n    //     \"currency\": \"PKR\"\n    // },\n    // \"venue_operating_hours\": [\n    //     {\n    //         \"day_of_week\": 0,\n    //         \"opens_at\": \"10:00\",\n    //         \"closes_at\": \"22:00\",\n    //         \"is_closed\": false\n    //     }\n    //     // {\n    //     //     \"day_of_week\": 1,\n    //     //     \"opens_at\": \"09:00\",\n    //     //     \"closes_at\": \"22:00\",\n    //     //     \"is_closed\": false\n    //     // },\n    //     // {\n    //     //     \"day_of_week\": 2,\n    //     //     \"opens_at\": \"09:00\",\n    //     //     \"closes_at\": \"22:00\",\n    //     //     \"is_closed\": false\n    //     // },\n    //     // {\n    //     //     \"day_of_week\": 3,\n    //     //     \"opens_at\": \"09:00\",\n    //     //     \"closes_at\": \"22:00\",\n    //     //     \"is_closed\": false\n    //     // },\n    //     // {\n    //     //     \"day_of_week\": 4,\n    //     //     \"opens_at\": \"09:00\",\n    //     //     \"closes_at\": \"22:00\",\n    //     //     \"is_closed\": false\n    //     // },\n    //     // {\n    //     //     \"day_of_week\": 5,\n    //     //     \"opens_at\": \"10:00\",\n    //     //     \"closes_at\": \"20:00\",\n    //     //     \"is_closed\": false\n    //     // },\n    //     // {\n    //     //     \"day_of_week\": 6,\n    //     //     \"opens_at\": \"10:00\",\n    //     //     \"closes_at\": \"20:00\",\n    //     //     \"is_closed\": true\n    //     // }\n    // ]\n}",
+							"raw": "{\n    // \"name\": \"Downtown Sports Complex\",\n    // \"description\": \"A multi-purpose sports and events venue\", // optional\n    // \"address\": \"123 Main Street\",\n    // \"city\": \"Rawalpindi\",\n    // \"state\": \"Punjab\",\n    // \"country\": \"Pakistan\",\n    // \"postal_code\": \"46000\", // optional\n    // \"latitude\": 33.6844, // optional\n    // \"longitude\": 73.0479, // optional\n    // \"phone_number\": \"+92-300-1234567\", // optional\n    // \"email\": \"info@downtownsports.com\", // optional\n    // \"is_active\": true, // optional, by default true\n    // \"timezone\": \"Asia/Karachi\", // optional, default to \"Asia/Karachi\"\n    // \"currency\": \"PKR\", // optional, default to PKR\n    // \"venue_operating_hours\": [\n    //     {\n    //         \"day_of_week\": 0,\n    //         \"opens_at\": \"09:00\",\n    //         \"closes_at\": \"22:00\",\n    //         \"is_closed\": false\n    //     },\n    //     {\n    //         \"day_of_week\": 1,\n    //         \"opens_at\": \"09:00\",\n    //         \"closes_at\": \"22:00\",\n    //         \"is_closed\": false\n    //     },\n    //     {\n    //         \"day_of_week\": 2,\n    //         \"opens_at\": \"09:00\",\n    //         \"closes_at\": \"22:00\",\n    //         \"is_closed\": false\n    //     },\n    //     {\n    //         \"day_of_week\": 3,\n    //         \"opens_at\": \"09:00\",\n    //         \"closes_at\": \"22:00\",\n    //         \"is_closed\": false\n    //     },\n    //     {\n    //         \"day_of_week\": 4,\n    //         \"opens_at\": \"09:00\",\n    //         \"closes_at\": \"22:00\",\n    //         \"is_closed\": false\n    //     },\n    //     {\n    //         \"day_of_week\": 5,\n    //         \"opens_at\": \"10:00\",\n    //         \"closes_at\": \"20:00\",\n    //         \"is_closed\": false\n    //     },\n    //     {\n    //         \"day_of_week\": 6,\n    //         \"opens_at\": \"10:00\",\n    //         \"closes_at\": \"20:00\",\n    //         \"is_closed\": true\n    //     }\n    // ]\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -619,12 +604,7 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"const response = pm.response.json();",
-									"",
-									"if (response.success === true) {",
-									"    pm.collectionVariables.set(\"access_token\", response.data.access_token);",
-									"    pm.collectionVariables.set(\"refresh_token\", response.data.refresh_token);",
-									"}"
+									""
 								],
 								"type": "text/javascript",
 								"packages": {},
@@ -680,12 +660,7 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"const response = pm.response.json();",
-									"",
-									"if (response.success === true) {",
-									"    pm.collectionVariables.set(\"access_token\", response.data.access_token);",
-									"    pm.collectionVariables.set(\"refresh_token\", response.data.refresh_token);",
-									"}"
+									""
 								],
 								"type": "text/javascript",
 								"packages": {},
@@ -748,12 +723,7 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"const response = pm.response.json();",
-									"",
-									"if (response.success === true) {",
-									"    pm.collectionVariables.set(\"access_token\", response.data.access_token);",
-									"    pm.collectionVariables.set(\"refresh_token\", response.data.refresh_token);",
-									"}"
+									""
 								],
 								"type": "text/javascript",
 								"packages": {},
@@ -766,7 +736,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"venue_id\": 1, //required, integer\n    \"court_type_id\": 1, // required, integer\n    \"name\": \"Venue 3, Cricket Court 01\" // required, string\n    // \"description\": \"Best cricket court in Rawalpindi\" // optional, string\n    // \"slot_interval\": 60, // optional, string, default to 60, it represent mints\n    // \"requires_approval\": true, // optional, boolean, default to true\n    // \"is_active\": true // optional, boolean, default to true\n}",
+							"raw": "{\n    \"venue_id\": 1, //required, integer\n    \"court_type_id\": 1, // required, integer\n    \"name\": \"Venue 1, Circket Court 01\" // required, string\n    // \"description\": \"Best cricket court in Rawalpindi\" // optional, string\n    // \"slot_interval\": 60, // optional, string, default to 60, it represent mints\n    // \"requires_approval\": true, // optional, boolean, default to true\n    // \"is_active\": true // optional, boolean, default to true,\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -821,7 +791,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    // \"venue_id\": 1, //optional, integer\n    // \"court_type_id\": 1, // optional, integer\n    \"name\": \"Venue 1, Cricket Court 01\" // optional, string\n    // \"description\": \"Best cricket court in Rawalpindi\" // optional, string\n    // \"slot_interval\": 60, // optional, string, default to 60, it represent mints\n    // \"requires_approval\": true, // optional, boolean, default to true\n    // \"is_active\": true // optional, boolean, default to true\n}",
+							"raw": "{\n    // \"venue_id\": 1, //optional, integer\n    // \"court_type_id\": 1, // optional, integer\n    \"name\": \"Venue 1, Cricket Court 01 plus\" // optional, string\n    // \"description\": \"Best cricket court in Rawalpindi\" // optional, string\n    // \"slot_interval\": 60, // optional, string, default to 60, it represent mints\n    // \"requires_approval\": true, // optional, boolean, default to true\n    // \"is_active\": true // optional, boolean, default to true\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -842,7 +812,7 @@
 					"response": []
 				},
 				{
-					"name": "4. Delete venue",
+					"name": "4. Delete court",
 					"event": [
 						{
 							"listen": "prerequest",
@@ -859,12 +829,7 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"const response = pm.response.json();",
-									"",
-									"if (response.success === true) {",
-									"    pm.collectionVariables.set(\"access_token\", response.data.access_token);",
-									"    pm.collectionVariables.set(\"refresh_token\", response.data.refresh_token);",
-									"}"
+									""
 								],
 								"type": "text/javascript",
 								"packages": {},
@@ -885,12 +850,12 @@
 							}
 						},
 						"url": {
-							"raw": "{{api_v0_base_url}}/venues/1",
+							"raw": "{{api_v0_base_url}}/courts/1",
 							"host": [
 								"{{api_v0_base_url}}"
 							],
 							"path": [
-								"venues",
+								"courts",
 								"1"
 							]
 						}
@@ -1062,6 +1027,40 @@
 			"response": []
 		}
 	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{access_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
 	"variable": [
 		{
 			"key": "name",
@@ -1081,6 +1080,14 @@
 		},
 		{
 			"key": "refresh_token",
+			"value": ""
+		},
+		{
+			"key": "create_new_user",
+			"value": ""
+		},
+		{
+			"key": "api_v0_base_url",
 			"value": ""
 		}
 	]
