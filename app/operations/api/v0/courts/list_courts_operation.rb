@@ -7,13 +7,11 @@ module Api::V0::Courts
         optional(:page).maybe(:integer, gt?: 0)
         optional(:per_page).maybe(:integer, gt?: 0)
         optional(:venue_id).maybe(:integer)
-        optional(:sport_type_id).maybe(:integer)
         optional(:court_type_id).maybe(:integer)
-        optional(:city_id).maybe(:integer)
-        optional(:area_id).maybe(:integer)
+        optional(:city).maybe(:string)
         optional(:is_active).maybe(:bool)
         optional(:search).maybe(:string)
-        optional(:sort).maybe(:string, included_in?: %w[name created_at display_order])
+        optional(:sort).maybe(:string, included_in?: Court.column_names)
         optional(:order).maybe(:string, included_in?: %w[asc desc])
       end
     end
@@ -26,10 +24,8 @@ module Api::V0::Courts
 
       # Apply filters
       @courts = @courts.where(venue_id: params[:venue_id]) if params[:venue_id].present?
-      court_type_id = params[:sport_type_id].presence || params[:court_type_id].presence
-      @courts = @courts.where(court_type_id: court_type_id) if court_type_id.present?
-
-      # city_id and area_id filters are not supported by the current venue schema
+      @courts = @courts.where(court_type_id: params[:court_type_id]) if params[:court_type_id].present?
+      @courts = @courts.where(venues: { city: params[:city] }) if params[:city].present?
 
       if params.key?(:is_active)
         is_active = params[:is_active] == true || params[:is_active] == "true"
@@ -61,16 +57,7 @@ module Api::V0::Courts
 
       direction = order_direction.to_sym
 
-      case sort_field
-      when "name"
-        courts.order(name: direction)
-      when "created_at"
-        courts.order(created_at: direction)
-      when "display_order"
-        courts.order(display_order: direction)
-      else
-        courts.order(name: :asc)
-      end
+      courts.order(sort_field => direction)
     end
 
     def paginate_courts(courts, page, per_page)

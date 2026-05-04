@@ -15,6 +15,60 @@ module Api::V0
       DESC
     end
 
+    api :GET, "/courts", "List courts with optional filtering, sorting, and pagination"
+    description <<~DESC
+      Public endpoint — no authentication required. Returns all courts by default.
+      Use `is_active` to restrict by active/inactive status. Supports filtering by
+      venue, court type, and city, free-text search, sorting by any court column,
+      and offset-based pagination.
+    DESC
+    param :venue_id, Integer, required: false, desc: "Filter by parent venue ID"
+    param :court_type_id, Integer, required: false, desc: "Filter by court type ID"
+    param :city, String, required: false, desc: "Filter by city name of the parent venue"
+    param :is_active, :bool, required: false, desc: "Filter by active status; omitting returns all courts"
+    param :search, String, required: false, desc: "Search term matched against court name, description, or venue name"
+    param :sort, String, required: false, desc: "Column to sort by (must be a valid court column name; defaults to name)"
+    param :order, String, required: false, desc: "Sort direction: asc or desc (default: asc)"
+    param :page, Integer, required: false, desc: "Page number, must be greater than 0 (default: 1)"
+    param :per_page, Integer, required: false, desc: "Results per page, 1–100, must be greater than 0 (default: 10)"
+    returns code: 200, desc: "Courts retrieved successfully" do
+      property :success, [ true ], desc: "Always true on success"
+      property :data, Array, desc: "Array of court objects (list view)" do
+        property :id, Integer, desc: "Court ID"
+        property :name, String, desc: "Court name"
+        property :description, String, desc: "Court description"
+        property :court_type_id, Integer, desc: "Court type ID"
+        property :venue_id, Integer, desc: "Parent venue ID"
+        property :slot_interval, Integer, desc: "Booking slot duration in minutes"
+        property :requires_approval, :bool, desc: "Whether bookings require manual approval"
+        property :is_active, :bool, desc: "Whether the court is publicly visible"
+        property :sport_type_name, String, desc: "Sport type derived from the court type"
+        property :venue_name, String, desc: "Parent venue name"
+        property :city, String, desc: "City inherited from the parent venue"
+        property :created_at, String, desc: "ISO 8601 creation timestamp"
+        property :updated_at, String, desc: "ISO 8601 last-update timestamp"
+        property :price_range, Hash, desc: "Derived min/max price across active pricing rules" do
+          property :min, Float
+          property :max, Float
+        end
+        property :images, Array, desc: "Attached court images (id and url only)" do
+          property :id, Integer
+          property :url, String
+        end
+        property :court_type, Hash, desc: "Embedded court type (minimal)" do
+          property :id, Integer
+          property :name, String
+          property :slug, String
+        end
+        property :venue, Hash, desc: "Embedded parent venue (minimal)" do
+          property :id, Integer
+          property :name, String
+          property :slug, String
+          property :city, String
+        end
+      end
+    end
+    error code: 422, desc: "Invalid query parameter (e.g. unrecognised sort field, invalid order direction, page or per_page ≤ 0)"
     # GET /api/v0/courts
     def index
       result = Api::V0::Courts::ListCourtsOperation.call(params.to_unsafe_h, current_user)
