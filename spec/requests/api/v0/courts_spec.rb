@@ -94,18 +94,13 @@ RSpec.describe 'API V0 Courts', type: :request do
     let(:court_is_active) { true }
     let(:court_venue_id) { venue.id }
     let(:court_court_type_id) { court_type.id }
-    let(:court_pricing_rules) do
-      [ { name: 'Standard Rate', price_per_hour: 1500.0, day_of_week: 'all_days', priority: 1, is_active: true } ]
-    end
-
     let(:request_params) do
       {
         venue_id: court_venue_id,
         court_type_id: court_court_type_id,
         name: court_name,
         description: court_description,
-        is_active: court_is_active,
-        pricing_rules: court_pricing_rules
+        is_active: court_is_active
       }
     end
 
@@ -241,18 +236,6 @@ RSpec.describe 'API V0 Courts', type: :request do
       expect(active_court.reload.is_active).to eq(false)
     end
 
-    it 'replaces pricing rules when provided' do
-      new_pricing_params = request_params.merge(
-        pricing_rules: [ { name: 'New Rate', price_per_hour: 2000.0, day_of_week: 'weekdays', priority: 1, is_active: true } ]
-      )
-      patch "/api/v0/courts/#{active_court.id}", params: new_pricing_params.to_json, headers: request_headers
-
-      expect(response).to have_http_status(:ok)
-      rules = active_court.reload.pricing_rules
-      expect(rules.count).to eq(1)
-      expect(rules.first.name).to eq('New Rate')
-      expect(rules.first.price_per_hour).to eq(2000.0)
-    end
   end
 
   describe 'DELETE /api/v0/courts/:id' do
@@ -281,8 +264,7 @@ RSpec.describe 'API V0 Courts', type: :request do
         court_type_id: court_type.id,
         name: 'Court Unauthorized',
         description: 'Unauthorized court',
-        is_active: true,
-        pricing_rules: [ { name: 'Standard Rate', price_per_hour: 1500.0, day_of_week: 'all_days', priority: 1, is_active: true } ]
+        is_active: true
       }
     end
 

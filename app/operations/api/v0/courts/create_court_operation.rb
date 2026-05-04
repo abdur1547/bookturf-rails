@@ -11,22 +11,6 @@ module Api::V0::Courts
         optional(:slot_interval).maybe(:integer)
         optional(:requires_approval).maybe(:bool)
         optional(:is_active).maybe(:bool)
-        required(:pricing_rules).filled(:array) do
-          each do
-            hash do
-              required(:name).filled(:string)
-              optional(:day_of_week).maybe(:string, included_in?: PricingRule.day_of_weeks.keys) # "monday", "tuesday",
-              # "wednesday", "thursday", "friday", "saturday", "sunday", "all_days", "weekdays", "weekends", default to "all_days"
-              optional(:start_date).maybe(:string) # null for all dates
-              optional(:start_time).maybe(:string) # null for all times
-              optional(:end_date).maybe(:string)   # null for all dates
-              optional(:end_time).maybe(:string)   # null for all times
-              required(:price_per_hour).filled(:float, gt?: 0) # required, must be > 0
-              optional(:priority).maybe(:integer)
-              optional(:is_active).maybe(:bool)
-            end
-          end
-        end
       end
     end
 
@@ -50,7 +34,7 @@ module Api::V0::Courts
         :court_type_id
       ).compact
 
-      result = Courts::CreateService.call(params: court_params, pricing_rules: params[:pricing_rules])
+      result = Courts::CreateService.call(params: court_params)
       return Failure(result.error) unless result.success?
 
       @court = result.data

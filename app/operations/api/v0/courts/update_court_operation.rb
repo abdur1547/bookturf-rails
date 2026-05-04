@@ -11,17 +11,6 @@ module Api::V0::Courts
         optional(:slot_interval).maybe(:integer)
         optional(:requires_approval).maybe(:bool)
         optional(:is_active).maybe(:bool)
-        optional(:pricing_rules).array(:hash) do
-          required(:name).filled(:string)
-          optional(:day_of_week).maybe(:string, included_in?: PricingRule.day_of_weeks.keys)
-          optional(:start_date).maybe(:string)
-          optional(:start_time).maybe(:string)
-          optional(:end_date).maybe(:string)
-          optional(:end_time).maybe(:string)
-          required(:price_per_hour).filled(:float, gt?: 0)
-          optional(:priority).maybe(:integer)
-          optional(:is_active).maybe(:bool)
-        end
       end
     end
 
@@ -42,11 +31,7 @@ module Api::V0::Courts
         :court_type_id
       ).compact
 
-      result = Courts::UpdateService.call(
-        court: @court,
-        params: court_params,
-        pricing_rules: params[:pricing_rules]
-      )
+      result = Courts::UpdateService.call(court: @court, params: court_params)
       return Failure(result.error) unless result.success?
 
       @court = result.data

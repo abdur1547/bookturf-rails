@@ -46,24 +46,6 @@ RSpec.describe "POST /api/v0/courts", type: :request do
   let(:court_requires_approval) { false }
   let(:court_is_active) { true }
 
-  let(:pricing_rule_name) { "Standard Rate" }
-  let(:pricing_rule_price_per_hour) { 1500.0 }
-  let(:pricing_rule_day_of_week) { "all_days" }
-  let(:pricing_rule_priority) { 1 }
-  let(:pricing_rule_is_active) { true }
-
-  let(:pricing_rules) do
-    [
-      {
-        name: pricing_rule_name,
-        price_per_hour: pricing_rule_price_per_hour,
-        day_of_week: pricing_rule_day_of_week,
-        priority: pricing_rule_priority,
-        is_active: pricing_rule_is_active
-      }
-    ]
-  end
-
   let(:request_params) do
     {
       venue_id: court_venue_id,
@@ -72,8 +54,7 @@ RSpec.describe "POST /api/v0/courts", type: :request do
       description: court_description,
       slot_interval: court_slot_interval,
       requires_approval: court_requires_approval,
-      is_active: court_is_active,
-      pricing_rules: pricing_rules
+      is_active: court_is_active
     }
   end
 
@@ -141,29 +122,14 @@ RSpec.describe "POST /api/v0/courts", type: :request do
       )
     end
 
-    it "persists the associated pricing rule to the database" do
-      court = Court.find_by(name: court_name)
-      expect(court.pricing_rules.count).to eq(1)
-      expect(court.pricing_rules.first.price_per_hour).to eq(pricing_rule_price_per_hour)
-    end
-
-    it "returns pricing_rules as an array with the created rule" do
+    it "returns pricing_rules as an empty array" do
       data = response.parsed_body["data"]
-      expect(data["pricing_rules"]).to be_an(Array)
-      expect(data["pricing_rules"].length).to eq(1)
+      expect(data["pricing_rules"]).to eq([])
     end
 
     it "returns an images array" do
       data = response.parsed_body["data"]
       expect(data["images"]).to be_an(Array)
-    end
-
-    it "returns price_range reflecting the pricing rule" do
-      data = response.parsed_body["data"]
-      expect(data["price_range"]).to include(
-        "min" => pricing_rule_price_per_hour,
-        "max" => pricing_rule_price_per_hour
-      )
     end
   end
 
@@ -189,8 +155,7 @@ RSpec.describe "POST /api/v0/courts", type: :request do
       {
         venue_id: court_venue_id,
         court_type_id: court_court_type_id,
-        name: court_name,
-        pricing_rules: pricing_rules
+        name: court_name
       }
     end
 
@@ -253,89 +218,6 @@ RSpec.describe "POST /api/v0/courts", type: :request do
     it "persists the court as inactive" do
       court = Court.find_by(name: court_name)
       expect(court.is_active).to be false
-    end
-  end
-
-  context "when creating with multiple pricing rules" do
-    let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
-    let(:pricing_rules) do
-      [
-        { name: "Peak Rate", price_per_hour: 2000.0, day_of_week: "weekends", priority: 2, is_active: true },
-        { name: "Off-Peak Rate", price_per_hour: 1000.0, day_of_week: "weekdays", priority: 1, is_active: true }
-      ]
-    end
-
-    it "returns created (201) status" do
-      expect(response).to have_http_status(:created)
-    end
-
-    it "persists all pricing rules to the database" do
-      court = Court.find_by(name: court_name)
-      expect(court.pricing_rules.count).to eq(2)
-    end
-
-    it "returns all pricing rules in the response" do
-      data = response.parsed_body["data"]
-      expect(data["pricing_rules"].length).to eq(2)
-    end
-
-    it "returns price_range reflecting the min and max across all rules" do
-      data = response.parsed_body["data"]
-      expect(data["price_range"]).to include("min" => 1000.0, "max" => 2000.0)
-    end
-  end
-
-  context "when creating with a pricing rule specifying a time range" do
-    let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
-    let(:pricing_rules) do
-      [
-        {
-          name: "Evening Rate",
-          price_per_hour: 1800.0,
-          day_of_week: "all_days",
-          start_time: "18:00",
-          end_time: "22:00",
-          priority: 1,
-          is_active: true
-        }
-      ]
-    end
-
-    it "returns created (201) status" do
-      expect(response).to have_http_status(:created)
-    end
-
-    it "persists the pricing rule with the time range" do
-      court = Court.find_by(name: court_name)
-      rule = court.pricing_rules.first
-      expect(rule.name).to eq("Evening Rate")
-      expect(rule.price_per_hour).to eq(1800.0)
-    end
-  end
-
-  context "when creating with a pricing rule specifying a date range" do
-    let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
-    let(:pricing_rules) do
-      [
-        {
-          name: "Summer Season Rate",
-          price_per_hour: 1200.0,
-          start_date: "2026-06-01",
-          end_date: "2026-08-31",
-          priority: 1,
-          is_active: true
-        }
-      ]
-    end
-
-    it "returns created (201) status" do
-      expect(response).to have_http_status(:created)
-    end
-
-    it "persists the pricing rule with the date range" do
-      court = Court.find_by(name: court_name)
-      rule = court.pricing_rules.first
-      expect(rule.name).to eq("Summer Season Rate")
     end
   end
 
@@ -486,87 +368,6 @@ RSpec.describe "POST /api/v0/courts", type: :request do
 
     it "does not create a court" do
       expect(Court.find_by(name: court_name)).to be_nil
-    end
-  end
-
-  context "when pricing_rules is an empty array" do
-    let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
-    let(:pricing_rules) { [] }
-
-    it "returns unprocessable entity (422) status" do
-      expect(response).to have_http_status(:unprocessable_entity)
-    end
-
-    it "does not create a court" do
-      expect(Court.find_by(name: court_name)).to be_nil
-    end
-  end
-
-  context "when pricing_rules is missing from the request body entirely" do
-    let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
-    let(:request_params) do
-      {
-        venue_id: court_venue_id,
-        court_type_id: court_court_type_id,
-        name: court_name
-      }
-    end
-
-    it "returns unprocessable entity (422) status" do
-      expect(response).to have_http_status(:unprocessable_entity)
-    end
-
-    it "does not create a court" do
-      expect(Court.find_by(name: court_name)).to be_nil
-    end
-  end
-
-  context "when a pricing rule is missing the required name field" do
-    let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
-    let(:pricing_rules) { [{ price_per_hour: 1500.0 }] }
-
-    it "returns unprocessable entity (422) status" do
-      expect(response).to have_http_status(:unprocessable_entity)
-    end
-  end
-
-  context "when a pricing rule is missing the required price_per_hour field" do
-    let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
-    let(:pricing_rules) { [{ name: "Standard Rate" }] }
-
-    it "returns unprocessable entity (422) status" do
-      expect(response).to have_http_status(:unprocessable_entity)
-    end
-  end
-
-  context "when a pricing rule has price_per_hour of zero (must be greater than zero)" do
-    let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
-    let(:pricing_rule_price_per_hour) { 0.0 }
-
-    it "returns unprocessable entity (422) status" do
-      expect(response).to have_http_status(:unprocessable_entity)
-    end
-
-    it "does not create a court" do
-      expect(Court.find_by(name: court_name)).to be_nil
-    end
-  end
-
-  context "when a pricing rule has a negative price_per_hour" do
-    let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
-    let(:pricing_rule_price_per_hour) { -500.0 }
-
-    it "returns unprocessable entity (422) status" do
-      expect(response).to have_http_status(:unprocessable_entity)
-    end
-  end
-
-  context "when a pricing rule has an invalid day_of_week value" do
-    let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
-    let(:pricing_rule_day_of_week) { "funday" }
-
-    it "returns unprocessable entity (422) status" do
-      expect(response).to have_http_status(:unprocessable_entity)
     end
   end
 

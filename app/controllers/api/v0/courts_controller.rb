@@ -38,17 +38,6 @@ module Api::V0
     param :slot_interval, Integer, required: false, desc: "Booking slot duration in minutes (default: 60)"
     param :requires_approval, :bool, required: false, desc: "Whether bookings require manual approval (default: true)"
     param :is_active, :bool, required: false, desc: "Whether the court is publicly visible (default: true)"
-    param :pricing_rules, Array, required: true, desc: "Pricing rules for this court (at least one required)" do
-      param :name, String, required: true, desc: "Rule name"
-      param :price_per_hour, Float, required: true, desc: "Price per hour (must be > 0)"
-      param :day_of_week, String, required: false, desc: "Day applicability: monday, tuesday, wednesday, thursday, friday, saturday, sunday, all_days, weekdays, or weekends"
-      param :start_date, String, required: false, desc: "Start date (ISO 8601); omit or null for all dates"
-      param :end_date, String, required: false, desc: "End date (ISO 8601); omit or null for all dates"
-      param :start_time, String, required: false, desc: "Start time (HH:MM); omit or null for all times"
-      param :end_time, String, required: false, desc: "End time (HH:MM); omit or null for all times"
-      param :priority, Integer, required: false, desc: "Rule priority (lower number = higher priority)"
-      param :is_active, :bool, required: false, desc: "Whether this pricing rule is active"
-    end
     returns code: 201, desc: "Court created successfully" do
       property :success, [ true ], desc: "Always true on success"
       property :data, Hash, desc: "Created court object (detailed view)" do
@@ -122,17 +111,6 @@ module Api::V0
     param :slot_interval, Integer, required: false, desc: "Booking slot duration in minutes"
     param :requires_approval, :bool, required: false, desc: "Whether bookings require manual approval"
     param :is_active, :bool, required: false, desc: "Whether the court is publicly visible"
-    param :pricing_rules, Array, required: false, desc: "Replace all pricing rules for this court" do
-      param :name, String, required: true, desc: "Rule name"
-      param :price_per_hour, Float, required: true, desc: "Price per hour (must be > 0)"
-      param :day_of_week, String, required: false, desc: "Day applicability: monday, tuesday, wednesday, thursday, friday, saturday, sunday, all_days, weekdays, or weekends"
-      param :start_date, String, required: false, desc: "Start date (ISO 8601); omit or null for all dates"
-      param :end_date, String, required: false, desc: "End date (ISO 8601); omit or null for all dates"
-      param :start_time, String, required: false, desc: "Start time (HH:MM); omit or null for all times"
-      param :end_time, String, required: false, desc: "End time (HH:MM); omit or null for all times"
-      param :priority, Integer, required: false, desc: "Rule priority (lower number = higher priority)"
-      param :is_active, :bool, required: false, desc: "Whether this pricing rule is active"
-    end
     returns code: 200, desc: "Court updated successfully" do
       property :success, [ true ], desc: "Always true on success"
       property :data, Hash, desc: "Updated court object (detailed view)" do
