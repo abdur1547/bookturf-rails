@@ -3,6 +3,7 @@
 module Api::V0::PricingRules
   class ListPricingRulesOperation < BaseOperation
     contract do
+      # TODO: add filter by name
       params do
         required(:court_id).filled(:integer)
         optional(:is_active).maybe(:bool)
