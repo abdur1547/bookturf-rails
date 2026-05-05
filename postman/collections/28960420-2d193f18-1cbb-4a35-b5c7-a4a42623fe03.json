@@ -529,6 +529,72 @@
 					"response": []
 				},
 				{
+					"name": "1. All Venues Copy",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "b1708004-ffcc-412a-ad1b-fe265c9e9564",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f2ce261a-2b23-4420-9ced-0b87d637d0ae",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"id": "28960420-c16e490b-9e92-491a-b770-cc3a8a885e1a",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"page\": 1,\n    \"per_page\": 25,\n    \"city\": \"\",\n    \"state\": \"\",\n    \"country\": \"\",\n    \"is_active\": true,\n    \"search\": \"\",\n    \"sort\": \"\",\n    \"order\": \"\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_v0_base_url}}/venues",
+							"host": [
+								"{{api_v0_base_url}}"
+							],
+							"path": [
+								"venues"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "2. Create venue",
 					"event": [
 						{
