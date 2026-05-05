@@ -21,7 +21,9 @@ module Api::V0
            :updated_at
 
     view :list do
-      fields :name,
+      fields :venue_id,
+             :court_id,
+             :name,
              :price_per_hour,
              :day_of_week,
              :start_time,
@@ -31,7 +33,9 @@ module Api::V0
              :priority,
              :is_active,
              :day_name,
-             :time_range
+             :time_range,
+             :created_at,
+             :updated_at
     end
   end
 end

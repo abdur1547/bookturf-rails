@@ -14,10 +14,15 @@ module Api::V0
       DESC
     end
 
-    api :GET, "/pricing_rules", "List pricing rules with optional filtering"
+    api :GET, "/pricing_rules", "List all pricing rules for a specific court"
+    description <<~DESC
+      Returns all pricing rules for the given court. The authenticated user must have
+      at least venue-staff (receptionist) level access to the court's venue.
+      Admins can access pricing rules for any court. Results are ordered by priority
+      descending, then name ascending.
+    DESC
     header "Authorization", "Bearer <access_token>", required: true
-    param :court_id, Integer, required: false, desc: "Filter by court ID"
-    param :venue_id, Integer, required: false, desc: "Filter by venue ID"
+    param :court_id, Integer, required: true, desc: "ID of the court whose pricing rules to list"
     param :is_active, :bool, required: false, desc: "Filter by active status; omitting returns all rules"
     param :day_of_week, String, required: false,
           desc: "Filter by day (monday, tuesday, wednesday, thursday, friday, saturday, sunday, all_days, weekdays, weekends)"
@@ -43,7 +48,9 @@ module Api::V0
       end
     end
     error code: 401, desc: "Not authenticated"
-    error code: 403, desc: "Insufficient permissions to view pricing rules for this venue"
+    error code: 403, desc: "Insufficient permissions to view pricing rules for this court's venue"
+    error code: 404, desc: "Court not found"
+    error code: 422, desc: "Validation error — e.g. missing court_id, invalid day_of_week value"
     # GET /api/v0/pricing_rules
     def index
       result = Api::V0::PricingRules::ListPricingRulesOperation.call(params.to_unsafe_h, current_user)
@@ -52,6 +59,12 @@ module Api::V0
     end
 
     api :GET, "/pricing_rules/:id", "Retrieve a single pricing rule by ID"
+    description <<~DESC
+      Returns the pricing rule with the given ID. The authenticated user must have
+      at least venue-staff (receptionist) level access to the rule's venue, or be a
+      global admin. A 403 is returned when the user's role is insufficient; a 404
+      when the rule does not exist regardless of permissions.
+    DESC
     header "Authorization", "Bearer <access_token>", required: true
     param :id, Integer, required: true, desc: "ID of the pricing rule to retrieve"
     returns code: 200, desc: "Pricing rule retrieved successfully" do

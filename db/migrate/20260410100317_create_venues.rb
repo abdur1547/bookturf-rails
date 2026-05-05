@@ -5,6 +5,7 @@ class CreateVenues < ActiveRecord::Migration[8.1]
       t.references :owner, null: false, foreign_key: { to_table: :users }
 
       # Identity
+      # TODO: check if name uniqueness is required within the same city or globally.
       t.string :name, null: false
       t.string :slug, null: false
       t.text :description

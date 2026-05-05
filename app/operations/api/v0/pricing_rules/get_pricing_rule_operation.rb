@@ -12,9 +12,11 @@ module Api::V0::PricingRules
       @params = params
       @current_user = current_user
 
-      @pricing_rule = find_pricing_rule(params[:id])
+      return Failure(:forbidden) unless authorized_role?
+
+      @pricing_rule = PricingRule.find_by(id: params[:id])
       return Failure(:not_found) unless @pricing_rule
-      return Failure(:forbidden) unless authorize?
+      return Failure(:forbidden) unless pricing_rule_accessible?
 
       json_data = serialize
       Success(pricing_rule: @pricing_rule, json: json_data)
@@ -24,13 +26,13 @@ module Api::V0::PricingRules
 
     attr_reader :params, :current_user, :pricing_rule
 
-    def authorize?
-      PricingRulePolicy.new(current_user, pricing_rule).show?
+    def authorized_role?
+      PricingRulePolicy.new(current_user, PricingRule).show?
     end
 
-    def find_pricing_rule(id)
-      PricingRule.includes(:court_type)
-                 .find_by(id: id, venue_id: accessible_venue_ids)
+    # TODO: move this check to a policy class
+    def pricing_rule_accessible?
+      current_user.admin? || accessible_venue_ids.include?(@pricing_rule.venue_id)
     end
 
     def accessible_venue_ids
@@ -38,7 +40,7 @@ module Api::V0::PricingRules
     end
 
     def serialize
-      Api::V0::PricingRuleBlueprint.render_as_hash(pricing_rule, view: :detailed)
+      Api::V0::PricingRuleBlueprint.render_as_hash(pricing_rule)
     end
   end
 end

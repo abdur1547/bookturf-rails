@@ -4,9 +4,9 @@ module Api::V0::PricingRules
   class ListPricingRulesOperation < BaseOperation
     contract do
       params do
-        optional(:court_type_id).maybe(:integer)
+        required(:court_id).filled(:integer)
         optional(:is_active).maybe(:bool)
-        optional(:day_of_week).maybe(:integer)
+        optional(:day_of_week).maybe(:string, included_in?: PricingRule.day_of_weeks.keys)
       end
     end
 
@@ -14,10 +14,13 @@ module Api::V0::PricingRules
       @params = params
       @current_user = current_user
 
-      return Failure(:forbidden) unless authorize?
+      return Failure(:forbidden) unless authorized_role?
 
-      @pricing_rules = pricing_rules_scope
-      @pricing_rules = @pricing_rules.where(court_type_id: params[:court_type_id]) if params[:court_type_id].present?
+      @court = Court.find_by(id: params[:court_id])
+      return Failure(:not_found) unless @court
+      return Failure(:forbidden) unless court_accessible?
+
+      @pricing_rules = PricingRule.where(court: @court)
 
       if params.key?(:is_active)
         if params[:is_active] == true || params[:is_active] == "true"
@@ -28,10 +31,8 @@ module Api::V0::PricingRules
       end
 
       if params[:day_of_week].present?
-        @pricing_rules = @pricing_rules.where(
-          "day_of_week = ? OR day_of_week IS NULL",
-          params[:day_of_week]
-        )
+        day_value = PricingRule.day_of_weeks[params[:day_of_week]]
+        @pricing_rules = @pricing_rules.where(day_of_week: day_value)
       end
 
       @pricing_rules = @pricing_rules.order(priority: :desc, name: :asc)
@@ -44,12 +45,13 @@ module Api::V0::PricingRules
 
     attr_reader :params, :current_user, :pricing_rules
 
-    def authorize?
+    def authorized_role?
       PricingRulePolicy.new(current_user, PricingRule).index?
     end
 
-    def pricing_rules_scope
-      PricingRule.includes(:court_type).where(venue_id: accessible_venue_ids)
+    # TODO: move this check to a policy class
+    def court_accessible?
+      current_user.admin? || accessible_venue_ids.include?(@court.venue_id)
     end
 
     def accessible_venue_ids
@@ -57,7 +59,7 @@ module Api::V0::PricingRules
     end
 
     def serialize
-      Api::V0::PricingRuleBlueprint.render_as_hash(pricing_rules, view: :list)
+      Api::V0::PricingRuleBlueprint.render_as_hash(@pricing_rules, view: :list)
     end
   end
 end
