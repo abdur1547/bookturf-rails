@@ -3,13 +3,10 @@
 module Courts
   class DeleteService < BaseService
     def call(court:)
-      if court.destroy
-        success(court)
-      else
-        failure(court.errors.full_messages)
-      end
-    rescue StandardError => e
-      failure("Failed to delete court: #{e.message}")
+      court.destroy!
+      success
+    rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotDestroyed => e
+      failure(e.record.errors.full_messages)
     end
   end
 end

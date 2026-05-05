@@ -60,7 +60,7 @@ module Venues
     def venue_params
       allowed_keys = %i[name description address city state country postal_code
                         latitude longitude phone_number email timezone currency is_active]
-      params.compact&.slice(*allowed_keys)
+      params.slice(*allowed_keys)
     end
   end
 end

@@ -59,7 +59,7 @@ module Api::V0
         response.set_header("Authorization", result.value[:access_token])
         success_response(result.value)
       else
-        unauthorized_response
+        unauthenticated_response
       end
     end
 
@@ -84,7 +84,7 @@ module Api::V0
         response.set_header("Authorization", result.value[:access_token])
         success_response(result.value)
       else
-        unauthorized_response
+        unauthenticated_response
       end
     end
 

@@ -14,7 +14,7 @@ module Api::V0::Courts
 
       @court = find_court(params[:id])
       return Failure(:not_found) unless @court
-      return Failure(:forbidden) unless authorize
+      return Failure(:forbidden) unless authorize?
 
       result = Courts::DeleteService.call(court: @court)
       return Failure(result.error) unless result.success?
@@ -31,7 +31,7 @@ module Api::V0::Courts
       Court.find_by(id: id)
     end
 
-    def authorize
+    def authorize?
       CourtPolicy.new(current_user, court).destroy?
     end
 

@@ -35,6 +35,7 @@ module Api::V0::PricingRules
       PricingRule.find_by(id: id, venue_id: accessible_venue_ids)
     end
 
+    # TODO: move this check to a policy class
     def accessible_venue_ids
       (current_user.venues.pluck(:id) + current_user.owned_venues.pluck(:id)).uniq
     end

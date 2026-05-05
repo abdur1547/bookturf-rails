@@ -11,7 +11,6 @@ class CreateCourts < ActiveRecord::Migration[8.1]
       t.boolean :requires_approval,     null: false, default: false
 
       t.boolean :is_active, default: true, null: false
-      t.integer :display_order, default: 0, null: false
 
       # Images (Shrine storage)
       t.jsonb :images_data # Array of Shrine image objects

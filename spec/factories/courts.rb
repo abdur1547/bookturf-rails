@@ -8,6 +8,5 @@ FactoryBot.define do
     sequence(:name) { |n| "Court #{n}" }
     description { "Premium indoor court" }
     is_active { true }
-    display_order { 0 }
   end
 end

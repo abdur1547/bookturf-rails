@@ -34,11 +34,7 @@ namespace :api do
         get :availability
       end
     end
-    resources :courts, only: API_ONLY_ROUTES do
-      member do
-        patch :reorder
-      end
-    end
+    resources :courts, only: API_ONLY_ROUTES
     resources :pricing_rules, only: API_ONLY_ROUTES
 
     resources :bookings, only: API_ONLY_ROUTES do

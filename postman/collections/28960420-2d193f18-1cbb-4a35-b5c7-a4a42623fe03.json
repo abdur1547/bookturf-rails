@@ -1,0 +1,1499 @@
+{
+	"info": {
+		"_postman_id": "28960420-2d193f18-1cbb-4a35-b5c7-a4a42623fe03",
+		"name": "API::V0",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "1. Signup",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "a0ece600-20d4-4536-a39a-ba9e92ccd49e",
+								"exec": [
+									"if (pm.collectionVariables.get(\"create_new_user\") === \"true\") {",
+									"    pm.collectionVariables.set(\"name\", pm.variables.replaceIn('{{$randomFullName}}'));",
+									"    pm.collectionVariables.set(\"email\", pm.variables.replaceIn('{{$randomEmail}}'));",
+									"    pm.collectionVariables.set(\"password\", pm.variables.replaceIn('{{$randomPassword}}'));",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "cb437340-80b4-4478-ae8d-82c2d039ced6",
+								"exec": [
+									"const response = pm.response.json();",
+									"",
+									"if (response.success === true) {",
+									"    pm.collectionVariables.set(\"access_token\", response.data.access_token);",
+									"    pm.collectionVariables.set(\"refresh_token\", response.data.refresh_token);",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"id": "28960420-c82b85ea-ad87-4cfa-8d91-a618405c8e2e",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"full_name\": \"{{$randomFullName}}\",\n    \"email\": \"{{email}}\",\n    \"password\": \"{{password}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_v0_base_url}}/auth/signup",
+							"host": [
+								"{{api_v0_base_url}}"
+							],
+							"path": [
+								"auth",
+								"signup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "1. Signin",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "5f79a6cc-fdd2-4e53-a57b-b0fbd1c761ea"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"",
+									"if (response.success === true) {",
+									"    pm.collectionVariables.set(\"access_token\", response.data.access_token);",
+									"    pm.collectionVariables.set(\"refresh_token\", response.data.refresh_token);",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "1fd9da61-e49d-467d-a910-fb00e9fec408"
+							}
+						}
+					],
+					"id": "28960420-9b721d83-887e-4299-9b7f-6be7e0f0d87a",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{email}}\",\n    \"password\": \"{{password}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_v0_base_url}}/auth/signin",
+							"host": [
+								"{{api_v0_base_url}}"
+							],
+							"path": [
+								"auth",
+								"signin"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "3. Refresh",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "36721521-6d2d-4dc6-89ff-26edce8782a3"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"",
+									"if (response.success === true) {",
+									"    pm.collectionVariables.set(\"access_token\", response.data.access_token);",
+									"    pm.collectionVariables.set(\"refresh_token\", response.data.refresh_token);",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "7a8d1a41-0bbf-4ec7-839b-3fb6f8299132"
+							}
+						}
+					],
+					"id": "28960420-5aa8dfec-b03b-4c93-8220-97a987b9d8af",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"refresh_token\": \"{{refresh_token}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_v0_base_url}}/auth/refresh",
+							"host": [
+								"{{api_v0_base_url}}"
+							],
+							"path": [
+								"auth",
+								"refresh"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "5. Reset Password",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "9dbaa5d9-a122-486a-b1df-f9193a36096f"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "15a42f50-6c8e-466a-bdbb-c8f8ae6fdb30"
+							}
+						}
+					],
+					"id": "28960420-bfc93db9-adfc-4940-883b-7fea1e11b0c4",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{email}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_v0_base_url}}/auth/reset_password",
+							"host": [
+								"{{api_v0_base_url}}"
+							],
+							"path": [
+								"auth",
+								"reset_password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "6. Verify Reset OTP",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "21afa8e5-e048-4448-825b-53bae6e5247a"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "21293bba-f5ca-4a25-bfaa-ce1ccef2db23"
+							}
+						}
+					],
+					"id": "28960420-fa8dcde6-583b-4a84-9073-4b875f9ae2ab",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{email}}\",\n    \"otp_code\": \"423592\",\n    \"password\": \"new_password\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_v0_base_url}}/auth/verify_reset_otp",
+							"host": [
+								"{{api_v0_base_url}}"
+							],
+							"path": [
+								"auth",
+								"verify_reset_otp"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "4. Signout",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "56310c55-391c-402c-9bfd-028875d27fdd"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "305ba1b0-9f3a-415e-9db9-29b1c4c61a95"
+							}
+						}
+					],
+					"id": "28960420-2779d381-fad4-445d-a6dc-7dd3fc67cf5c",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_v0_base_url}}/auth/signout",
+							"host": [
+								"{{api_v0_base_url}}"
+							],
+							"path": [
+								"auth",
+								"signout"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"id": "28960420-1f9c23fd-038c-4e5e-ba9f-d5f8042cadac"
+		},
+		{
+			"name": "Roles",
+			"item": [
+				{
+					"name": "1. All Roles",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "aa4627d7-c406-4ca9-a794-43f2cc8e0866"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"",
+									"if (response.success === true) {",
+									"    pm.collectionVariables.set(\"access_token\", response.data.access_token);",
+									"    pm.collectionVariables.set(\"refresh_token\", response.data.refresh_token);",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "1ae78e7f-791e-419a-8b58-d29bd3f74deb"
+							}
+						}
+					],
+					"id": "28960420-1b0df996-10a8-49c6-a3af-8f0fe33554e5",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_v0_base_url}}/roles",
+							"host": [
+								"{{api_v0_base_url}}"
+							],
+							"path": [
+								"roles"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"id": "28960420-6dd99b91-3065-4779-a8d5-1a2a39a7f40b"
+		},
+		{
+			"name": "Venues",
+			"item": [
+				{
+					"name": "1. All Venues",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "b1708004-ffcc-412a-ad1b-fe265c9e9564",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f2ce261a-2b23-4420-9ced-0b87d637d0ae",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"id": "28960420-5c30488b-5f38-4b28-80d9-43faa4d122ce",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"page\": 1,\n    \"per_page\": 25,\n    \"city\": \"\",\n    \"state\": \"\",\n    \"country\": \"\",\n    \"is_active\": true,\n    \"search\": \"\",\n    \"sort\": \"\",\n    \"order\": \"\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_v0_base_url}}/venues",
+							"host": [
+								"{{api_v0_base_url}}"
+							],
+							"path": [
+								"venues"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2. My Venues",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "b1708004-ffcc-412a-ad1b-fe265c9e9564",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f2ce261a-2b23-4420-9ced-0b87d637d0ae",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"id": "28960420-c16e490b-9e92-491a-b770-cc3a8a885e1a",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"page\": 1,\n    \"per_page\": 25,\n    \"city\": \"\",\n    \"state\": \"\",\n    \"country\": \"\",\n    \"is_active\": true,\n    \"search\": \"\",\n    \"sort\": \"\",\n    \"order\": \"\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_v0_base_url}}/my_venues",
+							"host": [
+								"{{api_v0_base_url}}"
+							],
+							"path": [
+								"my_venues"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2. Create venue",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "498b6b42-23cf-4315-a433-a432bff16a4f",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "5366321a-f5a8-49db-ad7d-94cd5728dd46",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"id": "28960420-80d30011-0482-40c4-b0de-3264b4cde586",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Downtown Sports Complex\",\n    // \"description\": \"A multi-purpose sports and events venue\", // optional\n    \"address\": \"123 Main Street\",\n    \"city\": \"Rawalpindi\",\n    \"state\": \"Punjab\",\n    \"country\": \"Pakistan\",\n    // \"postal_code\": \"46000\", // optional\n    // \"latitude\": 33.6844, // optional\n    // \"longitude\": 73.0479, // optional\n    // \"phone_number\": \"+92-300-1234567\", // optional\n    // \"email\": \"info@downtownsports.com\", // optional\n    // \"is_active\": true, // optional, by default true\n    // \"timezone\": \"Asia/Karachi\", // optional, default to \"Asia/Karachi\"\n    // \"currency\": \"PKR\", // optional, default to PKR\n    \"venue_operating_hours\": [\n        {\n            \"day_of_week\": 0,\n            \"opens_at\": \"09:00\",\n            \"closes_at\": \"22:00\",\n            \"is_closed\": false\n        },\n        {\n            \"day_of_week\": 1,\n            \"opens_at\": \"09:00\",\n            \"closes_at\": \"22:00\",\n            \"is_closed\": false\n        },\n        {\n            \"day_of_week\": 2,\n            \"opens_at\": \"09:00\",\n            \"closes_at\": \"22:00\",\n            \"is_closed\": false\n        },\n        {\n            \"day_of_week\": 3,\n            \"opens_at\": \"09:00\",\n            \"closes_at\": \"22:00\",\n            \"is_closed\": false\n        },\n        {\n            \"day_of_week\": 4,\n            \"opens_at\": \"09:00\",\n            \"closes_at\": \"22:00\",\n            \"is_closed\": false\n        },\n        {\n            \"day_of_week\": 5,\n            \"opens_at\": \"10:00\",\n            \"closes_at\": \"20:00\",\n            \"is_closed\": false\n        },\n        {\n            \"day_of_week\": 6,\n            \"opens_at\": \"10:00\",\n            \"closes_at\": \"20:00\",\n            \"is_closed\": true\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_v0_base_url}}/venues",
+							"host": [
+								"{{api_v0_base_url}}"
+							],
+							"path": [
+								"venues"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "3. Update venue",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "1924f602-4e35-4148-b880-0540fdab4a91",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "432280f8-3082-485d-9a7f-893426f750c1",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"id": "28960420-ce115f0d-5b5c-47be-84ba-ad64be915ad9",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Abdur's zone\"\n    // \"description\": \"A multi-purpose sports and events venue\", // optional\n    // \"address\": \"123 Main Street\",\n    // \"city\": \"Rawalpindi\",\n    // \"state\": \"Punjab\",\n    // \"country\": \"Pakistan\",\n    // \"postal_code\": \"46000\", // optional\n    // \"latitude\": 33.6844, // optional\n    // \"longitude\": 73.0479, // optional\n    // \"phone_number\": \"+92-300-1234567\", // optional\n    // \"email\": \"info@downtownsports.com\", // optional\n    // \"is_active\": true, // optional, by default true\n    // \"timezone\": \"Asia/Karachi\", // optional, default to \"Asia/Karachi\"\n    // \"currency\": \"PKR\", // optional, default to PKR\n    // \"venue_operating_hours\": [\n    //     {\n    //         \"day_of_week\": 0,\n    //         \"opens_at\": \"09:00\",\n    //         \"closes_at\": \"22:00\",\n    //         \"is_closed\": false\n    //     },\n    //     {\n    //         \"day_of_week\": 1,\n    //         \"opens_at\": \"09:00\",\n    //         \"closes_at\": \"22:00\",\n    //         \"is_closed\": false\n    //     },\n    //     {\n    //         \"day_of_week\": 2,\n    //         \"opens_at\": \"09:00\",\n    //         \"closes_at\": \"22:00\",\n    //         \"is_closed\": false\n    //     },\n    //     {\n    //         \"day_of_week\": 3,\n    //         \"opens_at\": \"09:00\",\n    //         \"closes_at\": \"22:00\",\n    //         \"is_closed\": false\n    //     },\n    //     {\n    //         \"day_of_week\": 4,\n    //         \"opens_at\": \"09:00\",\n    //         \"closes_at\": \"22:00\",\n    //         \"is_closed\": false\n    //     },\n    //     {\n    //         \"day_of_week\": 5,\n    //         \"opens_at\": \"10:00\",\n    //         \"closes_at\": \"20:00\",\n    //         \"is_closed\": false\n    //     },\n    //     {\n    //         \"day_of_week\": 6,\n    //         \"opens_at\": \"10:00\",\n    //         \"closes_at\": \"20:00\",\n    //         \"is_closed\": true\n    //     }\n    // ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_v0_base_url}}/venues/6",
+							"host": [
+								"{{api_v0_base_url}}"
+							],
+							"path": [
+								"venues",
+								"6"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "4. Delete venue",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "d7363e8c-f071-4ff9-9039-e4de81f7101e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "98aa28e9-1d11-4fad-ba67-d4015fa36c57",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"id": "28960420-5c4a382e-6645-46a2-920f-c7e3e84b1524",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_v0_base_url}}/venues/1",
+							"host": [
+								"{{api_v0_base_url}}"
+							],
+							"path": [
+								"venues",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"id": "28960420-dd51a790-fab7-4642-8105-558018fff84f"
+		},
+		{
+			"name": "Courts",
+			"item": [
+				{
+					"name": "1. All Courts",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "3121ad60-a4db-46e4-822c-e4ef02f3a2c4",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f6e9cca0-366e-45a0-b41b-0ee02d765ade",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"id": "28960420-9265eaa2-b707-4f98-b822-ae5494d5c83b",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"page\": 1,\n    \"per_page\": 10,\n    \"venue_id\": 1,\n    \"court_type_id\": 1,\n    \"is_active\": true,\n    \"search\": \"\",\n    \"sort_by\": \"\",\n    \"order_by\": \"\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_v0_base_url}}/courts",
+							"host": [
+								"{{api_v0_base_url}}"
+							],
+							"path": [
+								"courts"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2. Create court",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "c826cfee-8f20-4670-8407-2f307c85aa41",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "e6df0f45-2a63-4c1c-a695-d8486193dbe4",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"id": "28960420-7dbd191b-bd8e-4d5c-971d-b28090749152",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"venue_id\": 6, //required, integer\n    \"court_type_id\": 1, // required, integer\n    \"name\": \"Venue 1, Circket Court 01\" // required, string\n    // \"description\": \"Best cricket court in Rawalpindi\" // optional, string\n    // \"slot_interval\": 60, // optional, string, default to 60, it represent mints\n    // \"requires_approval\": true, // optional, boolean, default to true\n    // \"is_active\": true // optional, boolean, default to true,\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_v0_base_url}}/courts",
+							"host": [
+								"{{api_v0_base_url}}"
+							],
+							"path": [
+								"courts"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "3. Update court",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "bc26504c-8e52-4f83-98c9-3ac50983e536",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "a6ab5e2c-4c02-4053-b632-3cb15b358037",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"id": "28960420-87efbf5f-50d0-44a3-bbcc-fa75c5a08b1f",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    // \"venue_id\": 1, //optional, integer\n    // \"court_type_id\": 1, // optional, integer\n    \"name\": \"Venue 1, Cricket Court 01 plus\" // optional, string\n    // \"description\": \"Best cricket court in Rawalpindi\" // optional, string\n    // \"slot_interval\": 60, // optional, string, default to 60, it represent mints\n    // \"requires_approval\": true, // optional, boolean, default to true\n    // \"is_active\": true // optional, boolean, default to true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_v0_base_url}}/courts/1",
+							"host": [
+								"{{api_v0_base_url}}"
+							],
+							"path": [
+								"courts",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "4. Delete court",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "17c4cec0-a8c5-4b60-bce4-8da27c53a417",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "b23aa530-5abd-4ffc-b0d5-2f133fec81bd",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"id": "28960420-f925b09a-d208-4fd7-94e5-da1732331e74",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_v0_base_url}}/courts/1",
+							"host": [
+								"{{api_v0_base_url}}"
+							],
+							"path": [
+								"courts",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"id": "28960420-5f3d3d29-c8e3-429a-8746-4e81435b672a"
+		},
+		{
+			"name": "Court's Pricing Rules",
+			"item": [
+				{
+					"name": "1. All pricing rules for a court",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "3121ad60-a4db-46e4-822c-e4ef02f3a2c4",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "f6e9cca0-366e-45a0-b41b-0ee02d765ade",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"id": "28960420-2be71c18-c7cc-43a9-8317-c702a01f1d14",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"court_id\": 6\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_v0_base_url}}/pricing_rules",
+							"host": [
+								"{{api_v0_base_url}}"
+							],
+							"path": [
+								"pricing_rules"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2. Create court",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "c826cfee-8f20-4670-8407-2f307c85aa41",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "e6df0f45-2a63-4c1c-a695-d8486193dbe4",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"id": "28960420-46f1fa16-2103-48fe-9c94-b1296692fb95",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"venue_id\": 1, //required, integer\n    \"court_type_id\": 1, // required, integer\n    \"name\": \"Venue 1, Circket Court 01\" // required, string\n    // \"description\": \"Best cricket court in Rawalpindi\" // optional, string\n    // \"slot_interval\": 60, // optional, string, default to 60, it represent mints\n    // \"requires_approval\": true, // optional, boolean, default to true\n    // \"is_active\": true // optional, boolean, default to true,\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_v0_base_url}}/courts",
+							"host": [
+								"{{api_v0_base_url}}"
+							],
+							"path": [
+								"courts"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "3. Update court",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "bc26504c-8e52-4f83-98c9-3ac50983e536",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "a6ab5e2c-4c02-4053-b632-3cb15b358037",
+								"exec": [
+									"const response = pm.response.json();",
+									"",
+									"if (response.success === true) {",
+									"    pm.collectionVariables.set(\"access_token\", response.data.access_token);",
+									"    pm.collectionVariables.set(\"refresh_token\", response.data.refresh_token);",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"id": "28960420-c82b727c-48cb-4813-a21a-50e7a366f4bd",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    // \"venue_id\": 1, //optional, integer\n    // \"court_type_id\": 1, // optional, integer\n    \"name\": \"Venue 1, Cricket Court 01 plus\" // optional, string\n    // \"description\": \"Best cricket court in Rawalpindi\" // optional, string\n    // \"slot_interval\": 60, // optional, string, default to 60, it represent mints\n    // \"requires_approval\": true, // optional, boolean, default to true\n    // \"is_active\": true // optional, boolean, default to true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_v0_base_url}}/courts/1",
+							"host": [
+								"{{api_v0_base_url}}"
+							],
+							"path": [
+								"courts",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "4. Delete court",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "17c4cec0-a8c5-4b60-bce4-8da27c53a417",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "b23aa530-5abd-4ffc-b0d5-2f133fec81bd",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"id": "28960420-595502ca-8389-445d-884f-08829f914500",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_v0_base_url}}/courts/1",
+							"host": [
+								"{{api_v0_base_url}}"
+							],
+							"path": [
+								"courts",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"id": "28960420-d920c93b-456e-45a7-bab8-b7dffee35582"
+		},
+		{
+			"name": "Bookings",
+			"item": [
+				{
+					"name": "1. Profiles",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "6b66b6de-20f5-4c56-9ef5-ffb3596a2264"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"",
+									"if (response.success === true) {",
+									"    pm.collectionVariables.set(\"access_token\", response.data.access_token);",
+									"    pm.collectionVariables.set(\"refresh_token\", response.data.refresh_token);",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {},
+								"id": "5632f983-2ad8-48f0-b85e-b1561f137190"
+							}
+						}
+					],
+					"id": "28960420-5d2b38d9-6c54-4242-af55-a6b12f96ff9d",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"start_date\": \"2026-04-14\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_v0_base_url}}/profiles",
+							"host": [
+								"{{api_v0_base_url}}"
+							],
+							"path": [
+								"profiles"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"id": "28960420-e7b110ab-cc29-4844-a5ee-83bdb807219d"
+		},
+		{
+			"name": "1. Me",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"id": "3c8afd4c-205d-4070-ae55-dc7de45ad967"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = pm.response.json();",
+							"",
+							"if (response.success === true) {",
+							"    pm.collectionVariables.set(\"access_token\", response.data.access_token);",
+							"    pm.collectionVariables.set(\"refresh_token\", response.data.refresh_token);",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"id": "32bec437-2f9a-4146-9d75-bde55595b7b3"
+					}
+				}
+			],
+			"id": "28960420-5c049c6f-5498-4b21-af20-3d6d111fdd66",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{api_v0_base_url}}/users/me",
+					"host": [
+						"{{api_v0_base_url}}"
+					],
+					"path": [
+						"users",
+						"me"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "health",
+			"id": "28960420-08d55c48-e48f-4755-a4e4-d62f11b11f2c",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/up",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"up"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{access_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "e19e4a83-1cfe-4cec-a21d-d47e3e762288",
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "6e3c5111-ee4a-4534-9900-da7fef2243de",
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "name",
+			"value": ""
+		},
+		{
+			"key": "email",
+			"value": ""
+		},
+		{
+			"key": "password",
+			"value": ""
+		},
+		{
+			"key": "access_token",
+			"value": ""
+		},
+		{
+			"key": "refresh_token",
+			"value": ""
+		},
+		{
+			"key": "create_new_user",
+			"value": ""
+		},
+		{
+			"key": "api_v0_base_url",
+			"value": ""
+		}
+	]
+}

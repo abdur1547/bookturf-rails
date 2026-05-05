@@ -28,7 +28,27 @@ module Api::V0
     param :order, %w[asc desc], required: false, desc: "Sort direction (default: asc)"
     returns code: 200, desc: "List of venues" do
       property :success, [ true ]
-      property :data, Array, desc: "Array of venue objects (list view)"
+      property :data, Array, desc: "Array of venue objects (list view)" do
+        property :id, Integer
+        property :name, String
+        property :slug, String
+        property :description, String, required: false
+        property :address, String
+        property :city, String
+        property :state, String
+        property :country, String
+        property :postal_code, String, required: false
+        property :phone_number, String, required: false
+        property :email, String, required: false
+        property :timezone, String, required: false, description: "default to 'Asia/Karachi'"
+        property :currency, String, required: false, description: "default to 'PKR'"
+        property :is_active, :bool, required: false, description: "Whether the venue is publicly visible, default: true"
+        property :latitude, Float, required: false
+        property :longitude, Float, required: false
+        property :google_maps_url, String, required: false, description: "if lat/lng are present, a Google Maps link is generated"
+        property :courts_count, Integer
+        property :created_at, String, desc: "ISO 8601 creation timestamp"
+      end
     end
     def index
       result = Api::V0::Venues::ListVenuesOperation.call(params.to_unsafe_h, current_user)
@@ -37,10 +57,45 @@ module Api::V0
     end
 
     api :GET, "/venues/:id", "Retrieve a single venue with full details"
-    param :id, Integer, required: true, desc: "Venue ID"
+    param :id, String, required: true, desc: "Venue ID or slug"
     returns code: 200, desc: "Venue details" do
       property :success, [ true ]
-      property :data, Hash, desc: "Venue object (detailed view) including owner, courts count, and operating hours"
+      property :data, Hash, desc: "Venue object (detailed view)" do
+        property :id, Integer
+        property :name, String
+        property :slug, String
+        property :description, String, required: false
+        property :address, String
+        property :city, String
+        property :state, String
+        property :country, String
+        property :postal_code, String, required: false
+        property :phone_number, String, required: false
+        property :email, String, required: false
+        property :timezone, String, required: false, description: "default to 'Asia/Karachi'"
+        property :currency, String, required: false, description: "default to 'PKR'"
+        property :is_active, :bool, required: false, description: "Whether the venue is publicly visible, default: true"
+        property :latitude, Float, required: false
+        property :longitude, Float, required: false
+        property :google_maps_url, String, required: false, description: "if lat/lng are present, a Google Maps link is generated"
+        property :courts_count, Integer
+        property :created_at, String, desc: "ISO 8601 creation timestamp"
+        property :updated_at, String, desc: "ISO 8601 last-update timestamp"
+        property :owner, Hash, desc: "Venue owner (minimal)" do
+          property :id, Integer
+          property :full_name, String
+        end
+        property :venue_operating_hours, Array, desc: "Operating hours for each day of the week" do
+          property :id, Integer
+          property :venue_id, Integer
+          property :day_of_week, Integer, desc: "0 = Monday … 6 = Sunday"
+          property :day_name, String, desc: "Full day name (e.g. Monday)"
+          property :opens_at, String, desc: "Opening time"
+          property :closes_at, String, desc: "Closing time"
+          property :formatted_hours, String, desc: "Human-readable range or 'Closed'"
+          property :is_closed, :bool
+        end
+      end
     end
     error code: 404, desc: "Venue not found"
     def show
@@ -66,7 +121,7 @@ module Api::V0
     param :address, String, required: true, desc: "Street address"
     param :city, String, required: true, desc: "City"
     param :state, String, required: true, desc: "State / province"
-    param :country, String, required: true, desc: "Country"
+    param :country, String, required: false, desc: "Country, defaults to 'Pakistan'"
     param :description, String, required: false, desc: "Venue description"
     param :postal_code, String, required: false, desc: "Postal / ZIP code"
     param :phone_number, String, required: false, desc: "Contact phone number"

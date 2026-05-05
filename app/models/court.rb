@@ -2,6 +2,7 @@ class Court < ApplicationRecord
   belongs_to :venue
   belongs_to :court_type
 
+  has_many :pricing_rules, dependent: :destroy
   has_many :bookings, dependent: :restrict_with_error
   has_many :court_closures, dependent: :destroy
 
@@ -11,7 +12,6 @@ class Court < ApplicationRecord
 
   scope :active, -> { where(is_active: true) }
   scope :inactive, -> { where(is_active: false) }
-  scope :by_display_order, -> { order(:display_order, :name) }
   scope :of_type, ->(court_type) { where(court_type: court_type) }
 
   def sport_name
@@ -63,17 +63,12 @@ class Court < ApplicationRecord
     qr_code_url.present?
   end
 
-  def sport_type_name
+  def court_type_name
     court_type&.name
   end
 
   def venue_name
     venue&.name
-  end
-
-  def pricing_rules
-    return PricingRule.none unless venue && court_type
-    venue.pricing_rules.where(court_type_id: court_type_id)
   end
 
   def price_range

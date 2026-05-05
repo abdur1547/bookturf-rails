@@ -11,17 +11,13 @@ module Api::V0
            :slot_interval,
            :requires_approval,
            :is_active,
-           :display_order,
            :created_at,
-           :updated_at
+           :updated_at,
+           :court_type_name
 
     view :list do
       fields :slot_interval,
              :requires_approval
-
-      field :sport_type_name do |court|
-        court.sport_type_name
-      end
 
       field :venue_name do |court|
         court.venue_name
@@ -58,10 +54,6 @@ module Api::V0
       fields :slot_interval,
              :requires_approval
 
-      field :sport_type_name do |court|
-        court.sport_type_name
-      end
-
       field :venue_name do |court|
         court.venue_name
       end
@@ -83,8 +75,7 @@ module Api::V0
           {
             id: image["id"],
             url: image["url"],
-            alt_text: image["alt_text"],
-            display_order: image["display_order"]
+            alt_text: image["alt_text"]
           }
         end
       end

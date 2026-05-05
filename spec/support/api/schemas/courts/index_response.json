@@ -1,0 +1,173 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "required": [
+        "success",
+        "data"
+    ],
+    "properties": {
+        "success": {
+            "type": "boolean",
+            "enum": [
+                true
+            ]
+        },
+        "data": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/court_list_item"
+            }
+        }
+    },
+    "definitions": {
+        "court_list_item": {
+            "type": "object",
+            "required": [
+                "id",
+                "name",
+                "court_type_id",
+                "venue_id",
+                "is_active",
+                "slot_interval",
+                "requires_approval",
+                "created_at",
+                "updated_at",
+                "court_type",
+                "venue",
+                "images",
+                "price_range"
+            ],
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "court_type_id": {
+                    "type": "integer"
+                },
+                "venue_id": {
+                    "type": "integer"
+                },
+                "slot_interval": {
+                    "type": "integer"
+                },
+                "requires_approval": {
+                    "type": "boolean"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "court_type_name": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "venue_name": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "city": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "price_range": {
+                    "$ref": "#/definitions/price_range"
+                },
+                "images": {
+                    "type": "array"
+                },
+                "court_type": {
+                    "$ref": "#/definitions/court_type_minimal"
+                },
+                "venue": {
+                    "$ref": "#/definitions/venue_minimal"
+                }
+            }
+        },
+        "court_type_minimal": {
+            "type": "object",
+            "required": [
+                "id",
+                "name",
+                "slug"
+            ],
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                }
+            }
+        },
+        "venue_minimal": {
+            "type": "object",
+            "required": [
+                "id",
+                "name",
+                "slug"
+            ],
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "city": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            }
+        },
+        "price_range": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "properties": {
+                "min": {
+                    "type": [
+                        "number",
+                        "null"
+                    ]
+                },
+                "max": {
+                    "type": [
+                        "number",
+                        "null"
+                    ]
+                }
+            }
+        }
+    }
+}

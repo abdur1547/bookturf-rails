@@ -40,16 +40,15 @@ RSpec.describe VenueOperatingHour, type: :model do
     end
 
     describe 'closes_after_opens validation' do
-      it 'is invalid when closes_at is before opens_at' do
+      it 'is valid when closes_at is before opens_at (past-midnight scenario)' do
         hour = build(:venue_operating_hour, opens_at: '18:00', closes_at: '09:00')
-        expect(hour).not_to be_valid
-        expect(hour.errors[:closes_at]).to include('must be after opening time')
+        expect(hour).to be_valid
       end
 
       it 'is invalid when closes_at equals opens_at' do
         hour = build(:venue_operating_hour, opens_at: '09:00', closes_at: '09:00')
         expect(hour).not_to be_valid
-        expect(hour.errors[:closes_at]).to include('must be after opening time')
+        expect(hour.errors[:closes_at]).to include('must be different from opening time')
       end
 
       it 'is valid when closes_at is after opens_at' do
@@ -119,39 +118,39 @@ RSpec.describe VenueOperatingHour, type: :model do
 
   describe 'instance methods' do
     describe '#day_name' do
-      it 'returns Sunday for day 0' do
-        hour = build(:venue_operating_hour, :sunday)
-        expect(hour.day_name).to eq('Sunday')
-      end
-
-      it 'returns Monday for day 1' do
+      it 'returns Monday for day 0' do
         hour = build(:venue_operating_hour, :monday)
         expect(hour.day_name).to eq('Monday')
       end
 
-      it 'returns Tuesday for day 2' do
+      it 'returns Tuesday for day 1' do
         hour = build(:venue_operating_hour, :tuesday)
         expect(hour.day_name).to eq('Tuesday')
       end
 
-      it 'returns Wednesday for day 3' do
+      it 'returns Wednesday for day 2' do
         hour = build(:venue_operating_hour, :wednesday)
         expect(hour.day_name).to eq('Wednesday')
       end
 
-      it 'returns Thursday for day 4' do
+      it 'returns Thursday for day 3' do
         hour = build(:venue_operating_hour, :thursday)
         expect(hour.day_name).to eq('Thursday')
       end
 
-      it 'returns Friday for day 5' do
+      it 'returns Friday for day 4' do
         hour = build(:venue_operating_hour, :friday)
         expect(hour.day_name).to eq('Friday')
       end
 
-      it 'returns Saturday for day 6' do
+      it 'returns Saturday for day 5' do
         hour = build(:venue_operating_hour, :saturday)
         expect(hour.day_name).to eq('Saturday')
+      end
+
+      it 'returns Sunday for day 6' do
+        hour = build(:venue_operating_hour, :sunday)
+        expect(hour.day_name).to eq('Sunday')
       end
     end
 
@@ -176,13 +175,13 @@ RSpec.describe VenueOperatingHour, type: :model do
   describe 'DAYS_OF_WEEK constant' do
     it 'has correct mapping' do
       expect(VenueOperatingHour::DAYS_OF_WEEK).to eq({
-        0 => 'Sunday',
-        1 => 'Monday',
-        2 => 'Tuesday',
-        3 => 'Wednesday',
-        4 => 'Thursday',
-        5 => 'Friday',
-        6 => 'Saturday'
+        0 => 'Monday',
+        1 => 'Tuesday',
+        2 => 'Wednesday',
+        3 => 'Thursday',
+        4 => 'Friday',
+        5 => 'Saturday',
+        6 => 'Sunday'
       })
     end
   end

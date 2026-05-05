@@ -1,7 +1,7 @@
 module Api::V0::Contracts::Venues
   class UpdateVenueContract < Dry::Validation::Contract
     params do
-      required(:id).filled(:integer)
+      required(:id).filled(:string)
       optional(:name).maybe(:string)
       optional(:description).maybe(:string)
       optional(:address).maybe(:string)
