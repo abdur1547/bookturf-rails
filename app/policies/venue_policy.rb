@@ -2,28 +2,26 @@
 
 class VenuePolicy < ApplicationPolicy
   def index?
-    true # Public endpoint - anyone can list venues
+    true
   end
 
   def show?
-    true # Public endpoint - anyone can view venue details
+    true
   end
 
   def create?
-    user.present? # Any authenticated user can create a venue
+    user.present?
   end
 
   def update?
     return false unless user.present?
 
-    # Owner or Global Admin can update
-    owner? || global_admin?
+    owner? || user.super_admin?
   end
 
   def destroy?
     return false unless user.present?
 
-    # Only owner can delete
     owner?
   end
 
@@ -31,9 +29,5 @@ class VenuePolicy < ApplicationPolicy
 
   def owner?
     record.owner_id == user.id
-  end
-
-  def global_admin?
-    user.admin?
   end
 end

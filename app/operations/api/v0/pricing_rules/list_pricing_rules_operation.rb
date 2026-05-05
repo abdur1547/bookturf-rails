@@ -14,11 +14,12 @@ module Api::V0::PricingRules
       @params = params
       @current_user = current_user
 
-      return Failure(:forbidden) unless authorized_role?
-
       @court = Court.find_by(id: params[:court_id])
       return Failure(:not_found) unless @court
-      return Failure(:forbidden) unless court_accessible?
+
+      # Reuse PricingRule instance for policy check with venue context
+      sample_rule = PricingRule.new(venue: @court.venue)
+      return Failure(:forbidden) unless PricingRulePolicy.new(current_user, sample_rule).index?
 
       @pricing_rules = PricingRule.where(court: @court)
 
@@ -44,19 +45,6 @@ module Api::V0::PricingRules
     private
 
     attr_reader :params, :current_user, :pricing_rules
-
-    def authorized_role?
-      PricingRulePolicy.new(current_user, PricingRule).index?
-    end
-
-    # TODO: move this check to a policy class
-    def court_accessible?
-      current_user.admin? || accessible_venue_ids.include?(@court.venue_id)
-    end
-
-    def accessible_venue_ids
-      (current_user.venues.pluck(:id) + current_user.owned_venues.pluck(:id)).uniq
-    end
 
     def serialize
       Api::V0::PricingRuleBlueprint.render_as_hash(@pricing_rules, view: :list)

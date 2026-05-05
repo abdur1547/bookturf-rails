@@ -2,52 +2,71 @@
 
 class BookingPolicy < ApplicationPolicy
   def index?
-    user.present? && (user.can?("read", "bookings") || user.can?("manage", "bookings"))
+    user.present?
   end
 
   def show?
     return false unless user.present?
+    return true if user.super_admin? || venue_owner?
 
-    user.can?("read", "bookings") || user.can?("manage", "bookings") || record.user_id == user.id
+    user.has_permission?(venue: record.venue, resource: "bookings", action: "read") ||
+      record.user_id == user.id
   end
 
   def create?
-    user.present? && (user.can?("create", "bookings") || user.can?("manage", "bookings"))
+    user.present?
   end
 
   def update?
     return false unless user.present?
+    return true if user.super_admin? || venue_owner?
 
-    user.can?("update", "bookings") || user.can?("manage", "bookings") || record.user_id == user.id
+    user.has_permission?(venue: record.venue, resource: "bookings", action: "update") ||
+      record.user_id == user.id
   end
 
   def destroy?
     return false unless user.present?
+    return true if user.super_admin? || venue_owner?
 
-    user.can?("manage", "bookings") || record.user_id == user.id
+    user.has_permission?(venue: record.venue, resource: "bookings", action: "manage") ||
+      record.user_id == user.id
   end
 
   def cancel?
     return false unless user.present?
+    return true if user.super_admin? || venue_owner?
 
-    user.can?("manage", "bookings") || record.user_id == user.id
+    user.has_permission?(venue: record.venue, resource: "bookings", action: "manage") ||
+      record.user_id == user.id
   end
 
   def check_in?
-    user.present? && user.can?("manage", "bookings")
+    return false unless user.present?
+    return true if user.super_admin? || venue_owner?
+
+    user.has_permission?(venue: record.venue, resource: "bookings", action: "manage")
   end
 
   def mark_no_show?
-    user.present? && user.can?("manage", "bookings")
+    check_in?
   end
 
   def complete?
-    user.present? && user.can?("manage", "bookings")
+    check_in?
   end
 
   def reschedule?
     return false unless user.present?
+    return true if user.super_admin? || venue_owner?
 
-    user.can?("update", "bookings") || user.can?("manage", "bookings") || record.user_id == user.id
+    user.has_permission?(venue: record.venue, resource: "bookings", action: "update") ||
+      record.user_id == user.id
+  end
+
+  private
+
+  def venue_owner?
+    record.is_a?(Booking) && record.venue.owner_id == user.id
   end
 end

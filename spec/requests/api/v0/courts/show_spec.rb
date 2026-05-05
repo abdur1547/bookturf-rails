@@ -8,19 +8,9 @@ RSpec.describe "GET /api/v0/courts/:id", type: :request do
   # ==================================================
   let(:headers) { { "Content-Type" => "application/json" } }
 
-  let(:owner_role) { create(:role, :owner) }
-  let(:admin_role) { create(:role, :admin) }
-  let(:customer_role) { create(:role, :customer) }
-
   let(:owner_user) { create(:user, email: "owner@example.com") }
-  let(:admin_user) { create(:user, email: "admin@example.com") }
+  let(:admin_user) { create(:user, :super_admin, email: "admin@example.com") }
   let(:customer_user) { create(:user, email: "customer@example.com") }
-
-  before do
-    owner_user.assign_role(owner_role)
-    admin_user.assign_role(admin_role)
-    customer_user.assign_role(customer_role)
-  end
 
   let!(:court_type) { create(:court_type, name: "Badminton", slug: "badminton") }
   let!(:venue) do

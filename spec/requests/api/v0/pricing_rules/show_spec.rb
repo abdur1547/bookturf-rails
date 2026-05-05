@@ -8,24 +8,11 @@ RSpec.describe "GET /api/v0/pricing_rules/:id", type: :request do
   # ==================================================
   let(:headers) { { "Content-Type" => "application/json" } }
 
-  let(:owner_role)        { create(:role, :owner) }
-  let(:admin_role)        { create(:role, :admin) }
-  let(:customer_role)     { create(:role, :customer) }
-  let(:receptionist_role) { create(:role, :receptionist) }
-
   let(:owner_user)        { create(:user, email: "owner@example.com") }
-  let(:admin_user)        { create(:user, email: "admin@example.com") }
+  let(:admin_user)        { create(:user, :super_admin, email: "admin@example.com") }
   let(:customer_user)     { create(:user, email: "customer@example.com") }
   let(:receptionist_user) { create(:user, email: "receptionist@example.com") }
   let(:other_owner_user)  { create(:user, email: "other_owner@example.com") }
-
-  before do
-    owner_user.assign_role(owner_role)
-    admin_user.assign_role(admin_role)
-    customer_user.assign_role(customer_role)
-    receptionist_user.assign_role(receptionist_role)
-    other_owner_user.assign_role(owner_role)
-  end
 
   let!(:court_type)  { create(:court_type, name: "Badminton") }
   let!(:venue)       { create(:venue, name: "Alpha Arena", owner: owner_user) }
@@ -141,15 +128,10 @@ RSpec.describe "GET /api/v0/pricing_rules/:id", type: :request do
   end
 
   context "when authenticated as a receptionist of the venue" do
-    let!(:pre_request_setup) { create(:venue_user, venue: venue, user: receptionist_user) }
     let(:request_headers) { headers.merge("Authorization" => auth_token_for(receptionist_user)) }
 
-    it "returns ok (200) status" do
-      expect(response).to have_http_status(:ok)
-    end
-
-    it "matches the pricing rule show response schema" do
-      expect(response).to match_json_schema("pricing_rules/show_response")
+    it "returns forbidden (403) status" do
+      expect(response).to have_http_status(:forbidden)
     end
   end
 
@@ -271,8 +253,8 @@ RSpec.describe "GET /api/v0/pricing_rules/:id", type: :request do
     let(:request_headers) { headers.merge("Authorization" => auth_token_for(customer_user)) }
     let(:pricing_rule_id) { 999_999 }
 
-    it "returns forbidden (403) because role check happens before record lookup" do
-      expect(response).to have_http_status(:forbidden)
+    it "returns not found (404) because record lookup happens before the role check" do
+      expect(response).to have_http_status(:not_found)
     end
   end
 end

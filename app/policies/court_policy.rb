@@ -16,24 +16,20 @@ class CourtPolicy < ApplicationPolicy
   def update?
     return false unless user.present?
 
-    owner? || global_admin?
+    venue_owner? || user.super_admin?
   end
 
   def destroy?
     return false unless user.present?
 
-    owner? || global_admin?
+    venue_owner? || user.super_admin?
   end
 
   private
 
-  def owner?
+  def venue_owner?
     return false unless record.is_a?(Court)
 
     record.venue.owner_id == user.id
-  end
-
-  def global_admin?
-    user.admin?
   end
 end

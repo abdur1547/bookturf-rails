@@ -5,22 +5,10 @@ require 'rails_helper'
 RSpec.describe "DELETE /api/v0/venues/:id", type: :request do
   let(:headers) { { "Content-Type" => "application/json" } }
 
-  # Create test users with roles
-  let(:owner_role) { create(:role, :owner) }
-  let(:admin_role) { create(:role, :admin) }
-  let(:customer_role) { create(:role, :customer) }
-
   let(:owner_user) { create(:user, email: "owner@example.com") }
-  let(:admin_user) { create(:user, email: "admin@example.com") }
+  let(:admin_user) { create(:user, :super_admin, email: "admin@example.com") }
   let(:another_owner) { create(:user, email: "anotherowner@example.com") }
   let(:customer_user) { create(:user, email: "customer@example.com") }
-
-  before do
-    owner_user.assign_role(owner_role)
-    admin_user.assign_role(admin_role)
-    another_owner.assign_role(owner_role)
-    customer_user.assign_role(customer_role)
-  end
 
   # Create test venue owned by owner_user
   let!(:test_venue) do
@@ -193,7 +181,6 @@ RSpec.describe "DELETE /api/v0/venues/:id", type: :request do
   context "when venue has courts" do
     let(:courts_owner) { create(:user, email: "courtsowner@example.com") }
     let!(:court_venue) do
-      courts_owner.assign_role(owner_role)
       create(:venue, owner: courts_owner)
     end
     let!(:court) { create(:court, venue: court_venue) }
@@ -220,7 +207,6 @@ RSpec.describe "DELETE /api/v0/venues/:id", type: :request do
   context "when venue has bookings" do
     let(:bookings_owner) { create(:user, email: "bookingsowner@example.com") }
     let!(:bookings_venue) do
-      bookings_owner.assign_role(owner_role)
       create(:venue, owner: bookings_owner)
     end
     # Booking's within_operating_hours validation requires operating hours for the booking day
@@ -302,7 +288,6 @@ RSpec.describe "DELETE /api/v0/venues/:id", type: :request do
     let(:inactive_owner) { create(:user, email: "inactive_owner@example.com") }
     let(:request_headers) { headers.merge("Authorization" => auth_token_for(inactive_owner)) }
     let!(:inactive_venue) do
-      inactive_owner.assign_role(owner_role)
       create(:venue, is_active: false, owner: inactive_owner)
     end
     let(:venue_id) { inactive_venue.id }
@@ -335,29 +320,26 @@ RSpec.describe "DELETE /api/v0/venues/:id", type: :request do
     end
   end
 
-  context "when venue has venue_users (staff)" do
-    # Create a separate user and venue with staff for this test
+  context "when venue has venue_memberships (staff)" do
     let(:staff_owner) { create(:user, email: "staffvenueowner@example.com") }
 
     let(:staff_venue) do
-      staff_owner.assign_role(owner_role)
       create(:venue, name: "Venue With Staff", owner: staff_owner)
     end
 
-    let!(:venue_user) do
-      create(:venue_user, venue: staff_venue, user: customer_user)
+    let!(:membership) do
+      create(:venue_membership, venue: staff_venue, user: customer_user)
     end
 
-    it "deletes the venue and cascades to venue_users" do
-      venue_user_id = venue_user.id
+    it "deletes the venue and cascades to venue_memberships" do
+      membership_id = membership.id
       venue_id = staff_venue.id
 
-      # Execute the delete request for this specific venue
       delete "/api/v0/venues/#{venue_id}", headers: headers.merge("Authorization" => auth_token_for(staff_owner))
 
       expect(response).to have_http_status(:ok)
       expect(Venue.exists?(venue_id)).to be false
-      expect(VenueUser.exists?(venue_user_id)).to be false
+      expect(VenueMembership.exists?(membership_id)).to be false
     end
   end
 end

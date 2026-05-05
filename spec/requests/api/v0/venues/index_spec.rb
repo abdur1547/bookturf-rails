@@ -5,20 +5,9 @@ require 'rails_helper'
 RSpec.describe "GET /api/v0/venues", type: :request do
   let(:headers) { { "Content-Type" => "application/json" } }
 
-  # Create test users with roles
-  let(:owner_role) { create(:role, :owner) }
-  let(:admin_role) { create(:role, :admin) }
-  let(:customer_role) { create(:role, :customer) }
-
   let(:owner_user) { create(:user, email: "owner@example.com") }
-  let(:admin_user) { create(:user, email: "admin@example.com") }
+  let(:admin_user) { create(:user, :super_admin, email: "admin@example.com") }
   let(:customer_user) { create(:user, email: "customer@example.com") }
-
-  before do
-    owner_user.assign_role(owner_role)
-    admin_user.assign_role(admin_role)
-    customer_user.assign_role(customer_role)
-  end
 
   let(:endpoint) { "/api/v0/venues" }
   let(:query_params) { {} }
@@ -353,10 +342,6 @@ RSpec.describe "GET /api/v0/venues", type: :request do
 
   context "when venue has no coordinates" do
     let(:new_owner) { create(:user, email: "newowner@example.com") }
-
-    before do
-      new_owner.assign_role(owner_role)
-    end
 
     let!(:venue_no_coords) do
       create(:venue, :without_coordinates, city: "Islamabad", is_active: true, owner: new_owner)

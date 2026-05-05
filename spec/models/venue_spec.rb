@@ -4,8 +4,8 @@ RSpec.describe Venue, type: :model do
   describe 'associations' do
     it { should belong_to(:owner).class_name('User').with_foreign_key('owner_id') }
     it { should have_many(:venue_operating_hours).dependent(:destroy) }
-    it { should have_many(:venue_users).dependent(:destroy) }
-    it { should have_many(:staff_members).through(:venue_users).source(:user) }
+    it { should have_many(:venue_memberships).dependent(:destroy) }
+    it { should have_many(:members).through(:venue_memberships).source(:user) }
   end
 
   describe 'validations' do

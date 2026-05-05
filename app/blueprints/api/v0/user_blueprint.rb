@@ -6,17 +6,10 @@ module Api::V0
 
     fields :full_name, :email, :avatar_url, :created_at, :updated_at, :phone_number
 
-    field :user_type do |user|
-      if user.owner?
-        "owner"
-      elsif user.staff?
-        "staff"
-      else
-        "customer"
-      end
+    field :system_role do |user|
+      user.system_role
     end
 
-    # User preferences
     field :preferences do |user|
       {
         preferred_city: nil,
@@ -26,29 +19,8 @@ module Api::V0
       }
     end
 
-    # Owner-specific data
-    field :owner_data do |user|
-      if user.owner?
-        owner_venue = user.owned_venues.first
-        {
-          venue_id: owner_venue&.id
-        }
-      else
-        nil
-      end
-    end
-
-    # Staff-specific data
-    field :staff_data do |user|
-      if user.staff?
-        venue_user = user.venue_users.first
-        {
-          venue_id: venue_user&.venue_id,
-          joined_at: venue_user&.created_at
-        }
-      else
-        nil
-      end
+    field :owned_venue_id do |user|
+      user.owned_venues.first&.id
     end
 
     view :minimal do

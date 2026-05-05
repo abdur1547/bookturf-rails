@@ -20,17 +20,16 @@
   "definitions": {
     "user": {
       "type": "object",
-      "required": ["id", "full_name", "email", "user_type", "preferences"],
+      "required": ["id", "full_name", "email", "system_role", "preferences"],
       "properties": {
         "id": { "type": "integer" },
         "full_name": { "type": "string" },
         "email": { "type": "string" },
         "avatar_url": { "type": ["string", "null"] },
         "phone_number": { "type": ["string", "null"] },
-        "user_type": { "type": "string", "enum": ["owner", "staff", "customer"] },
+        "system_role": { "type": "string", "enum": ["normal", "super_admin"] },
         "preferences": { "type": "object" },
-        "owner_data": {},
-        "staff_data": {},
+        "owned_venue_id": { "type": ["integer", "null"] },
         "created_at": { "type": "string" },
         "updated_at": { "type": "string" }
       }

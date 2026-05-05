@@ -3,16 +3,12 @@
 module Roles
   class UpdateService < BaseService
     def call(role:, params:, updated_by: nil)
-      return failure("Cannot update system roles") if role.system_role?
-
       ActiveRecord::Base.transaction do
-        # Update basic attributes (excluding permission_ids)
         update_params = params.except(:permission_ids)
         unless role.update(update_params)
           return failure(role.errors.full_messages)
         end
 
-        # Sync permissions if provided
         if params[:permission_ids]
           sync_result = Roles::SyncPermissionsService.call(
             role: role,
@@ -21,7 +17,6 @@ module Roles
           return sync_result unless sync_result.success?
         end
 
-        # Log update in audit trail
         log_role_update(role, updated_by) if updated_by
       end
 

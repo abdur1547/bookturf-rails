@@ -36,11 +36,11 @@ module Api::V0::Bookings
     end
 
     def accessible_bookings
-      if current_user.customer?
-        Booking.where(user: current_user)
+      if current_user.super_admin?
+        Booking.all
       else
         venue_ids = (current_user.owned_venues.pluck(:id) + current_user.venues.pluck(:id)).uniq
-        Booking.where(venue_id: venue_ids)
+        venue_ids.any? ? Booking.where(venue_id: venue_ids) : Booking.where(user: current_user)
       end
     end
 
@@ -55,16 +55,12 @@ module Api::V0::Bookings
     def filter_date_range(bookings)
       if params[:from_date].present?
         from_date = parse_date(params[:from_date])
-        return bookings unless from_date
-
-        bookings = bookings.where("start_time >= ?", from_date.beginning_of_day)
+        bookings = bookings.where("start_time >= ?", from_date.beginning_of_day) if from_date
       end
 
       if params[:to_date].present?
         to_date = parse_date(params[:to_date])
-        return bookings unless to_date
-
-        bookings = bookings.where("start_time <= ?", to_date.end_of_day)
+        bookings = bookings.where("start_time <= ?", to_date.end_of_day) if to_date
       end
 
       bookings

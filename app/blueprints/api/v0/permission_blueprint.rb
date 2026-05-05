@@ -4,10 +4,10 @@ module Api::V0
   class PermissionBlueprint < BaseBlueprint
     identifier :id
 
-    fields :name, :resource, :action, :description
+    fields :resource, :action
 
     view :minimal do
-      fields :id, :name
+      fields :id, :resource, :action
     end
   end
 end

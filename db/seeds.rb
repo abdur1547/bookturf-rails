@@ -15,6 +15,14 @@
 puts "🌱 Starting Bookturf Database Seeding..."
 puts "=" * 60
 
+# Phase 1: Users
+load Rails.root.join('db', 'seeds', '01_users.rb')
+puts ""
+
+# Phase 2: Venues
+load Rails.root.join('db', 'seeds', '02_venues.rb')
+puts ""
+
 # Phase 3: Court Types and Courts (must run before bookings)
 load Rails.root.join('db', 'seeds', '03_courts.rb')
 puts ""
@@ -43,6 +51,7 @@ puts "  💰 Pricing Rules: #{PricingRule.count}"
 puts "  👔 Roles: #{Role.count}"
 puts "  🔐 Permissions: #{Permission.count}"
 puts "  📅 Bookings: #{Booking.count}"
+puts "  🤝 Memberships: #{VenueMembership.count}"
 puts "  📝 Activity Logs: #{PublicActivity::Activity.count}"
 puts "  🔒 Court Closures: #{CourtClosure.count}"
 puts "  📬 Notifications: #{Notification.count}"
