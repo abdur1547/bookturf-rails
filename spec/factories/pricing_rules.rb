@@ -6,7 +6,7 @@ FactoryBot.define do
     association :court
     sequence(:name) { |n| "Pricing Rule #{n}" }
     price_per_hour { 2500.0 }
-    day_of_week { nil }
+    day_of_week { :all_days }
     start_time { '18:00' }
     end_time { '23:00' }
     start_date { nil }

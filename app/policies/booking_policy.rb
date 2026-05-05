@@ -9,8 +9,7 @@ class BookingPolicy < ApplicationPolicy
     return false unless user.present?
     return true if user.super_admin? || venue_owner?
 
-    user.has_permission?(venue: record.venue, resource: "bookings", action: "read") ||
-      record.user_id == user.id
+    staff_have_permission?("read") || own_booking?
   end
 
   def create?
@@ -21,31 +20,28 @@ class BookingPolicy < ApplicationPolicy
     return false unless user.present?
     return true if user.super_admin? || venue_owner?
 
-    user.has_permission?(venue: record.venue, resource: "bookings", action: "update") ||
-      record.user_id == user.id
+    staff_have_permission?("update") || own_booking?
   end
 
   def destroy?
     return false unless user.present?
     return true if user.super_admin? || venue_owner?
 
-    user.has_permission?(venue: record.venue, resource: "bookings", action: "manage") ||
-      record.user_id == user.id
+    staff_have_permission?("manage") || own_booking?
   end
 
   def cancel?
     return false unless user.present?
     return true if user.super_admin? || venue_owner?
 
-    user.has_permission?(venue: record.venue, resource: "bookings", action: "manage") ||
-      record.user_id == user.id
+    staff_have_permission?("manage") || own_booking?
   end
 
   def check_in?
     return false unless user.present?
     return true if user.super_admin? || venue_owner?
 
-    user.has_permission?(venue: record.venue, resource: "bookings", action: "manage")
+    staff_have_permission?("manage")
   end
 
   def mark_no_show?
@@ -60,13 +56,38 @@ class BookingPolicy < ApplicationPolicy
     return false unless user.present?
     return true if user.super_admin? || venue_owner?
 
-    user.has_permission?(venue: record.venue, resource: "bookings", action: "update") ||
-      record.user_id == user.id
+    staff_have_permission?("update") || own_booking?
   end
 
   private
 
+  def staff_have_permission?(action)
+    venue_staff? && have_permission?(action)
+  end
+
+  def venue_staff?
+    return false unless record.is_a?(Booking)
+
+    venue.venue_memberships.exists?(user_id: user.id)
+  end
+
+  def have_permission?(action)
+    user.has_permission?(venue: venue, resource: "bookings", action: action)
+  end
+
   def venue_owner?
-    record.is_a?(Booking) && record.venue.owner_id == user.id
+    return false unless record.is_a?(Booking)
+
+    venue.owner_id == user.id
+  end
+
+  def own_booking?
+    return false unless record.is_a?(Booking)
+
+    record.user_id == user.id
+  end
+
+  def venue
+    @venue ||= record.venue
   end
 end
