@@ -529,7 +529,7 @@
 					"response": []
 				},
 				{
-					"name": "1. All Venues Copy",
+					"name": "2. My Venues",
 					"event": [
 						{
 							"listen": "prerequest",
@@ -583,12 +583,12 @@
 							}
 						},
 						"url": {
-							"raw": "{{api_v0_base_url}}/venues",
+							"raw": "{{api_v0_base_url}}/my_venues",
 							"host": [
 								"{{api_v0_base_url}}"
 							],
 							"path": [
-								"venues"
+								"my_venues"
 							]
 						}
 					},
