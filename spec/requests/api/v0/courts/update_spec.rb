@@ -235,7 +235,6 @@ RSpec.describe 'API V0 Courts', type: :request do
       expect(active_court.reload.name).to eq('Court A Updated')
       expect(active_court.reload.is_active).to eq(false)
     end
-
   end
 
   describe 'DELETE /api/v0/courts/:id' do

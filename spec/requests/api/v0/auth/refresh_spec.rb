@@ -80,6 +80,5 @@ RSpec.describe "Api::V0::Auth::Refresh", type: :request do
         expect(response).to match_json_schema("error_response")
       end
     end
-
   end
 end
