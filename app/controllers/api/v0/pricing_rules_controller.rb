@@ -142,6 +142,14 @@ module Api::V0
 
     api :PATCH, "/pricing_rules/:id", "Update an existing pricing rule"
     api :PUT, "/pricing_rules/:id", "Update an existing pricing rule"
+    description <<~DESC
+      Updates a pricing rule by ID. The authenticated user must be the owner of the
+      rule's venue or a global admin. Only the fields provided in the request are
+      updated — omitting a field leaves its current value unchanged.
+
+      Only start_time and end_time, or start_date and end_date, may be cleared together.
+      Partial time or date pairs are validated the same way as on creation.
+    DESC
     header "Authorization", "Bearer <access_token>", required: true
     param :id, Integer, required: true, desc: "ID of the pricing rule to update"
     param :name, String, required: false, desc: "Rule name"

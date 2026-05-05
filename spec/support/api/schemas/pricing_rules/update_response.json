@@ -1,0 +1,115 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "required": [
+        "success",
+        "data"
+    ],
+    "properties": {
+        "success": {
+            "type": "boolean",
+            "enum": [
+                true
+            ]
+        },
+        "data": {
+            "$ref": "#/definitions/pricing_rule_detail"
+        }
+    },
+    "definitions": {
+        "pricing_rule_detail": {
+            "type": "object",
+            "required": [
+                "id",
+                "venue_id",
+                "court_id",
+                "name",
+                "price_per_hour",
+                "day_of_week",
+                "priority",
+                "is_active",
+                "day_name",
+                "time_range",
+                "created_at",
+                "updated_at"
+            ],
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "venue_id": {
+                    "type": "integer"
+                },
+                "court_id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price_per_hour": {
+                    "type": [
+                        "number",
+                        "string"
+                    ]
+                },
+                "day_of_week": {
+                    "type": "string",
+                    "enum": [
+                        "monday",
+                        "tuesday",
+                        "wednesday",
+                        "thursday",
+                        "friday",
+                        "saturday",
+                        "sunday",
+                        "all_days",
+                        "weekdays",
+                        "weekends"
+                    ]
+                },
+                "start_time": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "end_time": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "start_date": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "end_date": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "priority": {
+                    "type": "integer"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "day_name": {
+                    "type": "string"
+                },
+                "time_range": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}
