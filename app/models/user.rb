@@ -5,13 +5,12 @@ class User < ApplicationRecord
   has_many :refresh_tokens, dependent: :delete_all
   has_many :blacklisted_tokens, dependent: :delete_all
   has_many :password_reset_tokens, dependent: :delete_all
-  has_many :user_roles, dependent: :destroy
-  has_many :roles, through: :user_roles
+
+  has_many :venue_memberships, dependent: :destroy
+  has_many :venues, through: :venue_memberships
 
   has_many :owned_venues, class_name: "Venue", foreign_key: "owner_id", dependent: :restrict_with_error
 
-  has_many :venue_users, dependent: :destroy
-  has_many :venues, through: :venue_users
   has_many :bookings, dependent: :restrict_with_error
   has_many :created_bookings, class_name: "Booking", foreign_key: "created_by_id", dependent: :nullify
   has_many :cancelled_bookings, class_name: "Booking", foreign_key: "cancelled_by_id", dependent: :nullify
@@ -19,6 +18,8 @@ class User < ApplicationRecord
   has_many :notifications, dependent: :destroy
 
   has_secure_password
+
+  enum :system_role, { normal: 0, super_admin: 1 }
 
   validates :full_name, presence: true, length: { minimum: 2, maximum: 100 }
   validates :email, presence: true,
@@ -31,24 +32,19 @@ class User < ApplicationRecord
 
   scope :active, -> { where(is_active: true) }
   scope :inactive, -> { where(is_active: false) }
-  scope :global_admins, -> { where(is_global_admin: true) }
-  scope :owners, -> { joins(:roles).where(roles: { slug: "owner" }) }
+  scope :super_admins, -> { where(system_role: :super_admin) }
 
-
-  # For Google OAuth - create random password for OAuth users
   def self.from_omniauth(auth)
     data = auth.info
     where(provider: auth.provider, uid: auth.uid).first_or_create do |user|
       user.email = data.email
       user.password = SecureRandom.hex(20)
-      # Split name into first and last name
       name_parts = data.name.split(" ", 2)
       user.full_name = name_parts.join(" ") || "User full name"
       user.avatar_url = data.image
     end
   end
 
-  # For password reset tokens
   def self.find_by_password_reset_token!(token)
     find_signed!(token, purpose: :password_reset)
   end
@@ -65,50 +61,14 @@ class User < ApplicationRecord
     signed_id expires_in: 20.minutes, purpose: :password_reset
   end
 
-  def assign_role(role, assigned_by: nil)
-    user_roles.find_or_create_by!(role: role) do |ur|
-      ur.assigned_by = assigned_by
-    end
-  end
+  def has_permission?(venue:, resource:, action:)
+    return true if super_admin?
+    return true if venue.owner_id == id
 
-  def remove_role(role)
-    user_roles.find_by(role: role)&.destroy
-  end
-
-  def has_role?(role_name)
-    roles.exists?(slug: role_name)
-  end
-
-  def has_permission?(permission_name)
-    permissions.exists?(name: permission_name)
-  end
-
-  def permissions
-    Permission.joins(roles: :users).where(users: { id: id }).distinct
-  end
-
-  def can?(action, resource)
-    permission_name = "#{action}:#{resource}"
-    has_permission?(permission_name) || has_permission?("manage:#{resource}")
-  end
-
-  def owner?
-    has_role?("owner")
-  end
-
-  def admin?
-    has_role?("admin")
-  end
-
-  def receptionist?
-    has_role?("receptionist")
-  end
-
-  def staff?
-    has_role?("staff")
-  end
-
-  def customer?
-    has_role?("customer")
+    venue_memberships
+      .joins(role: { role_permissions: :permission })
+      .where(venue: venue)
+      .where(permissions: { resource: resource, action: action })
+      .exists?
   end
 end

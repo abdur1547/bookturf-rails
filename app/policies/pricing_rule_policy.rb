@@ -2,7 +2,7 @@
 
 class PricingRulePolicy < ApplicationPolicy
   def index?
-    user.present? && (user.owner? || user.admin? || user.receptionist?)
+    user.present? && (user.super_admin? || venue_owner?)
   end
 
   def show?
@@ -10,7 +10,7 @@ class PricingRulePolicy < ApplicationPolicy
   end
 
   def create?
-    user.present? && (user.owner? || user.admin?)
+    user.present? && (user.super_admin? || venue_owner?)
   end
 
   def update?
@@ -23,15 +23,18 @@ class PricingRulePolicy < ApplicationPolicy
 
   class Scope < Scope
     def resolve
-      return scope.none unless user.present? && (user.owner? || user.admin? || user.receptionist?)
+      return scope.none unless user.present?
+      return scope.all if user.super_admin?
 
-      scope.where(venue_id: venue_ids)
+      scope.where(venue: user.owned_venues)
     end
+  end
 
-    private
+  private
 
-    def venue_ids
-      (user.venues.pluck(:id) + user.owned_venues.pluck(:id)).uniq
-    end
+  def venue_owner?
+    return false unless record.is_a?(PricingRule)
+
+    record.venue.owner_id == user.id
   end
 end

@@ -6,7 +6,7 @@ module Api::V0::Roles
       params do
         required(:role).hash do
           required(:name).filled(:string)
-          optional(:description).maybe(:string)
+          optional(:venue_id).maybe(:integer)
           optional(:permission_ids).maybe(:array)
         end
       end
@@ -19,8 +19,11 @@ module Api::V0::Roles
 
       return Failure(:forbidden) unless authorize
 
+      venue = resolve_venue(role_params[:venue_id])
+      return Failure(:not_found) unless venue
+
       result = Roles::CreateService.call(
-        params: role_params.except(:permission_ids),
+        params: { name: role_params[:name], venue_id: venue.id },
         created_by: current_user
       )
 
@@ -50,6 +53,14 @@ module Api::V0::Roles
 
     def authorize
       RolePolicy.new(current_user, Role).create?
+    end
+
+    def resolve_venue(venue_id)
+      if venue_id.present?
+        current_user.owned_venues.find_by(id: venue_id)
+      else
+        current_user.owned_venues.first
+      end
     end
 
     def serialize

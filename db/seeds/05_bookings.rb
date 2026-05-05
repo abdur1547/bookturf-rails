@@ -106,7 +106,7 @@ yesterday = Date.yesterday
     venue: venue,
     start_time: start_time,
     end_time: end_time,
-    status: 'completed',
+    status: 'confirmed',
     payment_method: 'cash',
     payment_status: 'paid',
     paid_amount: 0, # Will be set by mark_paid!
@@ -114,8 +114,8 @@ yesterday = Date.yesterday
     notes: "Past session - Completed"
   )
 
-  # Mark as paid
-  booking.mark_paid!
+  # Mark as paid (using update_columns to bypass PublicActivity BigDecimal serialization)
+  booking.update_columns(payment_status: 'paid', paid_amount: booking.total_amount || 0)
 
   puts "  ✅ Created past booking: #{booking.booking_number} (Completed & Paid)"
   booking_count += 1
@@ -190,7 +190,7 @@ no_show_booking = Booking.create!(
   created_by: customers.first
 )
 
-no_show_booking.mark_no_show!
+no_show_booking.update_columns(status: 'no_show')
 puts "  ✅ Created no-show booking: #{no_show_booking.booking_number}"
 booking_count += 1
 

@@ -5,22 +5,10 @@ require "rails_helper"
 RSpec.describe "POST /api/v0/venues", type: :request do
   let(:headers) { { "Content-Type" => "application/json" } }
 
-  # Create test users with roles
-  let(:owner_role) { create(:role, :owner) }
-  let(:admin_role) { create(:role, :admin) }
-  let(:customer_role) { create(:role, :customer) }
-
   let(:owner_user) { create(:user, email: "owner@example.com") }
-  let(:admin_user) { create(:user, email: "admin@example.com") }
+  let(:admin_user) { create(:user, :super_admin, email: "admin@example.com") }
   let(:customer_user) { create(:user, email: "customer@example.com") }
   let(:new_user) { create(:user, email: "newuser@example.com") }
-
-  before do
-    owner_user.assign_role(owner_role)
-    admin_user.assign_role(admin_role)
-    customer_user.assign_role(customer_role)
-    new_user.assign_role(customer_role)
-  end
 
   let(:endpoint) { "/api/v0/venues" }
   let(:request_headers) { headers }
@@ -272,7 +260,6 @@ RSpec.describe "POST /api/v0/venues", type: :request do
   context "when authenticated as owner who already has a venue" do
     let!(:owner_with_venue) do
       user = create(:user, email: "owner_with_venue@example.com")
-      user.assign_role(owner_role)
       # Create the existing venue here so it's present before the request runs
       venue = Venue.new(
         owner_id: user.id,

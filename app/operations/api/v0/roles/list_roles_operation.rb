@@ -4,7 +4,7 @@ module Api::V0::Roles
   class ListRolesOperation < BaseOperation
     contract do
       params do
-        optional(:type).maybe(:string)
+        optional(:venue_id).maybe(:integer)
       end
     end
 
@@ -14,8 +14,9 @@ module Api::V0::Roles
 
       return Failure(:forbidden) unless authorize?
 
-      @roles = filter_roles(params)
-      @roles = sort_roles(@roles, params[:sort] || "name")
+      @roles = scoped_roles
+      @roles = @roles.where(venue_id: params[:venue_id]) if params[:venue_id].present?
+      @roles = @roles.alphabetical
       json_data = serialize
       Success(roles: @roles, json: json_data)
     end
@@ -28,30 +29,8 @@ module Api::V0::Roles
       RolePolicy.new(current_user, Role).index?
     end
 
-    def filter_roles(params)
-      roles = Role.all
-
-      if params[:type].present?
-        case params[:type]
-        when "system"
-          roles = roles.system_roles
-        when "custom"
-          roles = roles.custom_roles
-        end
-      end
-
-      roles
-    end
-
-    def sort_roles(roles, sort_field)
-      case sort_field
-      when "name"
-        roles.alphabetical
-      when "created_at"
-        roles.order(created_at: :desc)
-      else
-        roles.alphabetical
-      end
+    def scoped_roles
+      RolePolicy::Scope.new(current_user, Role).resolve
     end
 
     def serialize

@@ -3,7 +3,7 @@
 puts "🌱 Seeding Phase 4: Roles & Permissions..."
 
 # ============================================================
-# PERMISSIONS
+# PERMISSIONS (global, reusable across all venues)
 # ============================================================
 permissions_data = {
   bookings: %w[create read update delete manage],
@@ -21,123 +21,56 @@ permissions_data = {
 permissions = {}
 permissions_data.each do |resource, actions|
   actions.each do |action|
-    permission = Permission.find_or_create_by!(
-      resource: resource.to_s,
-      action: action
-    ) do |p|
-      p.description = "Can #{action} #{resource}"
-    end
+    permission = Permission.find_or_create_by!(resource: resource.to_s, action: action)
     permissions["#{action}:#{resource}"] = permission
-    puts "  ✅ Created permission: #{permission.name}"
+    puts "  ✅ Created permission: #{action}:#{resource}"
   end
 end
 
 # ============================================================
-# SYSTEM ROLES
+# VENUE-SCOPED ROLES
+# Seeded for the first venue. Each venue manages its own roles.
 # ============================================================
-
-# OWNER Role
-owner_role = Role.find_or_create_by!(slug: 'owner') do |r|
-  r.name = 'Owner'
-  r.description = 'Venue owner with full control'
-  r.is_custom = false
+venue = Venue.first
+unless venue
+  puts "  ⚠️  No venue found — skipping role seeding. Run venue seeds first."
+  return
 end
 
-# Owner gets ALL permissions
-Permission.all.each do |permission|
-  owner_role.add_permission(permission)
-end
+puts "\n  📍 Creating roles for venue: #{venue.name}"
 
-puts "  ✅ Created role: Owner (#{owner_role.permissions.count} permissions)"
-
-# ADMIN Role
-admin_role = Role.find_or_create_by!(slug: 'admin') do |r|
-  r.name = 'Admin'
-  r.description = 'Administrator with most permissions'
-  r.is_custom = false
-end
-
-admin_permissions = [
-  'manage:bookings', 'manage:courts', 'create:users', 'read:users',
-  'update:users', 'read:roles', 'manage:reports', 'read:settings',
-  'update:settings', 'manage:pricing', 'manage:closures',
-  'read:notifications', 'create:notifications', 'read:venues', 'update:venues'
+# Manager role — full operational access
+manager_role = Role.find_or_create_by!(name: "Manager", venue: venue)
+manager_permissions = %w[
+  manage:bookings manage:courts create:users read:users update:users
+  read:roles manage:reports read:settings update:settings manage:pricing
+  manage:closures read:notifications create:notifications read:venues update:venues
 ]
-
-admin_permissions.each do |perm_name|
-  admin_role.add_permission(permissions[perm_name]) if permissions[perm_name]
+manager_permissions.each do |key|
+  manager_role.add_permission(permissions[key]) if permissions[key]
 end
+puts "  ✅ Created role: Manager (#{manager_role.permissions.count} permissions)"
 
-puts "  ✅ Created role: Admin (#{admin_role.permissions.count} permissions)"
-
-# RECEPTIONIST Role
-receptionist_role = Role.find_or_create_by!(slug: 'receptionist') do |r|
-  r.name = 'Receptionist'
-  r.description = 'Front desk staff managing bookings'
-  r.is_custom = false
-end
-
-receptionist_permissions = [
-  'manage:bookings', 'read:courts', 'create:closures', 'read:closures',
-  'read:users', 'read:reports', 'read:settings', 'read:notifications'
+# Receptionist role — booking and closure management
+receptionist_role = Role.find_or_create_by!(name: "Receptionist", venue: venue)
+receptionist_permissions = %w[
+  manage:bookings read:courts create:closures read:closures
+  read:users read:reports read:settings read:notifications
 ]
-
-receptionist_permissions.each do |perm_name|
-  receptionist_role.add_permission(permissions[perm_name]) if permissions[perm_name]
+receptionist_permissions.each do |key|
+  receptionist_role.add_permission(permissions[key]) if permissions[key]
 end
-
 puts "  ✅ Created role: Receptionist (#{receptionist_role.permissions.count} permissions)"
 
-# STAFF Role
-staff_role = Role.find_or_create_by!(slug: 'staff') do |r|
-  r.name = 'Staff'
-  r.description = 'General staff with basic access'
-  r.is_custom = false
+# Staff role — read-only operational access
+staff_role = Role.find_or_create_by!(name: "Staff", venue: venue)
+staff_permissions = %w[read:bookings read:courts read:users read:closures read:notifications]
+staff_permissions.each do |key|
+  staff_role.add_permission(permissions[key]) if permissions[key]
 end
-
-staff_permissions = [
-  'read:bookings', 'read:courts', 'read:users',
-  'read:closures', 'read:notifications'
-]
-
-staff_permissions.each do |perm_name|
-  staff_role.add_permission(permissions[perm_name]) if permissions[perm_name]
-end
-
 puts "  ✅ Created role: Staff (#{staff_role.permissions.count} permissions)"
 
-# CUSTOMER Role
-customer_role = Role.find_or_create_by!(slug: 'customer') do |r|
-  r.name = 'Customer'
-  r.description = 'Regular user who books courts'
-  r.is_custom = false
-end
-
-customer_permissions = [
-  'create:bookings', 'read:bookings', 'update:bookings',
-  'read:courts', 'read:notifications'
-]
-
-customer_permissions.each do |perm_name|
-  customer_role.add_permission(permissions[perm_name]) if permissions[perm_name]
-end
-
-puts "  ✅ Created role: Customer (#{customer_role.permissions.count} permissions)"
-
-# ============================================================
-# ASSIGN ROLES TO EXISTING USERS (if any)
-# ============================================================
-
-# Assign customer role as default to any existing users without roles
-User.find_each do |user|
-  if user.roles.empty?
-    user.assign_role(customer_role)
-    puts "  ✅ Assigned 'customer' role to #{user.email}"
-  end
-end
-
 puts "\n✅ Phase 4 seeding complete!"
-puts "  👥 Roles: #{Role.count}"
+puts "  👔 Roles: #{Role.count}"
 puts "  🔑 Permissions: #{Permission.count}"
 puts "  🔗 Role-Permission assignments: #{RolePermission.count}"
-puts "  👤 User-Role assignments: #{UserRole.count}"

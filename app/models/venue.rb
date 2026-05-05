@@ -3,8 +3,9 @@ class Venue < ApplicationRecord
 
   has_many :venue_operating_hours, -> { order(:day_of_week) }, dependent: :destroy
   has_many :venue_closures, dependent: :destroy
-  has_many :venue_users, dependent: :destroy
-  has_many :staff_members, through: :venue_users, source: :user
+  has_many :venue_memberships, dependent: :destroy
+  has_many :members, through: :venue_memberships, source: :user
+  has_many :roles, dependent: :destroy
   has_many :courts, dependent: :destroy
   has_many :pricing_rules, dependent: :destroy
   has_many :bookings, dependent: :restrict_with_error
@@ -24,7 +25,6 @@ class Venue < ApplicationRecord
   validates :timezone, presence: true
   validates :currency, presence: true
 
-  # One venue per owner (MVP constraint)
   validate :owner_can_have_only_one_venue, on: :create
 
   before_validation :generate_slug, if: -> { slug.blank? && name.present? }
@@ -80,8 +80,6 @@ class Venue < ApplicationRecord
     query = Venue.where(owner_id: owner_id)
     query = query.where.not(id: id) if persisted?
 
-    if query.exists?
-      errors.add(:owner, "can only own one venue in MVP")
-    end
+    errors.add(:owner, "can only own one venue in MVP") if query.exists?
   end
 end

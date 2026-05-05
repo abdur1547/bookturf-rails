@@ -172,11 +172,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_29_095634) do
   create_table "permissions", force: :cascade do |t|
     t.string "action", null: false
     t.datetime "created_at", null: false
-    t.text "description"
-    t.string "name", null: false
     t.string "resource", null: false
     t.datetime "updated_at", null: false
-    t.index ["name"], name: "index_permissions_on_name", unique: true
     t.index ["resource", "action"], name: "index_permissions_on_resource_and_action", unique: true
     t.index ["resource"], name: "index_permissions_on_resource"
   end
@@ -225,14 +222,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_29_095634) do
 
   create_table "roles", force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.text "description"
-    t.boolean "is_custom", default: false, null: false
     t.string "name", null: false
-    t.string "slug", null: false
     t.datetime "updated_at", null: false
-    t.index ["is_custom"], name: "index_roles_on_is_custom"
-    t.index ["name"], name: "index_roles_on_name", unique: true
-    t.index ["slug"], name: "index_roles_on_slug", unique: true
+    t.bigint "venue_id", null: false
+    t.index ["venue_id", "name"], name: "index_roles_on_venue_id_and_name", unique: true
+    t.index ["venue_id"], name: "index_roles_on_venue_id"
   end
 
   create_table "sessions", force: :cascade do |t|
@@ -244,19 +238,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_29_095634) do
     t.index ["user_id"], name: "index_sessions_on_user_id"
   end
 
-  create_table "user_roles", force: :cascade do |t|
-    t.datetime "assigned_at", null: false
-    t.bigint "assigned_by_id"
-    t.datetime "created_at", null: false
-    t.bigint "role_id", null: false
-    t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
-    t.index ["assigned_by_id"], name: "index_user_roles_on_assigned_by_id"
-    t.index ["role_id"], name: "index_user_roles_on_role_id"
-    t.index ["user_id", "role_id"], name: "index_user_roles_on_user_id_and_role_id", unique: true
-    t.index ["user_id"], name: "index_user_roles_on_user_id"
-  end
-
   create_table "users", force: :cascade do |t|
     t.string "avatar_url"
     t.datetime "created_at", null: false
@@ -265,17 +246,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_29_095634) do
     t.string "emergency_contact_phone"
     t.string "full_name", null: false
     t.boolean "is_active", default: true, null: false
-    t.boolean "is_global_admin", default: false, null: false
     t.string "password_digest", null: false
     t.string "phone_number"
     t.string "provider"
+    t.integer "system_role", default: 0, null: false
     t.string "uid"
     t.datetime "updated_at", null: false
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["is_active"], name: "index_users_on_is_active"
-    t.index ["is_global_admin"], name: "index_users_on_is_global_admin"
     t.index ["phone_number"], name: "index_users_on_phone_number", unique: true
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true
+    t.index ["system_role"], name: "index_users_on_system_role"
   end
 
   create_table "venue_closures", force: :cascade do |t|
@@ -295,6 +276,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_29_095634) do
     t.check_constraint "end_time > start_time", name: "closure_end_after_start"
   end
 
+  create_table "venue_memberships", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "role_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.bigint "venue_id", null: false
+    t.index ["role_id"], name: "index_venue_memberships_on_role_id"
+    t.index ["user_id", "venue_id"], name: "index_venue_memberships_on_user_id_and_venue_id", unique: true
+    t.index ["user_id"], name: "index_venue_memberships_on_user_id"
+    t.index ["venue_id"], name: "index_venue_memberships_on_venue_id"
+  end
+
   create_table "venue_operating_hours", force: :cascade do |t|
     t.time "closes_at", null: false
     t.datetime "created_at", null: false
@@ -306,19 +299,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_29_095634) do
     t.index ["venue_id", "day_of_week"], name: "index_venue_operating_hours_on_venue_id_and_day_of_week", unique: true
     t.index ["venue_id"], name: "index_venue_operating_hours_on_venue_id"
     t.check_constraint "day_of_week >= 0 AND day_of_week <= 6", name: "valid_day_of_week"
-  end
-
-  create_table "venue_users", force: :cascade do |t|
-    t.bigint "added_by_id"
-    t.datetime "created_at", null: false
-    t.datetime "joined_at", null: false
-    t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
-    t.bigint "venue_id", null: false
-    t.index ["added_by_id"], name: "index_venue_users_on_added_by_id"
-    t.index ["user_id"], name: "index_venue_users_on_user_id"
-    t.index ["venue_id", "user_id"], name: "index_venue_users_on_venue_id_and_user_id", unique: true
-    t.index ["venue_id"], name: "index_venue_users_on_venue_id"
   end
 
   create_table "venues", force: :cascade do |t|
@@ -370,15 +350,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_29_095634) do
   add_foreign_key "refresh_tokens", "users"
   add_foreign_key "role_permissions", "permissions"
   add_foreign_key "role_permissions", "roles"
+  add_foreign_key "roles", "venues"
   add_foreign_key "sessions", "users"
-  add_foreign_key "user_roles", "roles"
-  add_foreign_key "user_roles", "users"
-  add_foreign_key "user_roles", "users", column: "assigned_by_id"
   add_foreign_key "venue_closures", "users", column: "created_by_id"
   add_foreign_key "venue_closures", "venues"
+  add_foreign_key "venue_memberships", "roles"
+  add_foreign_key "venue_memberships", "users"
+  add_foreign_key "venue_memberships", "venues"
   add_foreign_key "venue_operating_hours", "venues"
-  add_foreign_key "venue_users", "users"
-  add_foreign_key "venue_users", "users", column: "added_by_id"
-  add_foreign_key "venue_users", "venues"
   add_foreign_key "venues", "users", column: "owner_id"
 end
