@@ -4,31 +4,30 @@ module Api::V0::PricingRules
   class CreatePricingRuleOperation < BaseOperation
     contract do
       params do
-        required(:pricing_rule).hash do
-          required(:court_type_id).filled(:integer)
-          required(:name).filled(:string)
-          required(:price_per_hour).filled
-          optional(:day_of_week).maybe(:integer)
-          optional(:start_time).maybe(:string)
-          optional(:end_time).maybe(:string)
-          optional(:start_date).maybe(:string)
-          optional(:end_date).maybe(:string)
-          required(:priority).filled(:integer)
-          optional(:is_active).maybe(:bool)
-        end
+        required(:name).filled(:string)
+        required(:court_id).filled(:integer)
+        optional(:day_of_week).maybe(:string, included_in?: PricingRule.day_of_weeks.keys) # "monday", "tuesday",
+        # "wednesday", "thursday", "friday", "saturday", "sunday", "all_days", "weekdays", "weekends", default to "all_days"
+        optional(:start_date).maybe(:string) # null for all dates
+        optional(:start_time).maybe(:string) # null for all times
+        optional(:end_date).maybe(:string)   # null for all dates
+        optional(:end_time).maybe(:string)   # null for all times
+        required(:price_per_hour).filled(:float, gt?: 0) # required, must be > 0
+        optional(:priority).maybe(:integer)
+        optional(:is_active).maybe(:bool)
       end
     end
 
     def call(params, current_user)
       @params = params
       @current_user = current_user
-      pricing_rule_params = params[:pricing_rule]
 
-      return Failure(:forbidden) unless authorize?
-      @venue = current_user.venues.first || current_user.owned_venues.first
-      return Failure(:not_found) unless @venue
+      @court = Court.find_by(id: params[:court_id])
+      return Failure(:not_found) unless @court
+      @venue = @court.venue
+      return Failure(:forbidden) unless VenuePolicy.new(current_user, @venue).update?
 
-      create_params = pricing_rule_params.merge(venue_id: @venue.id)
+      create_params = params.merge(court_id: @court.id, venue_id: @venue.id)
       result = PricingRules::CreateService.call(params: create_params)
       return Failure(result.error) unless result.success?
 
@@ -39,14 +38,10 @@ module Api::V0::PricingRules
 
     private
 
-    attr_reader :params, :current_user, :pricing_rule, :venue
-
-    def authorize?
-      PricingRulePolicy.new(current_user, PricingRule).create?
-    end
+    attr_reader :params, :current_user, :pricing_rule, :court, :venue
 
     def serialize
-      Api::V0::PricingRuleBlueprint.render_as_hash(pricing_rule, view: :detailed)
+      Api::V0::PricingRuleBlueprint.render_as_hash(pricing_rule)
     end
   end
 end

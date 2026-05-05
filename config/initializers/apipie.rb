@@ -1,7 +1,7 @@
 Apipie.configure do |config|
   config.app_name = "Bookturf API"
   config.app_info = "Sports venue booking platform API. All authenticated endpoints require a Bearer token in the Authorization header or an access_token cookie."
-  config.api_base_url = "/api/v0"
+  config.api_base_url["v0"] = "/api/v0"
   config.doc_base_url = "/apipie"
   config.api_controllers_matcher = Rails.root.join("app/controllers/api/**/*.rb").to_s
   config.default_version = "v0"

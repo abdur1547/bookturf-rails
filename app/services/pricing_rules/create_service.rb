@@ -3,15 +3,17 @@
 module PricingRules
   class CreateService < BaseService
     def call(params:)
-      pricing_rule = PricingRule.new(params)
-
-      unless pricing_rule.save
-        return failure(pricing_rule.errors.full_messages)
-      end
-
+      pricing_rule = PricingRule.create!(pricing_rule_params(params))
       success(pricing_rule)
-    rescue StandardError => e
-      failure("Failed to create pricing rule: #{e.message}")
+    rescue ActiveRecord::RecordInvalid => e
+      failure(e.record.errors.full_messages)
+    end
+
+    private
+
+    def pricing_rule_params(params)
+      params.slice(:name, :venue_id, :court_id, :day_of_week, :start_date, :start_time, :end_date, :end_time,
+      :price_per_hour, :priority, :is_active)
     end
   end
 end

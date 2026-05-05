@@ -3,7 +3,7 @@
 FactoryBot.define do
   factory :pricing_rule do
     association :venue
-    association :court_type
+    association :court
     sequence(:name) { |n| "Pricing Rule #{n}" }
     price_per_hour { 2500.0 }
     day_of_week { nil }
