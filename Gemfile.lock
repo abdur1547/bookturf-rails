@@ -304,6 +304,8 @@ GEM
       uri
       yaml
     parallel (2.1.0)
+    parallel_tests (5.7.0)
+      parallel
     parser (3.3.11.1)
       ast (~> 2.4.1)
       racc
@@ -551,6 +553,7 @@ DEPENDENCIES
   mission_control-jobs
   oj
   pagy (~> 43.4)
+  parallel_tests (~> 5.0)
   pg (~> 1.6)
   propshaft
   public_activity (~> 3.0)

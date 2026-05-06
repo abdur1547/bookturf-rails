@@ -28,6 +28,9 @@ SimpleCov.start 'rails' do
   add_group 'Helpers', 'app/helpers'
   add_group 'Mailers', 'app/mailers'
   add_group 'Jobs', 'app/jobs'
+
+  # Each parallel worker gets a unique command name so SimpleCov merges results correctly
+  command_name "RSpec#{ENV['TEST_ENV_NUMBER']}"
 end
 
 RSpec.configure do |config|

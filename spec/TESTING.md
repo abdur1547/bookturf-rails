@@ -232,6 +232,82 @@ RAILS_ENV=test bundle exec rails db:migrate
 9. **Test edge cases and failures** - Not just the happy path
 10. **Keep system specs minimal** - They're slower than request specs
 
+## Parallel Testing
+
+This project uses `parallel_tests` to run specs concurrently across multiple CPU workers, significantly reducing suite runtime.
+
+### First-Time Setup
+
+Run these once after cloning or when adding parallel testing for the first time:
+
+```bash
+# 1. Install the gem
+bundle install
+
+# 2. Create parallel test databases (one per CPU core by default)
+bundle exec rake parallel:create
+
+# 3. Run migrations on all parallel databases
+bundle exec rake parallel:migrate
+
+# 4. (Optional) Prepare all databases from schema.rb instead of running migrations
+bundle exec rake parallel:prepare
+```
+
+### Running Specs in Parallel
+
+```bash
+# Run entire suite in parallel (auto-detects CPU count)
+bundle exec parallel_rspec spec/
+
+# Run with a specific number of workers
+bundle exec parallel_rspec -n 4 spec/
+
+# Run a specific folder in parallel
+bundle exec parallel_rspec spec/requests/
+bundle exec parallel_rspec spec/models/
+
+# Run with progress output (dots instead of filenames)
+bundle exec parallel_rspec --type rspec -o '--format progress' spec/
+
+# Run only failed specs from last run (still in parallel)
+bundle exec parallel_rspec spec/ -- --only-failures
+```
+
+### Database Management for Parallel Tests
+
+Each worker gets its own database: `bookturf_test`, `bookturf_test2`, `bookturf_test3`, etc.
+
+```bash
+# Drop all parallel databases
+bundle exec rake parallel:drop
+
+# Reset all parallel databases (drop + create + migrate)
+bundle exec rake parallel:reset
+
+# Sync schema to all parallel databases after a new migration
+bundle exec rake parallel:migrate
+```
+
+### How It Works
+
+- Worker 1 uses `bookturf_test` (no suffix)
+- Worker N uses `bookturf_testN` (where N = 2, 3, 4, ...)
+- Each worker runs an isolated subset of spec files in its own database
+- SimpleCov coverage results from each worker are merged into a single report
+
+### Running Regular (Sequential) Specs
+
+The regular `bundle exec rspec` command is unchanged and still works:
+
+```bash
+# Sequential run (unchanged)
+bundle exec rspec
+
+# Single file (no need for parallel here)
+bundle exec rspec spec/models/user_spec.rb
+```
+
 ## Useful Commands
 
 ```bash
@@ -240,9 +316,6 @@ bundle binstubs rspec-core
 
 # Run with binstub (faster)
 bin/rspec
-
-# Parallel test execution (add gem 'parallel_tests')
-bundle exec parallel_rspec spec/
 
 # Profile slow tests
 bundle exec rspec --profile 10
