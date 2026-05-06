@@ -422,13 +422,13 @@
               }
             },
             "url": {
-              "raw": "{{api_v0_base_url}}/venues/6",
+              "raw": "{{api_v0_base_url}}/venues/1",
               "host": [
                 "{{api_v0_base_url}}"
               ],
               "path": [
                 "venues",
-                "6"
+                "1"
               ]
             }
           }
