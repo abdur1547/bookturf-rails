@@ -104,6 +104,8 @@ module Api::V0
       handle_operation_response(result)
     end
 
+    # TODO: add my_venues endpoint to list only venues for current_user
+
     api :GET, "/venues/:id/availability", "Get available time slots for a venue on a given date"
     param :id, Integer, required: true, desc: "Venue ID"
     param :date, String, required: true, desc: "Date to check availability for (YYYY-MM-DD)"

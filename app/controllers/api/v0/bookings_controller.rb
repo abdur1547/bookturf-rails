@@ -9,6 +9,8 @@ module Api::V0
       handle_operation_response(result)
     end
 
+    # TODO: add my_bookings endpoint to list only bookings for current_user
+
     # GET /api/v0/bookings/:id
     def show
       result = Api::V0::Bookings::GetBookingOperation.call(params.to_unsafe_h, current_user)
