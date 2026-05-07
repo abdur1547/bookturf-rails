@@ -11,8 +11,8 @@ module Api::V0::Venues
         optional(:country).maybe(:string)
         optional(:is_active).maybe(:bool)
         optional(:search).maybe(:string)
-        optional(:sort).maybe(:string)
-        optional(:order).maybe(:string)
+        optional(:sort_by).maybe(:string, included_in?: Venue.column_names)
+        optional(:sort_direction).maybe(:string, included_in?: Constants::ORDER_DIRECTIONS)
       end
     end
 
@@ -20,10 +20,13 @@ module Api::V0::Venues
       @params = params
       @current_user = current_user
 
+      @venues = current_user.owned_and_member_venues
+      return Failure(:not_found) if venues.empty?
+      return Failure(:forbidden) unless authorize?
       @venues = filter_venues(params)
-      @venues = search_venues(@venues, params[:search]) if params[:search].present?
-      @venues = sort_venues(@venues, params[:sort], params[:order])
-      @venues = paginate_venues(@venues, params[:page], params[:per_page])
+      @venues = search_venues(params[:search]) if params[:search].present?
+      @venues = sort_venues(params[:sort_by], params[:sort_direction])
+      @venues = paginate_venues(params[:page], params[:per_page])
 
       json_data = serialize
 
@@ -34,53 +37,48 @@ module Api::V0::Venues
 
     attr_reader :params, :current_user, :venues
 
-    def filter_venues(params)
-      venues = Venue.all
+    def authorize?
+      VenuePolicy.new(current_user, venues.first).index?
+    end
 
-      # Filter by active status (default: true for public listing)
-      # Handle boolean conversion from string params
+    def filter_venues(params)
       if params.key?(:is_active)
         if params[:is_active] == true || params[:is_active] == "true"
-          venues = venues.active
+          @venues = venues.active
         elsif params[:is_active] == false || params[:is_active] == "false"
-          venues = venues.inactive
+          @venues = venues.inactive
         end
       else
-        # Default to active venues if no filter is specified
-        venues = venues.active
+        @venues = venues.active
       end
 
-      venues = venues.where(city: params[:city]) if params[:city].present?
-      venues = venues.where(state: params[:state]) if params[:state].present?
-      venues = venues.where(country: params[:country]) if params[:country].present?
+      @venues = venues.where(city: params[:city]) if params[:city].present?
+      @venues = venues.where(state: params[:state]) if params[:state].present?
+      @venues = venues.where(country: params[:country]) if params[:country].present?
 
       venues
     end
 
-    def search_venues(venues, search_term)
+    def search_venues(search_term)
       venues.where(
         "name ILIKE :search OR address ILIKE :search OR city ILIKE :search OR description ILIKE :search",
         search: "%#{search_term}%"
       )
     end
 
-    def sort_venues(venues, sort_field, order_direction)
-      sort_field ||= "name"
-      order_direction ||= "asc"
-
-      case sort_field
-      when "name"
-        venues.order(name: order_direction.to_sym)
-      when "city"
-        venues.order(city: order_direction.to_sym)
-      when "created_at"
-        venues.order(created_at: order_direction.to_sym)
-      else
-        venues.order(name: :asc)
-      end
+    def sort_venues(sort_field, order_direction)
+      venues.order("#{sort_by_value} #{sort_direction_value}")
     end
 
-    def paginate_venues(venues, page, per_page)
+    def sort_by_value
+      Venue.column_names.include?(params[:sort_by]) ? params[:sort_by] : "name"
+    end
+
+    def sort_direction_value
+      Constants::ORDER_DIRECTIONS.include?(params[:sort_direction]) ? params[:sort_direction] : "asc"
+    end
+
+    def paginate_venues(page, per_page)
       page ||= 1
       per_page ||= 10
 
@@ -97,7 +95,7 @@ module Api::V0::Venues
     end
 
     def serialize
-      Api::V0::VenueBlueprint.render_as_hash(venues, view: :list)
+      Api::V0::VenueBlueprint.render_as_hash(venues)
     end
   end
 end

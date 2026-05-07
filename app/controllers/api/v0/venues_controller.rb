@@ -2,7 +2,7 @@
 
 module Api::V0
   class VenuesController < ApiController
-    skip_before_action :authenticate_user!, only: [ :index, :show, :availability ]
+    skip_before_action :authenticate_user!, only: [ :search, :show, :availability ]
 
     resource_description do
       resource_id "Venues"
@@ -15,7 +15,7 @@ module Api::V0
       DESC
     end
 
-    api :GET, "/venues", "List all active venues"
+    api :GET, "/venues", "List all active venues for current logged-in weather user is staff member with view permissions or owner"
     description "Returns a paginated list of venues. Defaults to active venues only."
     param :page, Integer, required: false, desc: "Page number (default: 1)"
     param :per_page, Integer, required: false, desc: "Results per page, max 100 (default: 10)"

@@ -2,7 +2,7 @@
 
 class VenuePolicy < ApplicationPolicy
   def index?
-    true
+    user.super_admin? || venue_owner? || have_permission?("read")
   end
 
   def show?
@@ -16,18 +16,24 @@ class VenuePolicy < ApplicationPolicy
   def update?
     return false unless user.present?
 
-    owner? || user.super_admin?
+    venue_owner? || user.super_admin?
   end
 
   def destroy?
     return false unless user.present?
 
-    owner?
+    venue_owner?
   end
 
   private
 
-  def owner?
+  def have_permission?(action)
+    user.has_permission?(venue: record, resource: "venues", action: action)
+  end
+
+  def venue_owner?
+    return false unless record.is_a?(Venue)
+
     record.owner_id == user.id
   end
 end
