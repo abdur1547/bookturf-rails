@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Api::V0::Venues
-  class ListVenuesOperation < BaseOperation
+  class SearchVenuesOperation < BaseOperation
     contract do
       params do
         optional(:page).maybe(:integer)
@@ -20,9 +20,7 @@ module Api::V0::Venues
       @params = params
       @current_user = current_user
 
-      @venues = current_user.owned_and_member_venues
-      return Failure(:not_found) if venues.empty?
-      return Failure(:forbidden) unless authorize?
+      @venues = Venue.all
       @venues = filter_venues(params)
       @venues = search_venues(params[:search]) if params[:search].present?
       @venues = sort_venues(params[:sort_by], params[:sort_direction])
@@ -36,10 +34,6 @@ module Api::V0::Venues
     private
 
     attr_reader :params, :current_user, :venues
-
-    def authorize?
-      VenuePolicy.new(current_user, venues.first).index?
-    end
 
     def filter_venues(params)
       if params.key?(:is_active)

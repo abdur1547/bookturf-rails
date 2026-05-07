@@ -28,8 +28,6 @@
                 "currency",
                 "is_active",
                 "created_at",
-                "updated_at",
-                "owner",
                 "venue_operating_hours",
                 "courts_count"
             ],
@@ -113,10 +111,6 @@
                     "type": "string",
                     "format": "date-time"
                 },
-                "updated_at": {
-                    "type": "string",
-                    "format": "date-time"
-                },
                 "google_maps_url": {
                     "type": [
                         "string",
@@ -126,32 +120,11 @@
                 "courts_count": {
                     "type": "integer"
                 },
-                "owner": {
-                    "$ref": "#/definitions/user_minimal"
-                },
                 "venue_operating_hours": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/venue_operating_hour"
                     }
-                }
-            }
-        },
-        "user_minimal": {
-            "type": "object",
-            "required": [
-                "id",
-                "full_name"
-            ],
-            "properties": {
-                "id": {
-                    "type": "integer"
-                },
-                "full_name": {
-                    "type": [
-                        "string",
-                        "null"
-                    ]
                 }
             }
         },

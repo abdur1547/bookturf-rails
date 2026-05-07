@@ -20,7 +20,7 @@ module Api::V0::Courts
       @params = params
       @current_user = current_user
 
-      @courts = Court.includes(:court_type, :venue).all
+      @courts = Court.includes(:court_type, :venue, :pricing_rules).all
 
       # Apply filters
       @courts = @courts.where(venue_id: params[:venue_id]) if params[:venue_id].present?
@@ -75,7 +75,7 @@ module Api::V0::Courts
     end
 
     def serialize
-      Api::V0::CourtBlueprint.render_as_hash(courts, view: :list)
+      Api::V0::CourtBlueprint.render_as_hash(courts)
     end
   end
 end

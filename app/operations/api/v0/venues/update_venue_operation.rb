@@ -44,7 +44,7 @@ module Api::V0::Venues
     end
 
     def serialize
-      Api::V0::VenueBlueprint.render_as_hash(venue, view: :detailed)
+      Api::V0::VenueBlueprint.render_as_hash(venue)
     end
   end
 end

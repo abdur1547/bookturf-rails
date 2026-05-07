@@ -134,12 +134,6 @@ RSpec.describe "POST /api/v0/venues", type: :request do
         expect(data["venue_operating_hours"]).to be_an(Array)
         expect(data["venue_operating_hours"].length).to eq(7)
       end
-
-      it "includes owner information in response" do
-        data = response.parsed_body["data"]
-        expect(data["owner"]["id"]).to eq(new_user.id)
-        expect(data["owner"]["full_name"]).to eq(new_user.full_name)
-      end
     end
 
     context "with minimal parameters (only required fields)" do

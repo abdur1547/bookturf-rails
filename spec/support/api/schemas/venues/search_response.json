@@ -13,23 +13,23 @@
             ]
         },
         "data": {
-            "$ref": "#/definitions/venue_detail"
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/venue"
+            }
         }
     },
     "definitions": {
-        "venue_detail": {
+        "venue": {
             "type": "object",
             "required": [
                 "id",
                 "name",
                 "slug",
                 "address",
-                "timezone",
-                "currency",
+                "city",
                 "is_active",
-                "created_at",
-                "venue_operating_hours",
-                "courts_count"
+                "created_at"
             ],
             "properties": {
                 "id": {
@@ -86,6 +86,18 @@
                         "null"
                     ]
                 },
+                "timezone": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "currency": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
                 "latitude": {
                     "type": [
                         "number",
@@ -97,12 +109,6 @@
                         "number",
                         "null"
                     ]
-                },
-                "timezone": {
-                    "type": "string"
-                },
-                "currency": {
-                    "type": "string"
                 },
                 "is_active": {
                     "type": "boolean"
@@ -119,53 +125,6 @@
                 },
                 "courts_count": {
                     "type": "integer"
-                },
-                "venue_operating_hours": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/venue_operating_hour"
-                    }
-                }
-            }
-        },
-        "venue_operating_hour": {
-            "type": "object",
-            "required": [
-                "id",
-                "day_of_week",
-                "is_closed",
-                "day_name",
-                "formatted_hours"
-            ],
-            "properties": {
-                "id": {
-                    "type": "integer"
-                },
-                "day_of_week": {
-                    "type": "integer",
-                    "minimum": 0,
-                    "maximum": 6
-                },
-                "opens_at": {
-                    "type": [
-                        "string",
-                        "null"
-                    ]
-                },
-                "closes_at": {
-                    "type": [
-                        "string",
-                        "null"
-                    ]
-                },
-                "is_closed": {
-                    "type": "boolean"
-                },
-                "day_name": {
-                    "type": "string"
-                },
-                "formatted_hours": {
-                    "type": "string"
                 }
             }
         }

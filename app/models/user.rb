@@ -34,6 +34,10 @@ class User < ApplicationRecord
   scope :inactive, -> { where(is_active: false) }
   scope :super_admins, -> { where(system_role: :super_admin) }
 
+  def owned_and_member_venues
+    Venue.where("owner_id = :user_id OR id IN (SELECT venue_id FROM venue_memberships WHERE user_id = :user_id)", user_id: id)
+  end
+
   def self.from_omniauth(auth)
     data = auth.info
     where(provider: auth.provider, uid: auth.uid).first_or_create do |user|

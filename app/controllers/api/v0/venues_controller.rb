@@ -2,7 +2,7 @@
 
 module Api::V0
   class VenuesController < ApiController
-    skip_before_action :authenticate_user!, only: [ :index, :show, :availability ]
+    skip_before_action :authenticate_user!, only: [ :search, :show, :availability ]
 
     resource_description do
       resource_id "Venues"
@@ -12,11 +12,64 @@ module Api::V0
         Venues are the core resource of Bookturf. A venue owner can create and manage venues,
         including their courts, operating hours, and onboarding progress.
         Public endpoints (index, show, availability) do not require authentication.
+
+        Response — TS Type
+
+        VenueOperatingHour type
+          id: number;
+          venue_id: number;
+          day_of_week: number;     // 0 = Monday … 6 = Sunday
+          day_name: string;
+          opens_at: string;        // ISO 8601
+          closes_at: string;       // ISO 8601
+          formatted_hours: string; // e.g. "08:00 AM - 10:00 PM" or "Closed"
+          is_closed: boolean;
+
+        Venue type
+          id: number;
+          slug: string;
+          name: string;
+          address: string;
+          city: string;
+          state: string;
+          country: string;
+          postal_code: string | null;
+          description: string | null;
+          phone_number: string | null;
+          email: string | null;
+          latitude: number | null;
+          longitude: number | null;
+          google_maps_url: string | null;
+          timezone: string;        // default: 'Asia/Karachi'
+          currency: string;        // default: 'PKR'
+          is_active: boolean;
+          courts_count: number;
+          created_at: string;      // ISO 8601
+          venue_operating_hours: VenueOperatingHour[];
       DESC
     end
 
-    api :GET, "/venues", "List all active venues"
-    description "Returns a paginated list of venues. Defaults to active venues only."
+    api :GET, "/venues", "List all active venues for current logged-in weather user is staff member with view permissions or owner"
+    description <<~DESC
+      Returns a paginated list of venues. Defaults to active venues only.
+
+      Query Params — TS type
+
+        page?: number | null;             // default: 1
+        per_page?: number | null;         // default: 50
+        city?: string | null;
+        state?: string | null;
+        country?: string | null;
+        is_active?: boolean | null;       // default: true
+        search?: string | null;           // searches name, address, city, description
+        sort_by?:
+          | 'id' | 'address' | 'city' | 'country' | 'created_at' | 'currency'
+          | 'description' | 'email' | 'is_active' | 'latitude' | 'longitude'
+          | 'name' | 'owner_id' | 'phone_number' | 'postal_code' | 'qr_code_url'
+          | 'slug' | 'state' | 'timezone' | 'updated_at'
+          | null;                         // default: 'name'
+        sort_direction?: 'asc' | 'ASC' | 'desc' | 'DESC' | null; // default: 'asc'
+    DESC
     param :page, Integer, required: false, desc: "Page number (default: 1)"
     param :per_page, Integer, required: false, desc: "Results per page, max 100 (default: 10)"
     param :city, String, required: false, desc: "Filter by city (exact match)"
@@ -48,10 +101,80 @@ module Api::V0
         property :google_maps_url, String, required: false, description: "if lat/lng are present, a Google Maps link is generated"
         property :courts_count, Integer
         property :created_at, String, desc: "ISO 8601 creation timestamp"
+        property :venue_operating_hours, Array, desc: "Operating hours for each day of the week" do
+          property :id, Integer
+          property :venue_id, Integer
+          property :day_of_week, Integer, desc: "0 = Monday … 6 = Sunday"
+          property :day_name, String, desc: "Full day name (e.g. Monday)"
+          property :opens_at, String, desc: "Opening time"
+          property :closes_at, String, desc: "Closing time"
+          property :formatted_hours, String, desc: "Human-readable range or 'Closed'"
+          property :is_closed, :bool
+        end
       end
     end
     def index
       result = Api::V0::Venues::ListVenuesOperation.call(params.to_unsafe_h, current_user)
+
+      handle_operation_response(result)
+    end
+
+    api :GET, "/venues/search", "List all active venues, public endpoint, no authentication required"
+    description <<~DESC
+      Returns a paginated list of venues visible to the public. Defaults to active venues only. No authentication required.
+
+      Query Params — TS type
+
+        page?: number | null;             // default: 1
+        per_page?: number | null;         // default: 50
+        city?: string | null;
+        state?: string | null;
+        country?: string | null;
+        is_active?: boolean | null;       // default: true
+        search?: string | null;           // searches name, address, city, description
+        sort_by?:
+          | 'id' | 'address' | 'city' | 'country' | 'created_at' | 'currency'
+          | 'description' | 'email' | 'is_active' | 'latitude' | 'longitude'
+          | 'name' | 'owner_id' | 'phone_number' | 'postal_code' | 'qr_code_url'
+          | 'slug' | 'state' | 'timezone' | 'updated_at'
+          | null;                         // default: 'name'
+        sort_direction?: 'asc' | 'ASC' | 'desc' | 'DESC' | null; // default: 'asc'
+    DESC
+    param :page, Integer, required: false, desc: "Page number (default: 1)"
+    param :per_page, Integer, required: false, desc: "Results per page, max 100 (default: 10)"
+    param :city, String, required: false, desc: "Filter by city (exact match)"
+    param :state, String, required: false, desc: "Filter by state (exact match)"
+    param :country, String, required: false, desc: "Filter by country (exact match)"
+    param :is_active, :bool, required: false, desc: "Filter by active status (default: true)"
+    param :search, String, required: false, desc: "Full-text search across name, address, city, description"
+    param :sort_by, %w[name city created_at], required: false, desc: "Sort field (default: name)"
+    param :sort_direction, %w[asc desc], required: false, desc: "Sort direction (default: asc)"
+    returns code: 200, desc: "List of venues" do
+      property :success, [ true ]
+      property :data, Array, desc: "Array of venue objects (list view)" do
+        property :id, Integer
+        property :name, String
+        property :slug, String
+        property :description, String, required: false
+        property :address, String
+        property :city, String
+        property :state, String
+        property :country, String
+        property :postal_code, String, required: false
+        property :phone_number, String, required: false
+        property :email, String, required: false
+        property :timezone, String, required: false, description: "default to 'Asia/Karachi'"
+        property :currency, String, required: false, description: "default to 'PKR'"
+        property :is_active, :bool, required: false, description: "Whether the venue is publicly visible, default: true"
+        property :latitude, Float, required: false
+        property :longitude, Float, required: false
+        property :google_maps_url, String, required: false, description: "if lat/lng are present, a Google Maps link is generated"
+        property :courts_count, Integer
+        property :created_at, String, desc: "ISO 8601 creation timestamp"
+      end
+    end
+    def search
+      result = Api::V0::Venues::SearchVenuesOperation.call(params.to_unsafe_h, current_user)
 
       handle_operation_response(result)
     end
@@ -80,11 +203,6 @@ module Api::V0
         property :google_maps_url, String, required: false, description: "if lat/lng are present, a Google Maps link is generated"
         property :courts_count, Integer
         property :created_at, String, desc: "ISO 8601 creation timestamp"
-        property :updated_at, String, desc: "ISO 8601 last-update timestamp"
-        property :owner, Hash, desc: "Venue owner (minimal)" do
-          property :id, Integer
-          property :full_name, String
-        end
         property :venue_operating_hours, Array, desc: "Operating hours for each day of the week" do
           property :id, Integer
           property :venue_id, Integer
@@ -104,8 +222,6 @@ module Api::V0
       handle_operation_response(result)
     end
 
-    # TODO: add my_venues endpoint to list only venues for current_user
-
     api :GET, "/venues/:id/availability", "Get available time slots for a venue on a given date"
     param :id, Integer, required: true, desc: "Venue ID"
     param :date, String, required: true, desc: "Date to check availability for (YYYY-MM-DD)"
@@ -119,6 +235,34 @@ module Api::V0
 
     api :POST, "/venues", "Create a new venue"
     header "Authorization", "Bearer <access_token>", required: true
+    description <<~DESC
+      Creates a new venue owned by the authenticated user.
+
+      Body Params — TS type
+
+        {
+          name: string;                          // required
+          address: string;                       // required
+          city: string;                          // required
+          state: string;                         // required
+          country?: string | null;               // default: 'Pakistan'
+          description?: string | null;
+          postal_code?: string | null;
+          phone_number?: string | null;
+          email?: string | null;
+          latitude?: number | null;
+          longitude?: number | null;
+          timezone?: string | null;              // default: 'Asia/Karachi'
+          currency?: string | null;              // default: 'PKR'
+          is_active?: boolean | null;            // default: false
+          venue_operating_hours?: Array<{
+            day_of_week: number;                 // 0 = Monday … 6 = Sunday, required
+            opens_at?: string | null;            // HH:MM
+            closes_at?: string | null;           // HH:MM
+            is_closed?: boolean | null;
+          }> | null;
+        }
+    DESC
     param :name, String, required: true, desc: "Venue name"
     param :address, String, required: true, desc: "Street address"
     param :city, String, required: true, desc: "City"
@@ -142,51 +286,32 @@ module Api::V0
     returns code: 201, desc: "Venue created" do
       property :success, [ true ]
       property :data, Hash, desc: "Created venue object" do
-        property :id, Integer, desc: "Venue ID"
-        property :name, String, desc: "Venue name"
-        property :slug, String, desc: "URL-friendly identifier"
-        property :address, String, desc: "Street address"
-        property :city, String, desc: "City"
-        property :state, String, desc: "State / province"
-        property :country, String, desc: "Country"
-        property :postal_code, String, desc: "Postal / ZIP code"
-        property :description, String, desc: "Venue description"
-        property :phone_number, String, desc: "Contact phone number"
-        property :email, String, desc: "Contact email"
-        property :latitude, Float, desc: "GPS latitude"
-        property :longitude, Float, desc: "GPS longitude"
-        property :google_maps_url, String, desc: "Google Maps link derived from lat/lng"
-        property :timezone, String, desc: "IANA timezone identifier"
-        property :currency, String, desc: "ISO 4217 currency code"
-        property :is_active, :bool, desc: "Whether the venue is publicly visible"
-        property :courts_count, Integer, desc: "Number of courts at this venue"
+        property :id, Integer
+        property :name, String
+        property :slug, String
+        property :description, String, required: false
+        property :address, String
+        property :city, String
+        property :state, String
+        property :country, String
+        property :postal_code, String, required: false
+        property :phone_number, String, required: false
+        property :email, String, required: false
+        property :timezone, String, required: false, description: "default to 'Asia/Karachi'"
+        property :currency, String, required: false, description: "default to 'PKR'"
+        property :is_active, :bool, required: false, description: "Whether the venue is publicly visible, default: true"
+        property :latitude, Float, required: false
+        property :longitude, Float, required: false
+        property :google_maps_url, String, required: false, description: "if lat/lng are present, a Google Maps link is generated"
+        property :courts_count, Integer
         property :created_at, String, desc: "ISO 8601 creation timestamp"
-        property :updated_at, String, desc: "ISO 8601 last-update timestamp"
-        property :owner, Hash, desc: "Venue owner user object" do
-          property :id, Integer
-          property :email, String
-          property :full_name, String
-          property :phone_number, String
-          property :user_type, String
-          property :avatar_url, String
-          property :owner_data, Hash
-          property :staff_data, Hash
-          property :preferences, Hash, desc: "Notification and location preferences" do
-            property :preferred_city, String
-            property :preferred_town, String
-            property :notification_reminders, :bool
-            property :notification_30min, :bool
-          end
-          property :created_at, String
-          property :updated_at, String
-        end
         property :venue_operating_hours, Array, desc: "Operating hours for each day of the week" do
           property :id, Integer
           property :venue_id, Integer
           property :day_of_week, Integer, desc: "0 = Monday … 6 = Sunday"
           property :day_name, String, desc: "Full day name (e.g. Monday)"
-          property :opens_at, String, desc: "ISO 8601 open time"
-          property :closes_at, String, desc: "ISO 8601 close time"
+          property :opens_at, String, desc: "Opening time"
+          property :closes_at, String, desc: "Closing time"
           property :formatted_hours, String, desc: "Human-readable range or 'Closed'"
           property :is_closed, :bool
         end
@@ -204,6 +329,34 @@ module Api::V0
     api :PUT, "/venues/:id", "Update an existing venue"
     api :PATCH, "/venues/:id", "Update an existing venue (partial)"
     header "Authorization", "Bearer <access_token>", required: true
+    description <<~DESC
+      Updates an existing venue. All body fields are optional — only supplied fields are changed.
+
+      Body Params — TS type
+
+        {
+          name?: string | null;
+          address?: string | null;
+          city?: string | null;
+          state?: string | null;
+          country?: string | null;
+          description?: string | null;
+          postal_code?: string | null;
+          phone_number?: string | null;
+          email?: string | null;
+          latitude?: number | null;
+          longitude?: number | null;
+          timezone?: string | null;
+          currency?: string | null;
+          is_active?: boolean | null;
+          venue_operating_hours?: Array<{
+            day_of_week: number;                 // 0 = Monday … 6 = Sunday, required
+            opens_at?: string | null;            // HH:MM
+            closes_at?: string | null;           // HH:MM
+            is_closed?: boolean | null;
+          }> | null;
+        }
+    DESC
     param :id, Integer, required: true, desc: "Venue ID"
     param :name, String, required: false, desc: "Venue name"
     param :address, String, required: false, desc: "Street address"
@@ -227,7 +380,37 @@ module Api::V0
     end
     returns code: 200, desc: "Updated venue" do
       property :success, [ true ]
-      property :data, Hash, desc: "Updated venue object (detailed view)"
+      property :data, Hash, desc: "Created venue object" do
+        property :id, Integer
+        property :name, String
+        property :slug, String
+        property :description, String, required: false
+        property :address, String
+        property :city, String
+        property :state, String
+        property :country, String
+        property :postal_code, String, required: false
+        property :phone_number, String, required: false
+        property :email, String, required: false
+        property :timezone, String, required: false, description: "default to 'Asia/Karachi'"
+        property :currency, String, required: false, description: "default to 'PKR'"
+        property :is_active, :bool, required: false, description: "Whether the venue is publicly visible, default: true"
+        property :latitude, Float, required: false
+        property :longitude, Float, required: false
+        property :google_maps_url, String, required: false, description: "if lat/lng are present, a Google Maps link is generated"
+        property :courts_count, Integer
+        property :created_at, String, desc: "ISO 8601 creation timestamp"
+        property :venue_operating_hours, Array, desc: "Operating hours for each day of the week" do
+          property :id, Integer
+          property :venue_id, Integer
+          property :day_of_week, Integer, desc: "0 = Monday … 6 = Sunday"
+          property :day_name, String, desc: "Full day name (e.g. Monday)"
+          property :opens_at, String, desc: "Opening time"
+          property :closes_at, String, desc: "Closing time"
+          property :formatted_hours, String, desc: "Human-readable range or 'Closed'"
+          property :is_closed, :bool
+        end
+      end
     end
     error code: 401, desc: "Not authenticated"
     error code: 403, desc: "Not the venue owner or insufficient permissions"

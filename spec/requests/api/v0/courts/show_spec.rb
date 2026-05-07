@@ -68,9 +68,7 @@ RSpec.describe "GET /api/v0/courts/:id", type: :request do
         "description" => "A premium indoor badminton court",
         "court_type_id" => court_type.id,
         "venue_id" => venue.id,
-        "is_active" => true,
-        "created_at" => be_a(String),
-        "updated_at" => be_a(String)
+        "is_active" => true
       )
     end
 
@@ -111,22 +109,15 @@ RSpec.describe "GET /api/v0/courts/:id", type: :request do
       expect(data["pricing_rules"]).to be_empty
     end
 
-    it "includes embedded court_type with minimal fields" do
+    it "includes court_type_name with the court type name" do
       data = response.parsed_body["data"]
-      expect(data["court_type"]).to include(
-        "id" => court_type.id,
-        "name" => "Badminton",
-        "slug" => "badminton"
-      )
+      expect(data["court_type_name"]).to eq("Badminton")
     end
 
-    it "includes embedded venue with minimal fields" do
+    it "includes venue_name and city from venue" do
       data = response.parsed_body["data"]
-      expect(data["venue"]).to include(
-        "id" => venue.id,
-        "name" => "Alpha Arena",
-        "city" => "Karachi"
-      )
+      expect(data["venue_name"]).to eq("Alpha Arena")
+      expect(data["city"]).to eq("Karachi")
     end
   end
 

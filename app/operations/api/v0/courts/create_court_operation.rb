@@ -51,7 +51,7 @@ module Api::V0::Courts
     end
 
     def serialize
-      Api::V0::CourtBlueprint.render_as_hash(court, view: :detailed)
+      Api::V0::CourtBlueprint.render_as_hash(court)
     end
   end
 end

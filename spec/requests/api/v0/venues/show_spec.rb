@@ -68,8 +68,7 @@ RSpec.describe "GET /api/v0/venues/:id", type: :request do
         "latitude" => be_a(Float),
         "longitude" => be_a(Float),
         "is_active" => true,
-        "created_at" => be_a(String),
-        "updated_at" => be_a(String)
+        "created_at" => be_a(String)
       )
     end
 
@@ -79,15 +78,6 @@ RSpec.describe "GET /api/v0/venues/:id", type: :request do
       expect(data["google_maps_url"]).to include("google.com/maps")
       expect(data["google_maps_url"]).to include("24.8607")
       expect(data["google_maps_url"]).to include("67.0011")
-    end
-
-    it "includes owner information" do
-      data = response.parsed_body["data"]
-      expect(data["owner"]).to be_present
-      expect(data["owner"]).to include(
-        "id" => owner_user.id,
-        "full_name" => be_a(String)
-      )
     end
 
     it "includes venue_operating_hours array" do
@@ -184,7 +174,7 @@ RSpec.describe "GET /api/v0/venues/:id", type: :request do
     it "returns complete venue details" do
       data = response.parsed_body["data"]
       expect(data["id"]).to eq(test_venue.id)
-      expect(data["owner"]["id"]).to eq(owner_user.id)
+      expect(data["name"]).to be_a(String)
     end
   end
 

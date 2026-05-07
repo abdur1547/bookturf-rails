@@ -12,6 +12,42 @@ module Api::V0
         Courts belong to a venue. Creating, updating and deleting courts requires
         the authenticated user to have venue-owner or admin permissions for the parent venue.
         Public endpoints (index, show) do not require authentication.
+
+        Response — TS Type
+
+        PricingRule type
+          id: number;
+          venue_id: number;
+          court_id: number;
+          name: string;
+          price_per_hour: number;
+          day_of_week: string;          // enum value e.g. 'all_days', 'monday'
+          day_name: string;             // human-readable label e.g. 'All Days'
+          start_time: string;           // HH:MM
+          end_time: string;             // HH:MM
+          start_date: string | null;    // ISO 8601
+          end_date: string | null;      // ISO 8601
+          priority: number;
+          is_active: boolean;
+          time_range: string;           // formatted e.g. "08:00 AM - 10:00 PM"
+          created_at: string;           // ISO 8601
+          updated_at: string;           // ISO 8601
+
+        Court type
+          id: number;
+          name: string;
+          description: string | null;
+          court_type_id: number;
+          venue_id: number;
+          slot_interval: number;        // booking slot duration in minutes
+          requires_approval: boolean;
+          is_active: boolean;
+          court_type_name: string | null;
+          venue_name: string | null;
+          city: string | null;
+          price_range: { min: number; max: number };
+          images: Array<{ id: number; url: string }>;
+          pricing_rules: PricingRule[];
       DESC
     end
 
@@ -21,6 +57,18 @@ module Api::V0
       Use `is_active` to restrict by active/inactive status. Supports filtering by
       venue, court type, and city, free-text search, sorting by any court column,
       and offset-based pagination.
+
+      Query Params — TS type
+
+        page?: number | null;             // default: 1
+        per_page?: number | null;         // default: 10, max: 100
+        venue_id?: number | null;
+        court_type_id?: number | null;
+        city?: string | null;
+        is_active?: boolean | null;       // omitting returns all courts
+        search?: string | null;           // searches name, description, venue name
+        sort?: string | null;             // valid court column name, default: 'name'
+        order?: 'asc' | 'desc' | null;   // default: 'asc'
     DESC
     param :venue_id, Integer, required: false, desc: "Filter by parent venue ID"
     param :court_type_id, Integer, required: false, desc: "Filter by court type ID"
@@ -33,43 +81,30 @@ module Api::V0
     param :per_page, Integer, required: false, desc: "Results per page, 1–100, must be greater than 0 (default: 10)"
     returns code: 200, desc: "Courts retrieved successfully" do
       property :success, [ true ], desc: "Always true on success"
-      property :data, Array, desc: "Array of court objects (list view)" do
-        property :id, Integer, desc: "Court ID"
-        property :name, String, desc: "Court name"
-        property :description, String, desc: "Court description"
-        property :court_type_id, Integer, desc: "Court type ID"
-        property :venue_id, Integer, desc: "Parent venue ID"
+      property :data, Array, desc: "Array of court objects" do
+        property :id, Integer
+        property :name, String
+        property :description, String, required: false
+        property :court_type_id, Integer
+        property :venue_id, Integer
         property :slot_interval, Integer, desc: "Booking slot duration in minutes"
-        property :requires_approval, :bool, desc: "Whether bookings require manual approval"
-        property :is_active, :bool, desc: "Whether the court is publicly visible"
-        property :court_type_name, String, desc: "Sport type derived from the court type"
-        property :venue_name, String, desc: "Parent venue name"
-        property :city, String, desc: "City inherited from the parent venue"
-        property :created_at, String, desc: "ISO 8601 creation timestamp"
-        property :updated_at, String, desc: "ISO 8601 last-update timestamp"
-        property :price_range, Hash, desc: "Derived min/max price across active pricing rules" do
+        property :requires_approval, :bool
+        property :is_active, :bool
+        property :court_type_name, String, required: false
+        property :venue_name, String, required: false
+        property :city, String, required: false
+        property :price_range, Hash do
           property :min, Float
           property :max, Float
         end
-        property :images, Array, desc: "Attached court images (id and url only)" do
+        property :images, Array do
           property :id, Integer
           property :url, String
         end
-        property :court_type, Hash, desc: "Embedded court type (minimal)" do
-          property :id, Integer
-          property :name, String
-          property :slug, String
-        end
-        property :venue, Hash, desc: "Embedded parent venue (minimal)" do
-          property :id, Integer
-          property :name, String
-          property :slug, String
-          property :city, String
-        end
+        property :pricing_rules, Array, desc: "Pricing rules for this court"
       end
     end
     error code: 422, desc: "Invalid query parameter (e.g. unrecognised sort field, invalid order direction, page or per_page ≤ 0)"
-    # GET /api/v0/courts
     def index
       result = Api::V0::Courts::ListCourtsOperation.call(params.to_unsafe_h, current_user)
 
@@ -78,65 +113,36 @@ module Api::V0
 
     api :GET, "/courts/:id", "Retrieve a single court by ID"
     description <<~DESC
-      Public endpoint — no authentication required. Returns the full detail view of a
-      court, including embedded court type, venue, pricing rules, images, and price range.
+      Public endpoint — no authentication required. Returns the full detail view of a court.
       Responds with 404 when no court with the given ID exists.
     DESC
     param :id, Integer, required: true, desc: "ID of the court to retrieve"
     returns code: 200, desc: "Court retrieved successfully" do
       property :success, [ true ], desc: "Always true on success"
-      property :data, Hash, desc: "Court object (detailed view)" do
-        property :id, Integer, desc: "Court ID"
-        property :name, String, desc: "Court name"
-        property :description, String, desc: "Court description"
-        property :court_type_id, Integer, desc: "Court type ID"
-        property :venue_id, Integer, desc: "Parent venue ID"
+      property :data, Hash, desc: "Court object" do
+        property :id, Integer
+        property :name, String
+        property :description, String, required: false
+        property :court_type_id, Integer
+        property :venue_id, Integer
         property :slot_interval, Integer, desc: "Booking slot duration in minutes"
-        property :requires_approval, :bool, desc: "Whether bookings require manual approval"
-        property :is_active, :bool, desc: "Whether the court is publicly visible"
-        property :court_type_name, String, desc: "Sport type derived from the court type"
-        property :venue_name, String, desc: "Parent venue name"
-        property :city, String, desc: "City inherited from the parent venue"
-        property :created_at, String, desc: "ISO 8601 creation timestamp"
-        property :updated_at, String, desc: "ISO 8601 last-update timestamp"
-        property :price_range, Hash, desc: "Derived min/max price across active pricing rules" do
+        property :requires_approval, :bool
+        property :is_active, :bool
+        property :court_type_name, String, required: false
+        property :venue_name, String, required: false
+        property :city, String, required: false
+        property :price_range, Hash do
           property :min, Float
           property :max, Float
         end
-        property :images, Array, desc: "Attached court images" do
+        property :images, Array do
           property :id, Integer
           property :url, String
-          property :alt_text, String
         end
-        property :court_type, Hash, desc: "Embedded court type (minimal)" do
-          property :id, Integer
-          property :name, String
-          property :slug, String
-        end
-        property :venue, Hash, desc: "Embedded parent venue (minimal)" do
-          property :id, Integer
-          property :name, String
-          property :slug, String
-          property :city, String
-        end
-        property :pricing_rules, Array, desc: "Pricing rules for this court" do
-          property :id, Integer
-          property :name, String
-          property :price_per_hour, Float
-          property :day_of_week, String, desc: "Enum value (e.g. all_days, monday)"
-          property :day_name, String, desc: "Human-readable day label"
-          property :start_time, String
-          property :end_time, String
-          property :start_date, String
-          property :end_date, String
-          property :priority, Integer
-          property :is_active, :bool
-          property :time_range, String, desc: "Formatted time range string"
-        end
+        property :pricing_rules, Array, desc: "Pricing rules for this court"
       end
     end
     error code: 404, desc: "Court not found"
-    # GET /api/v0/courts/:id
     def show
       result = Api::V0::Courts::GetCourtOperation.call(params.to_unsafe_h, current_user)
 
@@ -145,70 +151,57 @@ module Api::V0
 
     api :POST, "/courts", "Create a new court within a venue"
     header "Authorization", "Bearer <access_token>", required: true
+    description <<~DESC
+      Creates a new court under the specified venue. Requires venue-owner or admin permissions.
+
+      Body Params — TS type
+
+        {
+          venue_id: number;                // required
+          court_type_id: number;           // required
+          name: string;                    // required
+          description?: string | null;
+          slot_interval?: number | null;   // minutes, default: 60
+          requires_approval?: boolean | null; // default: false
+          is_active?: boolean | null;      // default: true
+        }
+    DESC
     param :venue_id, Integer, required: true, desc: "ID of the venue this court belongs to"
     param :court_type_id, Integer, required: true, desc: "ID of the court type (e.g. cricket, football)"
     param :name, String, required: true, desc: "Court name"
     param :description, String, required: false, desc: "Optional court description"
     param :slot_interval, Integer, required: false, desc: "Booking slot duration in minutes (default: 60)"
-    param :requires_approval, :bool, required: false, desc: "Whether bookings require manual approval (default: true)"
+    param :requires_approval, :bool, required: false, desc: "Whether bookings require manual approval (default: false)"
     param :is_active, :bool, required: false, desc: "Whether the court is publicly visible (default: true)"
     returns code: 201, desc: "Court created successfully" do
       property :success, [ true ], desc: "Always true on success"
-      property :data, Hash, desc: "Created court object (detailed view)" do
-        property :id, Integer, desc: "Court ID"
-        property :name, String, desc: "Court name"
-        property :description, String, desc: "Court description"
-        property :court_type_id, Integer, desc: "Court type ID"
-        property :venue_id, Integer, desc: "Parent venue ID"
-        property :slot_interval, Integer, desc: "Booking slot duration in minutes"
-        property :requires_approval, :bool, desc: "Whether bookings require manual approval"
-        property :is_active, :bool, desc: "Whether the court is publicly visible"
-        property :created_at, String, desc: "ISO 8601 creation timestamp"
-        property :updated_at, String, desc: "ISO 8601 last-update timestamp"
-        property :court_type_name, String, desc: "Sport type derived from the court type"
-        property :venue_name, String, desc: "Parent venue name"
-        property :city, String, desc: "City inherited from the parent venue"
-        property :price_range, Hash, desc: "Derived min/max price across active pricing rules" do
+      property :data, Hash, desc: "Created court object" do
+        property :id, Integer
+        property :name, String
+        property :description, String, required: false
+        property :court_type_id, Integer
+        property :venue_id, Integer
+        property :slot_interval, Integer
+        property :requires_approval, :bool
+        property :is_active, :bool
+        property :court_type_name, String, required: false
+        property :venue_name, String, required: false
+        property :city, String, required: false
+        property :price_range, Hash do
           property :min, Float
           property :max, Float
         end
-        property :images, Array, desc: "Attached court images" do
+        property :images, Array do
           property :id, Integer
           property :url, String
-          property :alt_text, String
         end
-        property :court_type, Hash, desc: "Embedded court type (minimal)" do
-          property :id, Integer
-          property :name, String
-          property :slug, String
-        end
-        property :venue, Hash, desc: "Embedded parent venue (minimal)" do
-          property :id, Integer
-          property :name, String
-          property :slug, String
-          property :city, String
-        end
-        property :pricing_rules, Array, desc: "Pricing rules for this court" do
-          property :id, Integer
-          property :name, String
-          property :price_per_hour, Float
-          property :day_of_week, String, desc: "Enum value (e.g. all_days, monday)"
-          property :day_name, String, desc: "Human-readable day label"
-          property :start_time, String
-          property :end_time, String
-          property :start_date, String
-          property :end_date, String
-          property :priority, Integer
-          property :is_active, :bool
-          property :time_range, String, desc: "Formatted time range string"
-        end
+        property :pricing_rules, Array, desc: "Pricing rules for this court"
       end
     end
     error code: 401, desc: "Not authenticated"
     error code: 403, desc: "Authenticated user does not have permission to manage this venue"
     error code: 404, desc: "Venue or court type not found"
     error code: 422, desc: "Validation error (e.g. missing required fields, invalid values)"
-    # POST /api/v0/courts
     def create
       result = Api::V0::Courts::CreateCourtOperation.call(params.to_unsafe_h, current_user)
 
@@ -218,6 +211,20 @@ module Api::V0
     api :PATCH, "/courts/:id", "Update an existing court"
     api :PUT, "/courts/:id", "Update an existing court"
     header "Authorization", "Bearer <access_token>", required: true
+    description <<~DESC
+      Updates an existing court. All body fields are optional — only supplied fields are changed.
+
+      Body Params — TS type
+
+        {
+          court_type_id?: number | null;
+          name?: string | null;
+          description?: string | null;
+          slot_interval?: number | null;
+          requires_approval?: boolean | null;
+          is_active?: boolean | null;
+        }
+    DESC
     param :id, Integer, required: true, desc: "ID of the court to update"
     param :court_type_id, Integer, required: false, desc: "ID of the court type (e.g. cricket, football)"
     param :name, String, required: false, desc: "Court name"
@@ -227,61 +234,33 @@ module Api::V0
     param :is_active, :bool, required: false, desc: "Whether the court is publicly visible"
     returns code: 200, desc: "Court updated successfully" do
       property :success, [ true ], desc: "Always true on success"
-      property :data, Hash, desc: "Updated court object (detailed view)" do
-        property :id, Integer, desc: "Court ID"
-        property :name, String, desc: "Court name"
-        property :description, String, desc: "Court description"
-        property :court_type_id, Integer, desc: "Court type ID"
-        property :venue_id, Integer, desc: "Parent venue ID"
-        property :slot_interval, Integer, desc: "Booking slot duration in minutes"
-        property :requires_approval, :bool, desc: "Whether bookings require manual approval"
-        property :is_active, :bool, desc: "Whether the court is publicly visible"
-        property :created_at, String, desc: "ISO 8601 creation timestamp"
-        property :updated_at, String, desc: "ISO 8601 last-update timestamp"
-        property :court_type_name, String, desc: "Sport type derived from the court type"
-        property :venue_name, String, desc: "Parent venue name"
-        property :city, String, desc: "City inherited from the parent venue"
-        property :price_range, Hash, desc: "Derived min/max price across active pricing rules" do
+      property :data, Hash, desc: "Updated court object" do
+        property :id, Integer
+        property :name, String
+        property :description, String, required: false
+        property :court_type_id, Integer
+        property :venue_id, Integer
+        property :slot_interval, Integer
+        property :requires_approval, :bool
+        property :is_active, :bool
+        property :court_type_name, String, required: false
+        property :venue_name, String, required: false
+        property :city, String, required: false
+        property :price_range, Hash do
           property :min, Float
           property :max, Float
         end
-        property :images, Array, desc: "Attached court images" do
+        property :images, Array do
           property :id, Integer
           property :url, String
-          property :alt_text, String
         end
-        property :court_type, Hash, desc: "Embedded court type (minimal)" do
-          property :id, Integer
-          property :name, String
-          property :slug, String
-        end
-        property :venue, Hash, desc: "Embedded parent venue (minimal)" do
-          property :id, Integer
-          property :name, String
-          property :slug, String
-          property :city, String
-        end
-        property :pricing_rules, Array, desc: "Pricing rules for this court" do
-          property :id, Integer
-          property :name, String
-          property :price_per_hour, Float
-          property :day_of_week, String, desc: "Enum value (e.g. all_days, monday)"
-          property :day_name, String, desc: "Human-readable day label"
-          property :start_time, String
-          property :end_time, String
-          property :start_date, String
-          property :end_date, String
-          property :priority, Integer
-          property :is_active, :bool
-          property :time_range, String, desc: "Formatted time range string"
-        end
+        property :pricing_rules, Array, desc: "Pricing rules for this court"
       end
     end
     error code: 401, desc: "Not authenticated"
     error code: 403, desc: "Authenticated user does not have permission to manage this court"
     error code: 404, desc: "Court not found"
     error code: 422, desc: "Validation error (e.g. invalid values)"
-    # PATCH/PUT /api/v0/courts/:id
     def update
       result = Api::V0::Courts::UpdateCourtOperation.call(params.to_unsafe_h, current_user)
 
@@ -293,12 +272,13 @@ module Api::V0
     param :id, Integer, required: true, desc: "ID of the court to delete"
     returns code: 200, desc: "Court deleted successfully" do
       property :success, [ true ], desc: "Always true on success"
-      property :message, String, desc: "Confirmation message"
+      property :data, Hash do
+        property :message, String, desc: "Confirmation message"
+      end
     end
     error code: 401, desc: "Not authenticated"
     error code: 403, desc: "Authenticated user does not have permission to manage this court"
     error code: 404, desc: "Court not found"
-    # DELETE /api/v0/courts/:id
     def destroy
       result = Api::V0::Courts::DeleteCourtOperation.call(params.to_unsafe_h, current_user)
 
