@@ -20,7 +20,7 @@
   "definitions": {
     "user": {
       "type": "object",
-      "required": ["id", "full_name", "email", "system_role", "preferences"],
+      "required": ["id", "full_name", "email", "system_role"],
       "properties": {
         "id": { "type": "integer" },
         "full_name": { "type": "string" },
@@ -28,8 +28,6 @@
         "avatar_url": { "type": ["string", "null"] },
         "phone_number": { "type": ["string", "null"] },
         "system_role": { "type": "string", "enum": ["normal", "super_admin"] },
-        "preferences": { "type": "object" },
-        "owned_venue_id": { "type": ["integer", "null"] },
         "created_at": { "type": "string" },
         "updated_at": { "type": "string" }
       }
