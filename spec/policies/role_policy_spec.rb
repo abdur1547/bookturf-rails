@@ -57,9 +57,9 @@ RSpec.describe RolePolicy, type: :policy do
 
     before { other_venue }
 
-    it_behaves_like "grants access", :index
-    it_behaves_like "grants access", :create
+    it_behaves_like "denies access", :index
     it_behaves_like "denies access", :show
+    it_behaves_like "denies access", :create
     it_behaves_like "denies access", :update
     it_behaves_like "denies access", :destroy
   end
