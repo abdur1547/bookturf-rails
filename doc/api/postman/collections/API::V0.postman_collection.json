@@ -39,8 +39,10 @@
               }
             }
           ],
+          "id": "1edc102a-4ce2-4165-806d-a298cd62b7a4",
           "request": {
             "method": "POST",
+            "header": [],
             "body": {
               "mode": "raw",
               "raw": "{\n    \"full_name\": \"{{$randomFullName}}\",\n    \"email\": \"{{email}}\",\n    \"password\": \"{{password}}\"\n}",
@@ -60,7 +62,8 @@
                 "signup"
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "1. Signin",
@@ -68,15 +71,19 @@
             {
               "listen": "prerequest",
               "script": {
+                "id": "b7ec24ef-bdec-4ea1-8340-26af72776272",
                 "exec": [
                   ""
                 ],
-                "type": "text/javascript"
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             },
             {
               "listen": "test",
               "script": {
+                "id": "645172a6-8360-427c-9362-b1e8754b842f",
                 "exec": [
                   "const response = pm.response.json();",
                   "",
@@ -85,15 +92,19 @@
                   "    pm.collectionVariables.set(\"refresh_token\", response.data.refresh_token);",
                   "}"
                 ],
-                "type": "text/javascript"
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             }
           ],
+          "id": "619a20d9-782b-4c61-ac13-5252d315abc2",
           "request": {
             "method": "POST",
+            "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"email\": \"{{email}}\",\n    \"password\": \"{{password}}\"\n}",
+              "raw": "{\n    // Dynamic user\n    // \"email\": \"{{email}}\",\n    // \"password\": \"{{password}}\"\n\n    // Seeded data\n    // Owner of the venue\n    \"email\": \"owner@example.com\",\n    \"password\": \"password123\"\n\n    // // Admin of the venue\n    // \"email\": \"admin@bookturf.com\",\n    // \"password\": \"password123\"\n\n    // // as a customer\n    // \"email\": \"customer1@example.com\",\n    // \"password\": \"password123\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -110,7 +121,8 @@
                 "signin"
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "3. Refresh",
@@ -139,8 +151,10 @@
               }
             }
           ],
+          "id": "f3cc416e-3ee7-40dd-acd1-e8072738d6aa",
           "request": {
             "method": "POST",
+            "header": [],
             "body": {
               "mode": "raw",
               "raw": "{\n    \"refresh_token\": \"{{refresh_token}}\"\n}",
@@ -160,12 +174,15 @@
                 "refresh"
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "5. Reset Password",
+          "id": "aa4c285e-113c-4063-9663-f54a2d53e05a",
           "request": {
             "method": "POST",
+            "header": [],
             "body": {
               "mode": "raw",
               "raw": "{\n    \"email\": \"{{email}}\"\n}",
@@ -185,12 +202,15 @@
                 "reset_password"
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "6. Verify Reset OTP",
+          "id": "519276c2-182e-4b32-89e8-59adacf6ab06",
           "request": {
             "method": "POST",
+            "header": [],
             "body": {
               "mode": "raw",
               "raw": "{\n    \"email\": \"{{email}}\",\n    \"otp_code\": \"423592\",\n    \"password\": \"new_password\"\n}",
@@ -210,10 +230,12 @@
                 "verify_reset_otp"
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "4. Signout",
+          "id": "b2dfa681-de35-4d69-83e6-d29f4bff3855",
           "request": {
             "auth": {
               "type": "bearer",
@@ -226,6 +248,7 @@
               ]
             },
             "method": "DELETE",
+            "header": [],
             "body": {
               "mode": "raw",
               "raw": "",
@@ -245,9 +268,11 @@
                 "signout"
               ]
             }
-          }
+          },
+          "response": []
         }
-      ]
+      ],
+      "id": "2164c6b9-f7bb-40ec-9145-52620aef8d43"
     },
     {
       "name": "Roles",
@@ -279,6 +304,7 @@
               }
             }
           ],
+          "id": "87510657-4ad7-47ad-958c-954102dab506",
           "request": {
             "auth": {
               "type": "bearer",
@@ -291,6 +317,7 @@
               ]
             },
             "method": "GET",
+            "header": [],
             "body": {
               "mode": "raw",
               "raw": "",
@@ -309,15 +336,18 @@
                 "roles"
               ]
             }
-          }
+          },
+          "response": []
         }
-      ]
+      ],
+      "id": "e3410435-cd61-491d-be01-d56ffeea834b"
     },
     {
       "name": "Venues",
       "item": [
         {
           "name": "1. All Venues",
+          "id": "b03dc798-9731-4758-b7c7-3963cb3a2ac3",
           "request": {
             "auth": {
               "type": "bearer",
@@ -330,9 +360,10 @@
               ]
             },
             "method": "GET",
+            "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"page\": 1,\n    \"per_page\": 25,\n    \"city\": \"\",\n    \"state\": \"\",\n    \"country\": \"\",\n    \"is_active\": true,\n    \"search\": \"\",\n    \"sort\": \"\",\n    \"order\": \"\"\n}",
+              "raw": "{\n    \"sort_by\": \"\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -348,25 +379,21 @@
                 "venues"
               ]
             }
-          }
+          },
+          "response": []
         },
         {
-          "name": "2. My Venues",
+          "name": "2. Search Venues",
+          "id": "822f3146-b930-4568-a15c-15f6a17be67c",
           "request": {
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "method": "GET",
+            "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"page\": 1,\n    \"per_page\": 25,\n    \"city\": \"\",\n    \"state\": \"\",\n    \"country\": \"\",\n    \"is_active\": true,\n    \"search\": \"\",\n    \"sort\": \"\",\n    \"order\": \"\"\n}",
+              "raw": "{\n    \"page\": 1, // optional, number or null, default values on backend is 1\n    \"per_page\": 25, // optional, number or null, default values on backend is 50\n    \"city\": \"\", // optional, string or null, if provided venues will be filtered by city otherwise all venues will return\n    \"state\": \"\", // optional, string or null, if provided venues will be filtered by state otherwise all venues will return\n    \"country\": \"\", // optional, string or null, if provided venues will be filtered by country otherwise all venues will return\n    \"is_active\": true, // optional, boolean or null, default true, if true only active venues will be returned else all active and non-active venues will be returned\n    \"search\": \"\", // optional, string or null, if provided system will search this string by name, address, city, description\n    \"sort_by\": \"\", // optional, string or null, only valide venue columns are allowed, [\"id\", \"address\", \"city\", \"country\", \"created_at\", \"currency\", \"description\", \"email\", \"is_active\", \"latitude\", \"longitude\", \"name\", \"owner_id\", \"phone_number\", \"postal_code\", \"qr_code_url\", \"slug\", \"state\", \"timezone\", \"updated_at\"], default to \"name\"\n    \"sort_direction\": \"\" // optional, string or null, only [\"asc\", \"ASC\", \"desc\", \"DESC\"] values are allowed, default to \"asc\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -374,20 +401,25 @@
               }
             },
             "url": {
-              "raw": "{{api_v0_base_url}}/my_venues",
+              "raw": "{{api_v0_base_url}}/venues/search",
               "host": [
                 "{{api_v0_base_url}}"
               ],
               "path": [
-                "my_venues"
+                "venues",
+                "search"
               ]
-            }
-          }
+            },
+            "description": "Search venues with optional filters, sorting, and pagination.\n\nMethod & URL\n- GET {{api_v0_base_url}}/venues/search\n\nRequest body fields\n- page: Optional number for the page to return. Backend default is 1.\n- per_page: Optional number for page size. Backend default is 50.\n- city: Optional string to filter venues by city.\n- state: Optional string to filter venues by state.\n- country: Optional string to filter venues by country.\n- is_active: Optional boolean. Defaults to true; when true, only active venues are returned.\n- search: Optional string matched against venue name, address, city, and description.\n- sort_by: Optional string naming the venue column to sort by. Defaults to name.\n- sort_direction: Optional string with asc or desc. Defaults to asc.\n\nFiltering, sorting, and pagination\n- Filters can be combined to narrow results by location, active status, and free-text search.\n- Sorting is applied using sort_by and sort_direction.\n- Pagination is controlled with page and per_page.\n\n200 response\n- Returns success=true and data as an array of venue objects. Venue objects include core venue details such as id, name, address/location fields, status, and operating hours."
+          },
+          "response": []
         },
         {
           "name": "2. Create venue",
+          "id": "ab7e67b3-faa0-464f-970e-851f63e39641",
           "request": {
             "method": "POST",
+            "header": [],
             "body": {
               "mode": "raw",
               "raw": "{\n    \"name\": \"Downtown Sports Complex\",\n    // \"description\": \"A multi-purpose sports and events venue\", // optional\n    \"address\": \"123 Main Street\",\n    \"city\": \"Rawalpindi\",\n    \"state\": \"Punjab\",\n    \"country\": \"Pakistan\",\n    // \"postal_code\": \"46000\", // optional\n    // \"latitude\": 33.6844, // optional\n    // \"longitude\": 73.0479, // optional\n    // \"phone_number\": \"+92-300-1234567\", // optional\n    // \"email\": \"info@downtownsports.com\", // optional\n    // \"is_active\": true, // optional, by default true\n    // \"timezone\": \"Asia/Karachi\", // optional, default to \"Asia/Karachi\"\n    // \"currency\": \"PKR\", // optional, default to PKR\n    \"venue_operating_hours\": [\n        {\n            \"day_of_week\": 0,\n            \"opens_at\": \"09:00\",\n            \"closes_at\": \"22:00\",\n            \"is_closed\": false\n        },\n        {\n            \"day_of_week\": 1,\n            \"opens_at\": \"09:00\",\n            \"closes_at\": \"22:00\",\n            \"is_closed\": false\n        },\n        {\n            \"day_of_week\": 2,\n            \"opens_at\": \"09:00\",\n            \"closes_at\": \"22:00\",\n            \"is_closed\": false\n        },\n        {\n            \"day_of_week\": 3,\n            \"opens_at\": \"09:00\",\n            \"closes_at\": \"22:00\",\n            \"is_closed\": false\n        },\n        {\n            \"day_of_week\": 4,\n            \"opens_at\": \"09:00\",\n            \"closes_at\": \"22:00\",\n            \"is_closed\": false\n        },\n        {\n            \"day_of_week\": 5,\n            \"opens_at\": \"10:00\",\n            \"closes_at\": \"20:00\",\n            \"is_closed\": false\n        },\n        {\n            \"day_of_week\": 6,\n            \"opens_at\": \"10:00\",\n            \"closes_at\": \"20:00\",\n            \"is_closed\": true\n        }\n    ]\n}",
@@ -406,12 +438,15 @@
                 "venues"
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "3. Update venue",
+          "id": "b4346f0a-4753-4df6-9831-eb5566f67a0f",
           "request": {
             "method": "PUT",
+            "header": [],
             "body": {
               "mode": "raw",
               "raw": "{\n    \"name\": \"Abdur's zone\"\n    // \"description\": \"A multi-purpose sports and events venue\", // optional\n    // \"address\": \"123 Main Street\",\n    // \"city\": \"Rawalpindi\",\n    // \"state\": \"Punjab\",\n    // \"country\": \"Pakistan\",\n    // \"postal_code\": \"46000\", // optional\n    // \"latitude\": 33.6844, // optional\n    // \"longitude\": 73.0479, // optional\n    // \"phone_number\": \"+92-300-1234567\", // optional\n    // \"email\": \"info@downtownsports.com\", // optional\n    // \"is_active\": true, // optional, by default true\n    // \"timezone\": \"Asia/Karachi\", // optional, default to \"Asia/Karachi\"\n    // \"currency\": \"PKR\", // optional, default to PKR\n    // \"venue_operating_hours\": [\n    //     {\n    //         \"day_of_week\": 0,\n    //         \"opens_at\": \"09:00\",\n    //         \"closes_at\": \"22:00\",\n    //         \"is_closed\": false\n    //     },\n    //     {\n    //         \"day_of_week\": 1,\n    //         \"opens_at\": \"09:00\",\n    //         \"closes_at\": \"22:00\",\n    //         \"is_closed\": false\n    //     },\n    //     {\n    //         \"day_of_week\": 2,\n    //         \"opens_at\": \"09:00\",\n    //         \"closes_at\": \"22:00\",\n    //         \"is_closed\": false\n    //     },\n    //     {\n    //         \"day_of_week\": 3,\n    //         \"opens_at\": \"09:00\",\n    //         \"closes_at\": \"22:00\",\n    //         \"is_closed\": false\n    //     },\n    //     {\n    //         \"day_of_week\": 4,\n    //         \"opens_at\": \"09:00\",\n    //         \"closes_at\": \"22:00\",\n    //         \"is_closed\": false\n    //     },\n    //     {\n    //         \"day_of_week\": 5,\n    //         \"opens_at\": \"10:00\",\n    //         \"closes_at\": \"20:00\",\n    //         \"is_closed\": false\n    //     },\n    //     {\n    //         \"day_of_week\": 6,\n    //         \"opens_at\": \"10:00\",\n    //         \"closes_at\": \"20:00\",\n    //         \"is_closed\": true\n    //     }\n    // ]\n}",
@@ -431,12 +466,15 @@
                 "1"
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "4. Delete venue",
+          "id": "18b4c134-49b8-4eef-9686-bfcf72a9ca72",
           "request": {
             "method": "DELETE",
+            "header": [],
             "body": {
               "mode": "raw",
               "raw": "",
@@ -456,15 +494,18 @@
                 "1"
               ]
             }
-          }
+          },
+          "response": []
         }
-      ]
+      ],
+      "id": "537f0d4c-892e-4f3f-be3c-15fc550010ca"
     },
     {
       "name": "Courts",
       "item": [
         {
           "name": "1. All Courts",
+          "id": "6da64262-8f6a-4e38-b78f-6bec6fb37142",
           "request": {
             "auth": {
               "type": "bearer",
@@ -477,6 +518,7 @@
               ]
             },
             "method": "GET",
+            "header": [],
             "body": {
               "mode": "raw",
               "raw": "{\n    \"page\": 1,\n    \"per_page\": 10,\n    \"venue_id\": 1,\n    \"court_type_id\": 1,\n    \"is_active\": true,\n    \"search\": \"\",\n    \"sort_by\": \"\",\n    \"order_by\": \"\"\n}",
@@ -495,12 +537,15 @@
                 "courts"
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "2. Create court",
+          "id": "cf971f28-428a-490a-8014-5a99a72ae5b5",
           "request": {
             "method": "POST",
+            "header": [],
             "body": {
               "mode": "raw",
               "raw": "{\n    \"venue_id\": 6, //required, integer\n    \"court_type_id\": 1, // required, integer\n    \"name\": \"Venue 1, Circket Court 01\" // required, string\n    // \"description\": \"Best cricket court in Rawalpindi\" // optional, string\n    // \"slot_interval\": 60, // optional, string, default to 60, it represent mints\n    // \"requires_approval\": true, // optional, boolean, default to true\n    // \"is_active\": true // optional, boolean, default to true,\n}",
@@ -519,12 +564,15 @@
                 "courts"
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "3. Update court",
+          "id": "346343d6-3484-439a-a55c-0a6b31c1fed7",
           "request": {
             "method": "PUT",
+            "header": [],
             "body": {
               "mode": "raw",
               "raw": "{\n    // \"venue_id\": 1, //optional, integer\n    // \"court_type_id\": 1, // optional, integer\n    \"name\": \"Venue 1, Cricket Court 01 plus\" // optional, string\n    // \"description\": \"Best cricket court in Rawalpindi\" // optional, string\n    // \"slot_interval\": 60, // optional, string, default to 60, it represent mints\n    // \"requires_approval\": true, // optional, boolean, default to true\n    // \"is_active\": true // optional, boolean, default to true\n}",
@@ -544,12 +592,15 @@
                 "1"
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "4. Delete court",
+          "id": "efcae4d7-1a1b-41a8-840a-b12ef3984369",
           "request": {
             "method": "DELETE",
+            "header": [],
             "body": {
               "mode": "raw",
               "raw": "",
@@ -569,10 +620,12 @@
                 "1"
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "2. My Courts",
+          "id": "f9cf0b3f-f7d7-42c0-882d-36589da639e6",
           "request": {
             "auth": {
               "type": "bearer",
@@ -585,6 +638,7 @@
               ]
             },
             "method": "GET",
+            "header": [],
             "body": {
               "mode": "raw",
               "raw": "{\n    \"page\": 1,\n    \"per_page\": 10,\n    \"venue_id\": 1,\n    \"court_type_id\": 1,\n    \"is_active\": true,\n    \"search\": \"\",\n    \"sort_by\": \"\",\n    \"order_by\": \"\"\n}",
@@ -603,15 +657,18 @@
                 "courts"
               ]
             }
-          }
+          },
+          "response": []
         }
-      ]
+      ],
+      "id": "7ab2b04f-66a6-48f4-ad60-962c1175dc40"
     },
     {
       "name": "Court's Pricing Rules",
       "item": [
         {
           "name": "1. All pricing rules for a court",
+          "id": "4bdc9ba6-1ce4-429a-8f56-1eb6cfe2d770",
           "request": {
             "auth": {
               "type": "bearer",
@@ -624,6 +681,7 @@
               ]
             },
             "method": "GET",
+            "header": [],
             "body": {
               "mode": "raw",
               "raw": "{\n    \"court_id\": 6\n}",
@@ -642,12 +700,15 @@
                 "pricing_rules"
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "2. Create court",
+          "id": "93b3092c-413b-4988-8a7d-f4012eef4d4a",
           "request": {
             "method": "POST",
+            "header": [],
             "body": {
               "mode": "raw",
               "raw": "{\n    \"venue_id\": 1, //required, integer\n    \"court_type_id\": 1, // required, integer\n    \"name\": \"Venue 1, Circket Court 01\" // required, string\n    // \"description\": \"Best cricket court in Rawalpindi\" // optional, string\n    // \"slot_interval\": 60, // optional, string, default to 60, it represent mints\n    // \"requires_approval\": true, // optional, boolean, default to true\n    // \"is_active\": true // optional, boolean, default to true,\n}",
@@ -666,7 +727,8 @@
                 "courts"
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "3. Update court",
@@ -695,8 +757,10 @@
               }
             }
           ],
+          "id": "f520cd05-6f66-407f-abf3-5b68585193e5",
           "request": {
             "method": "PUT",
+            "header": [],
             "body": {
               "mode": "raw",
               "raw": "{\n    // \"venue_id\": 1, //optional, integer\n    // \"court_type_id\": 1, // optional, integer\n    \"name\": \"Venue 1, Cricket Court 01 plus\" // optional, string\n    // \"description\": \"Best cricket court in Rawalpindi\" // optional, string\n    // \"slot_interval\": 60, // optional, string, default to 60, it represent mints\n    // \"requires_approval\": true, // optional, boolean, default to true\n    // \"is_active\": true // optional, boolean, default to true\n}",
@@ -716,12 +780,15 @@
                 "1"
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "4. Delete court",
+          "id": "2aaaf059-5c97-4fe2-bb29-3b47070ded7c",
           "request": {
             "method": "DELETE",
+            "header": [],
             "body": {
               "mode": "raw",
               "raw": "",
@@ -741,9 +808,11 @@
                 "1"
               ]
             }
-          }
+          },
+          "response": []
         }
-      ]
+      ],
+      "id": "8bf90d64-b8ff-41e1-b3bb-1846df55fbb1"
     },
     {
       "name": "Bookings",
@@ -775,6 +844,7 @@
               }
             }
           ],
+          "id": "d9ca519a-8099-4e49-b092-1c5b09c29ad0",
           "request": {
             "auth": {
               "type": "bearer",
@@ -787,6 +857,7 @@
               ]
             },
             "method": "GET",
+            "header": [],
             "body": {
               "mode": "raw",
               "raw": "{\n    \"start_date\": \"2026-04-14\"\n}",
@@ -805,9 +876,11 @@
                 "profiles"
               ]
             }
-          }
+          },
+          "response": []
         }
-      ]
+      ],
+      "id": "aa48d160-aa5c-4f1e-a869-493c24397e33"
     },
     {
       "name": "1. Me",
@@ -836,6 +909,7 @@
           }
         }
       ],
+      "id": "1ee45442-ac41-4b06-bb2d-c3c3688b77cc",
       "request": {
         "auth": {
           "type": "bearer",
@@ -848,6 +922,7 @@
           ]
         },
         "method": "GET",
+        "header": [],
         "body": {
           "mode": "raw",
           "raw": "",
@@ -867,15 +942,18 @@
             "me"
           ]
         }
-      }
+      },
+      "response": []
     },
     {
       "name": "health",
+      "id": "65d3572e-d839-427a-a55d-afbfeef3d396",
       "request": {
         "auth": {
           "type": "noauth"
         },
         "method": "GET",
+        "header": [],
         "url": {
           "raw": "{{base_url}}/up",
           "host": [
@@ -885,7 +963,8 @@
             "up"
           ]
         }
-      }
+      },
+      "response": []
     }
   ],
   "auth": {
@@ -900,30 +979,37 @@
   },
   "variable": [
     {
+      "id": "84dad7ad-f3c9-44d0-a39b-7bd78273bc17",
       "key": "name",
       "value": ""
     },
     {
+      "id": "ff4fa6f0-22fa-4670-9ef6-6678974584c3",
       "key": "email",
       "value": ""
     },
     {
+      "id": "65ba4585-74a2-47c6-9915-cc63893298dc",
       "key": "password",
       "value": ""
     },
     {
+      "id": "a6f93b1f-36d1-4728-9577-05983b1d63d1",
       "key": "access_token",
       "value": ""
     },
     {
+      "id": "6f0a1734-b5f8-4eb0-92c1-c3665d5de360",
       "key": "refresh_token",
       "value": ""
     },
     {
+      "id": "0aa1b034-94c7-4d82-bfe6-0b274fbe921d",
       "key": "create_new_user",
       "value": ""
     },
     {
+      "id": "30bae78c-370a-4b00-9da0-c0811a49573d",
       "key": "api_v0_base_url",
       "value": ""
     }
