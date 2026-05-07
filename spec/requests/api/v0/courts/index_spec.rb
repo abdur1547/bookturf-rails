@@ -76,16 +76,16 @@ RSpec.describe "GET /api/v0/courts", type: :request do
       expect(response).to match_json_schema("courts/index_response")
     end
 
-    it "embeds the correct court_type for each court" do
+    it "includes the correct court_type_name for each court" do
       data = response.parsed_body["data"]
       alpha_court = data.find { |c| c["name"] == "Court Alpha" }
-      expect(alpha_court["court_type"]["name"]).to eq("Badminton")
+      expect(alpha_court["court_type_name"]).to eq("Badminton")
     end
 
-    it "embeds the correct venue for each court" do
+    it "includes the correct venue_name for each court" do
       data = response.parsed_body["data"]
       alpha_court = data.find { |c| c["name"] == "Court Alpha" }
-      expect(alpha_court["venue"]["name"]).to eq("Alpha Arena")
+      expect(alpha_court["venue_name"]).to eq("Alpha Arena")
     end
 
     # --------------------------------------------------

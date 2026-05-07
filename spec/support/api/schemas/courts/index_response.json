@@ -15,12 +15,12 @@
         "data": {
             "type": "array",
             "items": {
-                "$ref": "#/definitions/court_list_item"
+                "$ref": "#/definitions/court"
             }
         }
     },
     "definitions": {
-        "court_list_item": {
+        "court": {
             "type": "object",
             "required": [
                 "id",
@@ -30,12 +30,9 @@
                 "is_active",
                 "slot_interval",
                 "requires_approval",
-                "created_at",
-                "updated_at",
-                "court_type",
-                "venue",
                 "images",
-                "price_range"
+                "price_range",
+                "pricing_rules"
             ],
             "properties": {
                 "id": {
@@ -65,14 +62,6 @@
                 "is_active": {
                     "type": "boolean"
                 },
-                "created_at": {
-                    "type": "string",
-                    "format": "date-time"
-                },
-                "updated_at": {
-                    "type": "string",
-                    "format": "date-time"
-                },
                 "court_type_name": {
                     "type": [
                         "string",
@@ -97,55 +86,8 @@
                 "images": {
                     "type": "array"
                 },
-                "court_type": {
-                    "$ref": "#/definitions/court_type_minimal"
-                },
-                "venue": {
-                    "$ref": "#/definitions/venue_minimal"
-                }
-            }
-        },
-        "court_type_minimal": {
-            "type": "object",
-            "required": [
-                "id",
-                "name",
-                "slug"
-            ],
-            "properties": {
-                "id": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "slug": {
-                    "type": "string"
-                }
-            }
-        },
-        "venue_minimal": {
-            "type": "object",
-            "required": [
-                "id",
-                "name",
-                "slug"
-            ],
-            "properties": {
-                "id": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "slug": {
-                    "type": "string"
-                },
-                "city": {
-                    "type": [
-                        "string",
-                        "null"
-                    ]
+                "pricing_rules": {
+                    "type": "array"
                 }
             }
         },

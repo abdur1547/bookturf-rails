@@ -95,20 +95,14 @@ RSpec.describe "POST /api/v0/courts", type: :request do
       )
     end
 
-    it "returns the embedded court_type with id and name" do
+    it "returns court_type_name" do
       data = response.parsed_body["data"]
-      expect(data["court_type"]).to include(
-        "id" => court_type.id,
-        "name" => court_type.name
-      )
+      expect(data["court_type_name"]).to eq(court_type.name)
     end
 
-    it "returns the embedded venue with id and name" do
+    it "returns venue_name" do
       data = response.parsed_body["data"]
-      expect(data["venue"]).to include(
-        "id" => venue.id,
-        "name" => venue.name
-      )
+      expect(data["venue_name"]).to eq(venue.name)
     end
 
     it "returns pricing_rules as an empty array" do

@@ -43,14 +43,14 @@ RSpec.describe 'API V0 Courts', type: :request do
       expect(data.size).to eq(2)
     end
 
-    it 'includes court type details' do
+    it 'includes court_type_name' do
       data = response.parsed_body['data'].first
-      expect(data['court_type']).to include('id' => court_type.id, 'name' => 'Badminton')
+      expect(data['court_type_name']).to eq('Badminton')
     end
 
-    it 'includes venue minimal details' do
+    it 'includes venue_name' do
       data = response.parsed_body['data'].first
-      expect(data['venue']).to include('id' => venue.id, 'name' => 'Alpha Arena', 'slug' => venue.slug)
+      expect(data['venue_name']).to eq('Alpha Arena')
     end
   end
 
@@ -68,10 +68,10 @@ RSpec.describe 'API V0 Courts', type: :request do
       expect(data).to include(
         'id' => active_court.id,
         'name' => 'Court A',
-        'is_active' => true
+        'is_active' => true,
+        'court_type_id' => court_type.id,
+        'venue_id' => venue.id
       )
-      expect(data['court_type']).to include('id' => court_type.id)
-      expect(data['venue']).to include('id' => venue.id)
     end
   end
 
@@ -123,14 +123,14 @@ RSpec.describe 'API V0 Courts', type: :request do
         )
       end
 
-      it 'returns embedded court_type' do
+      it 'returns court_type_name' do
         data = response.parsed_body['data']
-        expect(data['court_type']).to include('id' => court_type.id, 'name' => court_type.name)
+        expect(data['court_type_name']).to eq(court_type.name)
       end
 
-      it 'returns embedded venue' do
+      it 'returns venue_name' do
         data = response.parsed_body['data']
-        expect(data['venue']).to include('id' => venue.id, 'name' => venue.name)
+        expect(data['venue_name']).to eq(venue.name)
       end
     end
 
