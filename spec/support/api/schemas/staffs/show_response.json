@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["success", "data"],
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "enum": [true]
+    },
+    "data": { "$ref": "#/definitions/staff_member" }
+  },
+  "definitions": {
+    "staff_member": {
+      "type": "object",
+      "required": ["id", "full_name", "email", "system_role", "created_at", "updated_at"],
+      "properties": {
+        "id": { "type": "integer" },
+        "full_name": { "type": "string" },
+        "email": { "type": "string" },
+        "phone_number": { "type": ["string", "null"] },
+        "avatar_url": { "type": ["string", "null"] },
+        "system_role": { "type": "string" },
+        "created_at": { "type": "string" },
+        "updated_at": { "type": "string" }
+      }
+    }
+  }
+}

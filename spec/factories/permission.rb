@@ -84,5 +84,25 @@ FactoryBot.define do
       resource { "roles" }
       action { "manage" }
     end
+
+    trait :read_users do
+      resource { "users" }
+      action { "read" }
+    end
+
+    trait :create_users do
+      resource { "users" }
+      action { "create" }
+    end
+
+    trait :update_users do
+      resource { "users" }
+      action { "update" }
+    end
+
+    trait :delete_users do
+      resource { "users" }
+      action { "delete" }
+    end
   end
 end

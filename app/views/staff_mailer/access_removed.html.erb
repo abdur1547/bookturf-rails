@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .footer {
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #e5e7eb;
+        font-size: 12px;
+        color: #6b7280;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Access Removed</h2>
+
+    <p>Hello <%= @user.full_name %>,</p>
+
+    <p>Your staff access to <strong><%= @venue.name %></strong> has been removed. You no longer have permission to manage this venue.</p>
+
+    <p>You can still use your Bookturf account to make bookings at venues.</p>
+
+    <div class="footer">
+      <p>This is an automated email. Please do not reply to this message.</p>
+    </div>
+  </body>
+</html>
