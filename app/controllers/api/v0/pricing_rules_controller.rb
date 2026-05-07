@@ -11,6 +11,26 @@ module Api::V0
         Creating, updating, and deleting rules requires the authenticated user to be
         the venue owner or a global admin. Listing and showing rules requires
         authentication with at least venue-staff level access.
+
+        Response — TS Type
+
+        PricingRule type
+          id: number;
+          venue_id: number;
+          court_id: number;
+          name: string;
+          price_per_hour: number;
+          day_of_week: string;          // monday | tuesday | wednesday | thursday | friday | saturday | sunday | all_days | weekdays | weekends
+          start_time: string | null;    // HH:MM, null for all-day rules
+          end_time: string | null;      // HH:MM, null for all-day rules
+          start_date: string | null;    // YYYY-MM-DD, null for permanent rules
+          end_date: string | null;      // YYYY-MM-DD, null for permanent rules
+          priority: number;             // higher value wins when rules overlap
+          is_active: boolean;
+          day_name: string;             // e.g. "Monday", "All days", "Weekends"
+          time_range: string;           // e.g. "08:00 AM - 12:00 PM" or "All day"
+          created_at: string;           // ISO 8601
+          updated_at: string;           // ISO 8601
       DESC
     end
 
@@ -20,6 +40,15 @@ module Api::V0
       at least venue-staff (receptionist) level access to the court's venue.
       Admins can access pricing rules for any court. Results are ordered by priority
       descending, then name ascending.
+
+      Query Params — TS type
+
+        {
+          court_id: number;                         // required
+          is_active?: boolean | null;
+          day_of_week?: 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday'
+            | 'saturday' | 'sunday' | 'all_days' | 'weekdays' | 'weekends' | null;
+        }
     DESC
     header "Authorization", "Bearer <access_token>", required: true
     param :court_id, Integer, required: true, desc: "ID of the court whose pricing rules to list"
@@ -108,6 +137,22 @@ module Api::V0
       When start_date and end_date are omitted the rule applies permanently.
       When day_of_week is omitted the rule defaults to all_days.
       Priority determines precedence when multiple rules overlap — higher value wins.
+
+      Body Params — TS type
+
+        {
+          name: string;                             // required
+          court_id: number;                         // required
+          price_per_hour: number;                   // required, must be > 0
+          day_of_week?: 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday'
+            | 'saturday' | 'sunday' | 'all_days' | 'weekdays' | 'weekends' | null; // default: 'all_days'
+          start_time?: string | null;               // HH:MM, omit for all-day
+          end_time?: string | null;                 // HH:MM, must be after start_time
+          start_date?: string | null;               // YYYY-MM-DD, omit for permanent
+          end_date?: string | null;                 // YYYY-MM-DD, must be on or after start_date
+          priority?: number | null;                 // default: 0
+          is_active?: boolean | null;               // default: true
+        }
     DESC
     header "Authorization", "Bearer <access_token>", required: true
     param :name, String, required: true, desc: "Descriptive name for this rule (e.g. Weekend Evening Peak)"
@@ -162,6 +207,21 @@ module Api::V0
 
       Only start_time and end_time, or start_date and end_date, may be cleared together.
       Partial time or date pairs are validated the same way as on creation.
+
+      Body Params — TS type
+
+        {
+          name?: string | null;
+          price_per_hour?: number | null;           // must be > 0
+          day_of_week?: 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday'
+            | 'saturday' | 'sunday' | 'all_days' | 'weekdays' | 'weekends' | null;
+          start_time?: string | null;               // HH:MM
+          end_time?: string | null;                 // HH:MM, must be after start_time
+          start_date?: string | null;               // YYYY-MM-DD
+          end_date?: string | null;                 // YYYY-MM-DD, must be on or after start_date
+          priority?: number | null;
+          is_active?: boolean | null;
+        }
     DESC
     header "Authorization", "Bearer <access_token>", required: true
     param :id, Integer, required: true, desc: "ID of the pricing rule to update"

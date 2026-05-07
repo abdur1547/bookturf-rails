@@ -48,7 +48,7 @@ module Api::V0::PricingRules
     attr_reader :params, :current_user, :pricing_rules
 
     def serialize
-      Api::V0::PricingRuleBlueprint.render_as_hash(@pricing_rules, view: :list)
+      Api::V0::PricingRuleBlueprint.render_as_hash(@pricing_rules)
     end
   end
 end
