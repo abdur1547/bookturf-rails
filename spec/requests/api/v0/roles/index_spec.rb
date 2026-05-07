@@ -1,215 +1,172 @@
-# # frozen_string_literal: true
+# frozen_string_literal: true
 
-# require 'rails_helper'
+require 'rails_helper'
 
-# RSpec.describe "GET /api/v0/roles", type: :request do
-#   let(:headers) { { "Content-Type" => "application/json" } }
+RSpec.describe "GET /api/v0/roles", type: :request do
+  # ==================================================
+  # SHARED TEST DATA SETUP
+  # ==================================================
+  let(:headers) { { "Content-Type" => "application/json" } }
 
-#   # Create system roles
-#   let(:owner_role) { create(:role, :owner) }
-#   let(:admin_role) { create(:role, :admin) }
-#   let(:receptionist_role) { create(:role, :receptionist) }
-#   let(:customer_role) { create(:role, :customer) }
+  let(:owner_user) { create(:user) }
+  let(:super_admin_user) { create(:user, :super_admin) }
+  let(:unrelated_user) { create(:user) }
+  let(:staff_user) { create(:user) }
 
-#   # Create test users
-#   let(:owner_user) { create(:user, email: "owner@example.com") }
-#   let(:admin_user) { create(:user, email: "admin@example.com") }
-#   let(:receptionist_user) { create(:user, email: "receptionist@example.com") }
-#   let(:customer_user) { create(:user, email: "customer@example.com") }
+  let!(:venue) { create(:venue, owner: owner_user) }
+  let!(:other_venue) { create(:venue) }
 
-#   # Create permissions for testing
-#   let(:create_bookings_permission) { create(:permission, :create_bookings) }
-#   let(:read_bookings_permission) { create(:permission, :read_bookings) }
-#   let(:manage_bookings_permission) { create(:permission, :manage_bookings) }
-#   let(:read_courts_permission) { create(:permission, :read_courts) }
+  let!(:role1) { create(:role, name: "Alpha Role", venue: venue) }
+  let!(:role2) { create(:role, name: "Beta Role", venue: venue) }
+  let!(:other_venue_role) { create(:role, name: "Other Role", venue: other_venue) }
 
-#   before do
-#     # Assign roles to users
-#     owner_user.assign_role(owner_role)
-#     admin_user.assign_role(admin_role)
-#     receptionist_user.assign_role(receptionist_role)
-#     customer_user.assign_role(customer_role)
-#   end
+  let(:read_roles_permission) { create(:permission, :read_roles) }
+  let(:staff_role) { create(:role, name: "Staff Role", venue: venue) }
 
-#   let(:endpoint) { "/api/v0/roles" }
-#   let(:query_params) { {} }
-#   let(:request_headers) { headers }
-#   let!(:custom_role1) { create(:role, :custom_role, name: "Court Manager") }
-#   let!(:custom_role2) { create(:role, :custom_role, name: "Booking Manager") }
+  before do
+    staff_role.permissions << read_roles_permission
+    create(:venue_membership, user: staff_user, venue: venue, role: staff_role)
+  end
 
-#   before do
-#     params_string = query_params.present? ? "?#{query_params.to_query}" : ""
-#     get "#{endpoint}#{params_string}", headers: request_headers
-#   end
+  # ==================================================
+  # ENDPOINT SETUP
+  # ==================================================
+  let(:endpoint) { "/api/v0/roles" }
+  let(:venue_id) { venue.id }
+  let(:query_params) { { venue_id: venue_id } }
+  let(:request_headers) { headers }
 
-#   # SUCCESS PATHS
-#   context "when authenticated as owner" do
-#     let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
+  before do
+    params_string = "?#{query_params.to_query}"
+    get "#{endpoint}#{params_string}", headers: request_headers
+  end
 
-#     it "returns success response" do
-#       expect(response).to have_http_status(:ok)
-#     end
+  # ==================================================
+  # SUCCESS PATHS
+  # ==================================================
 
-#     it "matches the index response schema" do
-#       expect(response).to match_json_schema("roles/index_response")
-#     end
+  context "when authenticated as venue owner" do
+    let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
 
-#     it "returns all roles (system + custom)" do
-#       data = response.parsed_body["data"]
-#       expect(data.length).to be >= 6  # 4 system roles + 2 custom roles
-#     end
+    it "returns success (200) status" do
+      expect(response).to have_http_status(:ok)
+    end
 
-#     it "includes complete role attributes in response" do
-#       role_data = response.parsed_body["data"].first
-#       expect(role_data).to include(
-#         "id" => be_a(Integer),
-#         "name" => be_a(String),
-#         "slug" => be_a(String),
-#         "description" => be_a(String),
-#         "is_custom" => be_in([ true, false ]),
-#         "permissions_count" => be_a(Integer),
-#         "users_count" => be_a(Integer),
-#         "created_at" => be_a(String)
-#       )
-#     end
+    it "returns success: true" do
+      expect(response.parsed_body["success"]).to be true
+    end
 
-#     context "with type=system filter" do
-#       let(:query_params) { { type: "system" } }
+    it "matches the index response schema" do
+      expect(response).to match_json_schema("roles/index_response")
+    end
 
-#       it "returns only system roles" do
-#         data = response.parsed_body["data"]
-#         expect(data).to all(include("is_custom" => false))
-#       end
+    it "returns only roles belonging to the specified venue" do
+      data = response.parsed_body["data"]
+      returned_ids = data.map { |r| r["id"] }
+      expect(returned_ids).to include(role1.id, role2.id)
+      expect(returned_ids).not_to include(other_venue_role.id)
+    end
 
-#       it "excludes custom roles" do
-#         data = response.parsed_body["data"]
-#         expect(data.none? { |r| r["is_custom"] == true }).to be true
-#       end
-#     end
+    it "returns roles sorted alphabetically" do
+      data = response.parsed_body["data"]
+      names = data.map { |r| r["name"] }
+      expect(names).to eq(names.sort)
+    end
 
-#     context "with type=custom filter" do
-#       let(:query_params) { { type: "custom" } }
+    it "includes all required role attributes" do
+      data = response.parsed_body["data"].first
+      expect(data).to include(
+        "id" => be_a(Integer),
+        "name" => be_a(String),
+        "venue_id" => venue.id,
+        "created_at" => be_a(String),
+        "updated_at" => be_a(String),
+        "permissions" => be_an(Array)
+      )
+    end
+  end
 
-#       it "returns only custom roles" do
-#         data = response.parsed_body["data"]
-#         expect(data).to all(include("is_custom" => true))
-#       end
+  context "when authenticated as super admin" do
+    let(:request_headers) { headers.merge("Authorization" => auth_token_for(super_admin_user)) }
 
-#       it "excludes system roles" do
-#         data = response.parsed_body["data"]
-#         expect(data.none? { |r| r["is_custom"] == false }).to be true
-#       end
-#     end
+    it "returns success (200) status" do
+      expect(response).to have_http_status(:ok)
+    end
 
-#     context "with sort=name parameter" do
-#       let(:query_params) { { sort: "name" } }
+    it "matches the index response schema" do
+      expect(response).to match_json_schema("roles/index_response")
+    end
 
-#       it "sorts roles by name alphabetically" do
-#         data = response.parsed_body["data"]
-#         names = data.map { |r| r["name"] }
-#         expect(names).to eq(names.sort)
-#       end
-#     end
+    it "returns roles for the specified venue" do
+      data = response.parsed_body["data"]
+      returned_ids = data.map { |r| r["id"] }
+      expect(returned_ids).to include(role1.id, role2.id)
+    end
+  end
 
-#     context "with sort=created_at parameter" do
-#       let(:query_params) { { sort: "created_at" } }
+  context "when authenticated as staff with read permission on roles" do
+    let(:request_headers) { headers.merge("Authorization" => auth_token_for(staff_user)) }
 
-#       it "returns success response" do
-#         expect(response).to have_http_status(:ok)
-#       end
-#     end
+    it "returns success (200) status" do
+      expect(response).to have_http_status(:ok)
+    end
 
-#     context "with invalid type parameter" do
-#       let(:query_params) { { type: "invalid_type" } }
+    it "matches the index response schema" do
+      expect(response).to match_json_schema("roles/index_response")
+    end
+  end
 
-#       it "returns all roles (ignores invalid filter)" do
-#         data = response.parsed_body["data"]
-#         expect(data.length).to be >= 6
-#       end
-#     end
-#   end
+  # ==================================================
+  # FAILURE PATHS
+  # ==================================================
 
-#   context "when authenticated as admin" do
-#     let(:request_headers) { headers.merge("Authorization" => auth_token_for(admin_user)) }
+  context "when authenticated as unrelated user (no venue access)" do
+    let(:request_headers) { headers.merge("Authorization" => auth_token_for(unrelated_user)) }
 
-#     it "returns success response" do
-#       expect(response).to have_http_status(:ok)
-#     end
+    it "returns forbidden (403) status" do
+      expect(response).to have_http_status(:forbidden)
+    end
 
-#     it "returns all roles" do
-#       data = response.parsed_body["data"]
-#       expect(data.length).to be >= 6
-#     end
+    it "returns success: false" do
+      expect(response.parsed_body["success"]).to be false
+    end
 
-#     it "matches the index response schema" do
-#       expect(response).to match_json_schema("roles/index_response")
-#     end
-#   end
+    it "matches the error response schema" do
+      expect(response).to match_json_schema("error_response")
+    end
+  end
 
-#   context "when authenticated as receptionist" do
-#     let(:request_headers) { headers.merge("Authorization" => auth_token_for(receptionist_user)) }
+  context "when venue_id does not exist" do
+    let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
+    let(:venue_id) { 999999 }
 
-#     it "returns success response" do
-#       expect(response).to have_http_status(:ok)
-#     end
+    it "returns not found (404) status" do
+      expect(response).to have_http_status(:not_found)
+    end
 
-#     it "returns roles data" do
-#       expect(response.parsed_body["data"]).to be_an(Array)
-#     end
-#   end
+    it "matches the error response schema" do
+      expect(response).to match_json_schema("error_response")
+    end
+  end
 
-#   # FAILURE PATHS
-#   context "when authenticated as customer (insufficient permissions)" do
-#     let(:request_headers) { headers.merge("Authorization" => auth_token_for(customer_user)) }
+  context "when venue_id is missing" do
+    let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
+    let(:query_params) { {} }
 
-#     it "returns forbidden status" do
-#       expect(response).to have_http_status(:forbidden)
-#     end
+    it "returns unprocessable entity (422) status" do
+      expect(response).to have_http_status(:unprocessable_entity)
+    end
 
-#     it "matches the error response schema" do
-#       expect(response).to match_json_schema("error_response")
-#     end
+    it "returns success: false" do
+      expect(response.parsed_body["success"]).to be false
+    end
+  end
 
-#     it "includes authorization error message" do
-#       expect(response.parsed_body["errors"]).to include(
-#         match(/not authorized/i)
-#       )
-#     end
-#   end
+  context "when not authenticated" do
+    let(:request_headers) { headers }
 
-#   context "when not authenticated (missing token)" do
-#     let(:request_headers) { headers }
-
-#     it "returns forbidden status" do
-#       expect(response).to have_http_status(:forbidden)
-#     end
-
-#     it "matches the error response schema" do
-#       expect(response).to match_json_schema("error_response")
-#     end
-#   end
-
-#   context "when authenticated with invalid token" do
-#     let(:request_headers) { headers.merge("Authorization" => "Bearer invalid_token_12345") }
-
-#     it "returns unauthorized status" do
-#       expect(response).to have_http_status(:forbidden)
-#     end
-
-#     it "returns error response" do
-#       expect(response.parsed_body["success"]).to be false
-#     end
-#   end
-
-#   context "when authenticated with expired token" do
-#     let(:expired_token) do
-#       payload = { user_id: owner_user.id, exp: 1.hour.ago.to_i }
-#       JWT.encode(payload, Rails.application.credentials.secret_key_base, 'HS256')
-#     end
-#     let(:request_headers) { headers.merge("Authorization" => "Bearer #{expired_token}") }
-
-#     it "returns unauthorized status" do
-#       expect(response).to have_http_status(:forbidden)
-#     end
-#   end
-# end
+    it "returns unauthorized (401) status" do
+      expect(response).to have_http_status(:unauthorized)
+    end
+  end
+end

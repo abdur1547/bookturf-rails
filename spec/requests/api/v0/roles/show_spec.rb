@@ -1,248 +1,183 @@
-# # frozen_string_literal: true
+# frozen_string_literal: true
 
-# require 'rails_helper'
+require 'rails_helper'
 
-# RSpec.describe "GET /api/v0/roles/:id", type: :request do
-#   let(:headers) { { "Content-Type" => "application/json" } }
+RSpec.describe "GET /api/v0/roles/:id", type: :request do
+  # ==================================================
+  # SHARED TEST DATA SETUP
+  # ==================================================
+  let(:headers) { { "Content-Type" => "application/json" } }
 
-#   # Create system roles
-#   let(:owner_role) { create(:role, :owner) }
-#   let(:admin_role) { create(:role, :admin) }
-#   let(:receptionist_role) { create(:role, :receptionist) }
-#   let(:customer_role) { create(:role, :customer) }
+  let(:owner_user) { create(:user) }
+  let(:super_admin_user) { create(:user, :super_admin) }
+  let(:unrelated_user) { create(:user) }
+  let(:staff_user) { create(:user) }
 
-#   # Create test users
-#   let(:owner_user) { create(:user, email: "owner@example.com") }
-#   let(:admin_user) { create(:user, email: "admin@example.com") }
-#   let(:receptionist_user) { create(:user, email: "receptionist@example.com") }
-#   let(:customer_user) { create(:user, email: "customer@example.com") }
+  let!(:venue) { create(:venue, owner: owner_user) }
+  let!(:other_venue) { create(:venue) }
 
-#   # Create permissions for testing
-#   let(:create_bookings_permission) { create(:permission, :create_bookings) }
-#   let(:read_bookings_permission) { create(:permission, :read_bookings) }
-#   let(:manage_bookings_permission) { create(:permission, :manage_bookings) }
-#   let(:read_courts_permission) { create(:permission, :read_courts) }
+  let(:read_permission) { create(:permission, :read_roles) }
+  let(:staff_role) { create(:role, name: "Staff Role", venue: venue) }
 
-#   before do
-#     # Assign roles to users
-#     owner_user.assign_role(owner_role)
-#     admin_user.assign_role(admin_role)
-#     receptionist_user.assign_role(receptionist_role)
-#     customer_user.assign_role(customer_role)
-#   end
+  before do
+    staff_role.permissions << read_permission
+    create(:venue_membership, user: staff_user, venue: venue, role: staff_role)
+  end
 
-#   let(:role_id) { test_role.id }
-#   let(:endpoint) { "/api/v0/roles/#{role_id}" }
-#   let(:request_headers) { headers }
-#   let(:test_role) { create(:role, :custom_role, name: "Test Role", description: "Test Description") }
-#   let(:test_user) { create(:user, email: "roleuser@example.com") }
+  let!(:test_role) { create(:role, name: "Test Role", venue: venue) }
+  let!(:role_permission) { create(:permission, :read_bookings) }
 
-#   before do
-#     test_role.add_permission(create_bookings_permission)
-#     test_role.add_permission(read_bookings_permission)
-#     test_user&.assign_role(test_role)
+  # ==================================================
+  # ENDPOINT SETUP
+  # ==================================================
+  let(:role_id) { test_role.id }
+  let(:endpoint) { "/api/v0/roles/#{role_id}" }
+  let(:request_headers) { headers }
+  let(:permissions_to_add) { [] }
 
-#     get endpoint, headers: request_headers
-#   end
+  before do
+    permissions_to_add.each { |p| test_role.permissions << p }
+    get endpoint, headers: request_headers
+  end
 
-#   # SUCCESS PATHS
-#   context "when authenticated as owner" do
-#     let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
+  # ==================================================
+  # SUCCESS PATHS
+  # ==================================================
 
-#     it "returns success response" do
-#       expect(response).to have_http_status(:ok)
-#     end
+  context "when authenticated as venue owner" do
+    let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
 
-#     it "matches the show response schema" do
-#       expect(response).to match_json_schema("roles/show_response")
-#     end
+    it "returns success (200) status" do
+      expect(response).to have_http_status(:ok)
+    end
 
-#     it "returns complete role details" do
-#       data = response.parsed_body["data"]
-#       expect(data).to match(
-#         "id" => test_role.id,
-#         "name" => "Test Role",
-#         "slug" => test_role.slug,
-#         "description" => "Test Description",
-#         "is_custom" => true,
-#         "created_at" => be_a(String),
-#         "updated_at" => be_a(String),
-#         "permissions" => be_an(Array),
-#         "users" => be_an(Array)
-#       )
-#     end
+    it "returns success: true" do
+      expect(response.parsed_body["success"]).to be true
+    end
 
-#     it "includes associated permissions with complete structure" do
-#       data = response.parsed_body["data"]
-#       expect(data["permissions"]).to be_an(Array)
-#       expect(data["permissions"].length).to eq(2)
+    it "matches the show response schema" do
+      expect(response).to match_json_schema("roles/show_response")
+    end
 
-#       permission_data = data["permissions"].first
-#       expect(permission_data).to include(
-#         "id" => be_a(Integer),
-#         "name" => be_a(String),
-#         "resource" => be_a(String),
-#         "action" => be_a(String),
-#         "description" => be_a(String)
-#       )
-#     end
+    it "returns the correct role" do
+      data = response.parsed_body["data"]
+      expect(data["id"]).to eq(test_role.id)
+      expect(data["name"]).to eq("Test Role")
+      expect(data["venue_id"]).to eq(venue.id)
+    end
 
-#     it "includes associated users with complete structure" do
-#       data = response.parsed_body["data"]
-#       expect(data["users"]).to be_an(Array)
-#       expect(data["users"].length).to eq(1)
+    it "includes all required role attributes" do
+      data = response.parsed_body["data"]
+      expect(data).to include(
+        "id" => test_role.id,
+        "name" => "Test Role",
+        "venue_id" => venue.id,
+        "created_at" => be_a(String),
+        "updated_at" => be_a(String),
+        "permissions" => be_an(Array)
+      )
+    end
 
-#       user_data = data["users"].first
-#       expect(user_data).to include(
-#         "id" => be_a(Integer),
-#         "name" => be_a(String)
-#       )
-#     end
+    context "with permissions assigned" do
+      let(:permissions_to_add) { [role_permission] }
 
-#     it "returns correct permissions for the role" do
-#       data = response.parsed_body["data"]
-#       permission_ids = data["permissions"].map { |p| p["id"] }
-#       expect(permission_ids).to match_array([
-#         create_bookings_permission.id,
-#         read_bookings_permission.id
-#       ])
-#     end
+      it "includes associated permissions" do
+        data = response.parsed_body["data"]
+        expect(data["permissions"].length).to eq(1)
+        perm = data["permissions"].first
+        expect(perm).to include(
+          "id" => role_permission.id,
+          "resource" => "bookings",
+          "action" => "read"
+        )
+      end
+    end
 
-#     context "when role has no permissions" do
-#       let(:test_role) { create(:role, :custom_role, name: "Empty Role") }
-#       let(:test_user) { nil }
+    context "when role has no permissions" do
+      it "returns empty permissions array" do
+        data = response.parsed_body["data"]
+        expect(data["permissions"]).to eq([])
+      end
+    end
+  end
 
-#       before do
-#         # Clear any permissions added by outer before block
-#         test_role.role_permissions.destroy_all
-#         get endpoint, headers: request_headers
-#       end
+  context "when authenticated as super admin" do
+    let(:request_headers) { headers.merge("Authorization" => auth_token_for(super_admin_user)) }
 
-#       it "returns empty permissions array" do
-#         data = response.parsed_body["data"]
-#         expect(data["permissions"]).to eq([])
-#       end
-#     end
+    it "returns success (200) status" do
+      expect(response).to have_http_status(:ok)
+    end
 
-#     context "when role has no users" do
-#       let(:test_role) { create(:role, :custom_role, name: "Unassigned Role") }
-#       let(:test_user) { nil }
+    it "matches the show response schema" do
+      expect(response).to match_json_schema("roles/show_response")
+    end
+  end
 
-#       before do
-#         test_role.add_permission(create_bookings_permission)
-#         get endpoint, headers: request_headers
-#       end
+  context "when authenticated as staff with read permission on roles" do
+    let(:request_headers) { headers.merge("Authorization" => auth_token_for(staff_user)) }
 
-#       it "returns empty users array" do
-#         data = response.parsed_body["data"]
-#         expect(data["users"]).to eq([])
-#       end
-#     end
+    it "returns success (200) status" do
+      expect(response).to have_http_status(:ok)
+    end
 
-#     context "when fetching a system role" do
-#       let(:test_role) { owner_role }
+    it "matches the show response schema" do
+      expect(response).to match_json_schema("roles/show_response")
+    end
+  end
 
-#       it "returns the system role successfully" do
-#         expect(response).to have_http_status(:ok)
-#         data = response.parsed_body["data"]
-#         expect(data["is_custom"]).to be false
-#       end
-#     end
-#   end
+  # ==================================================
+  # FAILURE PATHS
+  # ==================================================
 
-#   context "when authenticated as admin" do
-#     let(:request_headers) { headers.merge("Authorization" => auth_token_for(admin_user)) }
+  context "when authenticated as unrelated user (no venue access)" do
+    let(:request_headers) { headers.merge("Authorization" => auth_token_for(unrelated_user)) }
 
-#     it "returns success response" do
-#       expect(response).to have_http_status(:ok)
-#     end
+    it "returns forbidden (403) status" do
+      expect(response).to have_http_status(:forbidden)
+    end
 
-#     it "returns role details" do
-#       data = response.parsed_body["data"]
-#       expect(data["id"]).to eq(test_role.id)
-#     end
-#   end
+    it "matches the error response schema" do
+      expect(response).to match_json_schema("error_response")
+    end
+  end
 
-#   # FAILURE PATHS
-#   context "when authenticated as receptionist (insufficient permissions)" do
-#     let(:request_headers) { headers.merge("Authorization" => auth_token_for(receptionist_user)) }
+  context "when role belongs to a different venue" do
+    let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
+    let!(:other_role) { create(:role, name: "Other Venue Role", venue: other_venue) }
+    let(:role_id) { other_role.id }
 
-#     it "returns forbidden status" do
-#       expect(response).to have_http_status(:forbidden)
-#     end
+    it "returns forbidden (403) status" do
+      expect(response).to have_http_status(:forbidden)
+    end
+  end
 
-#     it "matches error response schema" do
-#       expect(response).to match_json_schema("error_response")
-#     end
+  context "when role does not exist" do
+    let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
+    let(:role_id) { 999999 }
 
-#     it "includes authorization error message" do
-#       expect(response.parsed_body["errors"]).to include(
-#         match(/not authorized/i)
-#       )
-#     end
-#   end
+    it "returns not found (404) status" do
+      expect(response).to have_http_status(:not_found)
+    end
 
-#   context "when authenticated as customer" do
-#     let(:request_headers) { headers.merge("Authorization" => auth_token_for(customer_user)) }
+    it "matches the error response schema" do
+      expect(response).to match_json_schema("error_response")
+    end
+  end
 
-#     it "returns forbidden status" do
-#       expect(response).to have_http_status(:forbidden)
-#     end
-#   end
+  context "when role id is non-numeric" do
+    let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
+    let(:role_id) { "invalid-id" }
 
-#   context "when role does not exist" do
-#     let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
-#     let(:role_id) { 99999 }
+    it "returns not found (404) status" do
+      expect(response).to have_http_status(:not_found)
+    end
+  end
 
-#     it "returns unprocessable entity status" do
-#       expect(response).to have_http_status(:unprocessable_entity)
-#     end
+  context "when not authenticated" do
+    let(:request_headers) { headers }
 
-#     it "matches error response schema" do
-#       expect(response).to match_json_schema("error_response")
-#     end
-
-#     it "includes not found error message" do
-#       expect(response.parsed_body["errors"]).to be_present
-#     end
-#   end
-
-#   context "when not authenticated" do
-#     let(:request_headers) { headers }
-
-#     it "returns forbidden status" do
-#       expect(response).to have_http_status(:forbidden)
-#     end
-
-#     it "returns error response" do
-#       expect(response.parsed_body["success"]).to be false
-#     end
-#   end
-
-#   context "when role_id is invalid format" do
-#     let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
-#     let(:role_id) { "invalid-id" }
-
-#     it "returns unprocessable entity status" do
-#       expect(response).to have_http_status(:unprocessable_entity)
-#     end
-#   end
-
-#   context "when role_id is zero" do
-#     let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
-#     let(:role_id) { 0 }
-
-#     it "returns unprocessable entity status" do
-#       expect(response).to have_http_status(:unprocessable_entity)
-#     end
-#   end
-
-#   context "when role_id is negative" do
-#     let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
-#     let(:role_id) { -1 }
-
-#     it "returns unprocessable entity status" do
-#       expect(response).to have_http_status(:unprocessable_entity)
-#     end
-#   end
-# end
+    it "returns unauthorized (401) status" do
+      expect(response).to have_http_status(:unauthorized)
+    end
+  end
+end

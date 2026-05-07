@@ -4,7 +4,7 @@ module Api::V0::Roles
   class ListRolesOperation < BaseOperation
     contract do
       params do
-        optional(:venue_id).maybe(:integer)
+        required(:venue_id).filled(:integer)
       end
     end
 
@@ -12,29 +12,25 @@ module Api::V0::Roles
       @params = params
       @current_user = current_user
 
+      @venue = Venue.find_by(id: params[:venue_id])
+      return Failure(:not_found) unless @venue
+
       return Failure(:forbidden) unless authorize?
 
-      @roles = scoped_roles
-      @roles = @roles.where(venue_id: params[:venue_id]) if params[:venue_id].present?
-      @roles = @roles.alphabetical
-      json_data = serialize
-      Success(roles: @roles, json: json_data)
+      @roles = Role.where(venue: @venue).alphabetical
+      Success(roles: @roles, json: serialize)
     end
 
     private
 
-    attr_reader :params, :current_user, :roles
+    attr_reader :params, :current_user, :roles, :venue
 
     def authorize?
-      RolePolicy.new(current_user, Role).index?
-    end
-
-    def scoped_roles
-      RolePolicy::Scope.new(current_user, Role).resolve
+      RolePolicy.new(current_user, venue).index?
     end
 
     def serialize
-      Api::V0::RoleBlueprint.render_as_hash(roles, view: :list)
+      Api::V0::RoleBlueprint.render_as_hash(roles)
     end
   end
 end

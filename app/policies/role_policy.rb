@@ -2,23 +2,23 @@
 
 class RolePolicy < ApplicationPolicy
   def index?
-    user.present? && (user.super_admin? || user.owned_venues.any?)
+    user.present? && (user.super_admin? || venue_owner? || have_permission?("read"))
   end
 
   def show?
-    user.present? && (user.super_admin? || venue_owner?)
+    user.present? && (user.super_admin? || venue_owner? || have_permission?("read"))
   end
 
   def create?
-    user.present? && (user.super_admin? || user.owned_venues.any?)
+    user.present? && (user.super_admin? || venue_owner? || have_permission?("create"))
   end
 
   def update?
-    user.present? && (user.super_admin? || venue_owner?)
+    user.present? && (user.super_admin? || venue_owner? || have_permission?("update"))
   end
 
   def destroy?
-    user.present? && (user.super_admin? || venue_owner?)
+    user.present? && (user.super_admin? || venue_owner? || have_permission?("delete"))
   end
 
   class Scope < Scope
@@ -32,9 +32,24 @@ class RolePolicy < ApplicationPolicy
 
   private
 
-  def venue_owner?
-    return false unless record.is_a?(Role)
+  def have_permission?(action)
+    venue = venue_from_record
+    return false unless venue.is_a?(Venue)
 
-    record.venue.owner_id == user.id
+    user.has_permission?(venue: venue, resource: "roles", action: action)
+  end
+
+  def venue_owner?
+    venue = venue_from_record
+    return false unless venue.is_a?(Venue)
+
+    venue.owner_id == user.id
+  end
+
+  def venue_from_record
+    case record
+    when Role then record.venue
+    when Venue then record
+    end
   end
 end

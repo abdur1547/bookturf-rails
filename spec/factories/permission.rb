@@ -59,5 +59,30 @@ FactoryBot.define do
       resource { "pricing" }
       action { "delete" }
     end
+
+    trait :read_roles do
+      resource { "roles" }
+      action { "read" }
+    end
+
+    trait :create_roles do
+      resource { "roles" }
+      action { "create" }
+    end
+
+    trait :update_roles do
+      resource { "roles" }
+      action { "update" }
+    end
+
+    trait :delete_roles do
+      resource { "roles" }
+      action { "delete" }
+    end
+
+    trait :manage_roles do
+      resource { "roles" }
+      action { "manage" }
+    end
   end
 end

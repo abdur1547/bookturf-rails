@@ -1,114 +1,38 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "type": "object",
-    "required": [
-        "success",
-        "data"
-    ],
-    "properties": {
-        "success": {
-            "type": "boolean",
-            "enum": [
-                true
-            ]
-        },
-        "data": {
-            "$ref": "#/definitions/role_detail"
-        }
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["success", "data"],
+  "properties": {
+    "success": {
+      "type": "boolean",
+      "enum": [true]
     },
-    "definitions": {
-        "role_detail": {
-            "type": "object",
-            "required": [
-                "id",
-                "name",
-                "slug",
-                "description",
-                "is_custom",
-                "created_at",
-                "updated_at",
-                "permissions",
-                "users"
-            ],
-            "properties": {
-                "id": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "slug": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "is_custom": {
-                    "type": "boolean"
-                },
-                "created_at": {
-                    "type": "string",
-                    "format": "date-time"
-                },
-                "updated_at": {
-                    "type": "string",
-                    "format": "date-time"
-                },
-                "permissions": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/permission"
-                    }
-                },
-                "users": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/user"
-                    }
-                }
-            }
-        },
-        "permission": {
-            "type": "object",
-            "required": [
-                "id",
-                "name",
-                "resource",
-                "action",
-                "description"
-            ],
-            "properties": {
-                "id": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "resource": {
-                    "type": "string"
-                },
-                "action": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                }
-            }
-        },
-        "user": {
-            "type": "object",
-            "required": [
-                "id",
-                "name"
-            ],
-            "properties": {
-                "id": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
+    "data": { "$ref": "#/definitions/role" }
+  },
+  "definitions": {
+    "role": {
+      "type": "object",
+      "required": ["id", "name", "venue_id", "created_at", "updated_at", "permissions"],
+      "properties": {
+        "id": { "type": "integer" },
+        "name": { "type": "string" },
+        "venue_id": { "type": "integer" },
+        "created_at": { "type": "string" },
+        "updated_at": { "type": "string" },
+        "permissions": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/permission" }
         }
+      }
+    },
+    "permission": {
+      "type": "object",
+      "required": ["id", "resource", "action"],
+      "properties": {
+        "id": { "type": "integer" },
+        "resource": { "type": "string" },
+        "action": { "type": "string" }
+      }
     }
+  }
 }

@@ -1,239 +1,211 @@
-# # frozen_string_literal: true
+# frozen_string_literal: true
 
-# require 'rails_helper'
+require 'rails_helper'
 
-# RSpec.describe "DELETE /api/v0/roles/:id", type: :request do
-#   let(:headers) { { "Content-Type" => "application/json" } }
+RSpec.describe "DELETE /api/v0/roles/:id", type: :request do
+  # ==================================================
+  # SHARED TEST DATA SETUP
+  # ==================================================
+  let(:headers) { { "Content-Type" => "application/json" } }
 
-#   # Create system roles
-#   let(:owner_role) { create(:role, :owner) }
-#   let(:admin_role) { create(:role, :admin) }
-#   let(:receptionist_role) { create(:role, :receptionist) }
-#   let(:customer_role) { create(:role, :customer) }
+  let(:owner_user) { create(:user) }
+  let(:super_admin_user) { create(:user, :super_admin) }
+  let(:unrelated_user) { create(:user) }
+  let(:staff_user) { create(:user) }
 
-#   # Create test users
-#   let(:owner_user) { create(:user, email: "owner@example.com") }
-#   let(:admin_user) { create(:user, email: "admin@example.com") }
-#   let(:receptionist_user) { create(:user, email: "receptionist@example.com") }
-#   let(:customer_user) { create(:user, email: "customer@example.com") }
+  let!(:venue) { create(:venue, owner: owner_user) }
+  let!(:other_venue) { create(:venue) }
 
-#   # Create permissions for testing
-#   let(:create_bookings_permission) { create(:permission, :create_bookings) }
-#   let(:read_bookings_permission) { create(:permission, :read_bookings) }
-#   let(:manage_bookings_permission) { create(:permission, :manage_bookings) }
-#   let(:read_courts_permission) { create(:permission, :read_courts) }
+  let(:delete_roles_permission) { create(:permission, :delete_roles) }
+  let(:staff_role) { create(:role, name: "Staff Role", venue: venue) }
 
-#   before do
-#     # Assign roles to users
-#     owner_user.assign_role(owner_role)
-#     admin_user.assign_role(admin_role)
-#     receptionist_user.assign_role(receptionist_role)
-#     customer_user.assign_role(customer_role)
-#   end
+  before do
+    staff_role.permissions << delete_roles_permission
+    create(:venue_membership, user: staff_user, venue: venue, role: staff_role)
+  end
 
-#   let(:custom_role) { create(:role, :custom_role, name: "Role to Delete") }
-#   let(:role_id) { custom_role.id }
-#   let(:endpoint) { "/api/v0/roles/#{role_id}" }
-#   let(:request_headers) { headers }
+  # ==================================================
+  # ENDPOINT SETUP
+  # ==================================================
+  let(:role_id) { test_role.id }
+  let(:endpoint) { "/api/v0/roles/#{role_id}" }
+  let(:request_headers) { headers }
 
-#   # SUCCESS PATHS
-#   context "when authenticated as owner" do
-#       let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
+  # ==================================================
+  # SUCCESS PATHS
+  # ==================================================
 
-#       context "deleting a custom role with no users" do
-#         before do
-#           custom_role # Ensure role exists
-#           delete endpoint, headers: request_headers
-#         end
+  context "when authenticated as venue owner deleting a role with no memberships" do
+    let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
+    let!(:test_role) { create(:role, name: "Role To Delete", venue: venue) }
 
-#         it "returns success response" do
-#           expect(response).to have_http_status(:ok)
-#         end
+    before { delete endpoint, headers: request_headers }
 
-#         it "matches the destroy response schema" do
-#           expect(response).to match_json_schema("roles/destroy_response")
-#         end
+    it "returns success (200) status" do
+      expect(response).to have_http_status(:ok)
+    end
 
-#         it "deletes the role from database" do
-#           expect(Role.find_by(id: custom_role.id)).to be_nil
-#         end
+    it "returns success: true" do
+      expect(response.parsed_body["success"]).to be true
+    end
 
-#         it "returns success message" do
-#           data = response.parsed_body["data"]
-#           expect(data["message"]).to eq("Role deleted successfully")
-#         end
-#       end
+    it "matches the destroy response schema" do
+      expect(response).to match_json_schema("roles/destroy_response")
+    end
 
-#       context "deleting a custom role with permissions but no users" do
-#         before do
-#           custom_role.add_permission(create_bookings_permission)
-#           custom_role.add_permission(read_bookings_permission)
-#           delete endpoint, headers: request_headers
-#         end
+    it "returns a success message" do
+      data = response.parsed_body["data"]
+      expect(data["message"]).to eq("Role deleted successfully")
+    end
 
-#         it "deletes the role successfully" do
-#           expect(response).to have_http_status(:ok)
-#         end
+    it "removes the role from the database" do
+      expect(Role.find_by(id: test_role.id)).to be_nil
+    end
+  end
 
-#         it "removes the role from database" do
-#           expect(Role.find_by(id: custom_role.id)).to be_nil
-#         end
-#       end
-#     end
+  context "when deleting a role that has permissions but no memberships" do
+    let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
+    let!(:test_role) { create(:role, name: "Role With Perms", venue: venue) }
 
-#     # FAILURE PATHS
-#     context "when attempting to delete a role with assigned users" do
-#       let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
-#       let(:assigned_user) { create(:user, email: "assigned@example.com") }
+    before do
+      test_role.permissions << create(:permission, :read_bookings)
+      delete endpoint, headers: request_headers
+    end
 
-#       before do
-#         assigned_user.assign_role(custom_role)
-#         delete endpoint, headers: request_headers
-#       end
+    it "returns success (200) status" do
+      expect(response).to have_http_status(:ok)
+    end
 
-#       it "returns unprocessable entity status" do
-#         expect(response).to have_http_status(:unprocessable_entity)
-#       end
+    it "removes the role from the database" do
+      expect(Role.find_by(id: test_role.id)).to be_nil
+    end
+  end
 
-#       it "matches error response schema" do
-#         expect(response).to match_json_schema("error_response")
-#       end
+  context "when authenticated as super admin" do
+    let(:request_headers) { headers.merge("Authorization" => auth_token_for(super_admin_user)) }
+    let!(:test_role) { create(:role, name: "Admin Deleted Role", venue: venue) }
 
-#       it "includes appropriate error message" do
-#         errors = response.parsed_body["errors"]
-#         error_text = errors.is_a?(Hash) ? errors["error"] : errors
-#         expect(error_text).to match(/Cannot delete role with assigned users/i)
-#       end
+    before { delete endpoint, headers: request_headers }
 
-#       it "does not delete the role" do
-#         expect(Role.find_by(id: custom_role.id)).to be_present
-#       end
+    it "returns success (200) status" do
+      expect(response).to have_http_status(:ok)
+    end
 
-#       it "keeps the role-user association intact" do
-#         custom_role.reload
-#         expect(custom_role.users.count).to eq(1)
-#       end
-#     end
+    it "removes the role from the database" do
+      expect(Role.find_by(id: test_role.id)).to be_nil
+    end
+  end
 
-#     context "when attempting to delete a system role" do
-#       let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
-#       let(:role_id) { owner_role.id }
+  context "when authenticated as staff with delete permission on roles" do
+    let(:request_headers) { headers.merge("Authorization" => auth_token_for(staff_user)) }
+    let!(:test_role) { create(:role, name: "Staff Deleted Role", venue: venue) }
 
-#       before do
-#         delete endpoint, headers: request_headers
-#       end
+    before { delete endpoint, headers: request_headers }
 
+    it "returns success (200) status" do
+      expect(response).to have_http_status(:ok)
+    end
+  end
 
-#       it "returns forbidden status" do
-#         expect(response).to have_http_status(:forbidden)
-#       end
+  # ==================================================
+  # FAILURE PATHS
+  # ==================================================
 
-#       it "does not delete the system role" do
-#         expect(Role.find_by(id: owner_role.id)).to be_present
-#       end
-#     end
+  context "when role has active venue memberships" do
+    let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
+    let!(:test_role) { create(:role, name: "Role With Members", venue: venue) }
+    let(:assigned_user) { create(:user) }
 
-#     context "when role does not exist" do
-#       let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
-#       let(:role_id) { 99999 }
+    before do
+      create(:venue_membership, user: assigned_user, venue: venue, role: test_role)
+      delete endpoint, headers: request_headers
+    end
 
-#       before do
-#         delete endpoint, headers: request_headers
-#       end
+    it "returns unprocessable entity (422) status" do
+      expect(response).to have_http_status(:unprocessable_entity)
+    end
 
-#       before do
-#         delete endpoint, headers: request_headers
-#       end
+    it "keeps the role in the database" do
+      expect(Role.find_by(id: test_role.id)).to be_present
+    end
 
+    it "matches the error response schema" do
+      expect(response).to match_json_schema("error_response")
+    end
 
-#       it "returns unprocessable entity status" do
-#         expect(response).to have_http_status(:unprocessable_entity)
-#       end
+    it "returns an appropriate error message" do
+      expect(response.parsed_body["errors"]).to be_present
+    end
+  end
 
-#       it "returns error response" do
-#         expect(response.parsed_body["success"]).to be false
-#       end
-#     end
+  context "when role belongs to a different venue" do
+    let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
+    let!(:other_role) { create(:role, name: "Other Venue Role", venue: other_venue) }
+    let(:role_id) { other_role.id }
 
-#     context "when role_id is invalid format" do
-#       let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
-#       let(:role_id) { "invalid-id" }
+    before { delete endpoint, headers: request_headers }
 
-#       before do
-#         delete endpoint, headers: request_headers
-#       end
+    it "returns forbidden (403) status" do
+      expect(response).to have_http_status(:forbidden)
+    end
 
+    it "keeps the role in the database" do
+      expect(Role.find_by(id: other_role.id)).to be_present
+    end
+  end
 
-#       it "returns unprocessable entity status" do
-#         expect(response).to have_http_status(:unprocessable_entity)
-#       end
-#     end
+  context "when role does not exist" do
+    let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
+    let(:role_id) { 999999 }
 
-#     context "when authenticated as admin (insufficient permissions)" do
-#       let(:request_headers) { headers.merge("Authorization" => auth_token_for(admin_user)) }
+    before { delete endpoint, headers: request_headers }
 
-#       before do
-#         custom_role # Ensure role exists
-#         delete endpoint, headers: request_headers
-#       end
+    it "returns not found (404) status" do
+      expect(response).to have_http_status(:not_found)
+    end
 
-#       it "returns forbidden status" do
-#         expect(response).to have_http_status(:forbidden)
-#       end
+    it "matches the error response schema" do
+      expect(response).to match_json_schema("error_response")
+    end
+  end
 
-#       it "does not delete the role" do
-#         expect(Role.find_by(id: custom_role.id)).to be_present
-#       end
-#     end
+  context "when role id is non-numeric" do
+    let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
+    let(:role_id) { "invalid-id" }
 
-#     context "when authenticated as receptionist" do
-#       let(:request_headers) { headers.merge("Authorization" => auth_token_for(receptionist_user)) }
+    before { delete endpoint, headers: request_headers }
 
-#       before do
-#         custom_role # Ensure role exists
-#         delete endpoint, headers: request_headers
-#       end
+    it "returns not found (404) status" do
+      expect(response).to have_http_status(:not_found)
+    end
+  end
 
-#       it "returns forbidden status" do
-#         expect(response).to have_http_status(:forbidden)
-#       end
+  context "when authenticated as unrelated user" do
+    let(:request_headers) { headers.merge("Authorization" => auth_token_for(unrelated_user)) }
+    let!(:test_role) { create(:role, name: "Protected Role", venue: venue) }
 
-#       it "does not delete the role" do
-#         expect(Role.find_by(id: custom_role.id)).to be_present
-#       end
-#     end
+    before { delete endpoint, headers: request_headers }
 
-#     context "when not authenticated" do
-#       let(:request_headers) { headers }
+    it "returns forbidden (403) status" do
+      expect(response).to have_http_status(:forbidden)
+    end
 
-#       before do
-#         custom_role # Ensure role exists
-#         delete endpoint, headers: request_headers
-#       end
+    it "keeps the role in the database" do
+      expect(Role.find_by(id: test_role.id)).to be_present
+    end
+  end
 
-#       it "returns forbidden status" do
-#         expect(response).to have_http_status(:forbidden)
-#       end
+  context "when not authenticated" do
+    let!(:test_role) { create(:role, name: "Unauthenticated Role", venue: venue) }
 
-#       it "does not delete the role" do
-#         expect(Role.find_by(id: custom_role.id)).to be_present
-#       end
-#     end
+    before { delete endpoint, headers: headers }
 
-#     context "when authenticated with invalid token" do
-#       let(:request_headers) { headers.merge("Authorization" => "Bearer invalid_token") }
+    it "returns unauthorized (401) status" do
+      expect(response).to have_http_status(:unauthorized)
+    end
 
-#       before do
-#         custom_role # Ensure role exists
-#         delete endpoint, headers: request_headers
-#       end
-
-#       it "returns unauthorized status" do
-#         expect(response).to have_http_status(:forbidden)
-#       end
-
-#       it "does not delete the role" do
-#         expect(Role.find_by(id: custom_role.id)).to be_present
-#       end
-#     end
-#   end
+    it "keeps the role in the database" do
+      expect(Role.find_by(id: test_role.id)).to be_present
+    end
+  end
+end
