@@ -33,6 +33,10 @@ namespace :api do
       member do
         get :availability
       end
+
+      collection do
+        get :search
+      end
     end
     resources :courts, only: API_ONLY_ROUTES
     resources :pricing_rules, only: API_ONLY_ROUTES

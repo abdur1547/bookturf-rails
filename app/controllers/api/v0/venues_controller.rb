@@ -56,6 +56,47 @@ module Api::V0
       handle_operation_response(result)
     end
 
+    api :GET, "/venues/search", "List all active venues, public endpoint, no authentication required"
+    description "Returns a paginated list of venues visible to the public. Defaults to active venues only. No authentication required."
+    param :page, Integer, required: false, desc: "Page number (default: 1)"
+    param :per_page, Integer, required: false, desc: "Results per page, max 100 (default: 10)"
+    param :city, String, required: false, desc: "Filter by city (exact match)"
+    param :state, String, required: false, desc: "Filter by state (exact match)"
+    param :country, String, required: false, desc: "Filter by country (exact match)"
+    param :is_active, :bool, required: false, desc: "Filter by active status (default: true)"
+    param :search, String, required: false, desc: "Full-text search across name, address, city, description"
+    param :sort_by, %w[name city created_at], required: false, desc: "Sort field (default: name)"
+    param :sort_direction, %w[asc desc], required: false, desc: "Sort direction (default: asc)"
+    returns code: 200, desc: "List of venues" do
+      property :success, [ true ]
+      property :data, Array, desc: "Array of venue objects (list view)" do
+        property :id, Integer
+        property :name, String
+        property :slug, String
+        property :description, String, required: false
+        property :address, String
+        property :city, String
+        property :state, String
+        property :country, String
+        property :postal_code, String, required: false
+        property :phone_number, String, required: false
+        property :email, String, required: false
+        property :timezone, String, required: false, description: "default to 'Asia/Karachi'"
+        property :currency, String, required: false, description: "default to 'PKR'"
+        property :is_active, :bool, required: false, description: "Whether the venue is publicly visible, default: true"
+        property :latitude, Float, required: false
+        property :longitude, Float, required: false
+        property :google_maps_url, String, required: false, description: "if lat/lng are present, a Google Maps link is generated"
+        property :courts_count, Integer
+        property :created_at, String, desc: "ISO 8601 creation timestamp"
+      end
+    end
+    def search
+      result = Api::V0::Venues::SearchVenuesOperation.call(params.to_unsafe_h, current_user)
+
+      handle_operation_response(result)
+    end
+
     api :GET, "/venues/:id", "Retrieve a single venue with full details"
     param :id, String, required: true, desc: "Venue ID or slug"
     returns code: 200, desc: "Venue details" do
