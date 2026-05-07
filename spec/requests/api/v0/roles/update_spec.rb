@@ -90,7 +90,7 @@ RSpec.describe "PATCH /api/v0/roles/:id", type: :request do
   context "when updating permissions only" do
     let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
     let(:updated_name) { nil }
-    let(:updated_permission_ids) { [perm2.id] }
+    let(:updated_permission_ids) { [ perm2.id ] }
 
     it "returns success (200) status" do
       expect(response).to have_http_status(:ok)
@@ -98,7 +98,7 @@ RSpec.describe "PATCH /api/v0/roles/:id", type: :request do
 
     it "syncs permissions to the new set" do
       test_role.reload
-      expect(test_role.permissions.pluck(:id)).to eq([perm2.id])
+      expect(test_role.permissions.pluck(:id)).to eq([ perm2.id ])
     end
 
     it "removes old permissions not in the new list" do
@@ -108,7 +108,7 @@ RSpec.describe "PATCH /api/v0/roles/:id", type: :request do
 
     it "returns updated permissions in response" do
       data = response.parsed_body["data"]
-      expect(data["permissions"].map { |p| p["id"] }).to eq([perm2.id])
+      expect(data["permissions"].map { |p| p["id"] }).to eq([ perm2.id ])
     end
   end
 
@@ -129,7 +129,7 @@ RSpec.describe "PATCH /api/v0/roles/:id", type: :request do
 
   context "when updating both name and permissions" do
     let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
-    let(:updated_permission_ids) { [perm1.id, perm2.id] }
+    let(:updated_permission_ids) { [ perm1.id, perm2.id ] }
 
     it "returns success (200) status" do
       expect(response).to have_http_status(:ok)
@@ -138,7 +138,7 @@ RSpec.describe "PATCH /api/v0/roles/:id", type: :request do
     it "updates both name and permissions" do
       test_role.reload
       expect(test_role.name).to eq("Updated Role Name")
-      expect(test_role.permissions.pluck(:id)).to match_array([perm1.id, perm2.id])
+      expect(test_role.permissions.pluck(:id)).to match_array([ perm1.id, perm2.id ])
     end
   end
 
@@ -201,7 +201,7 @@ RSpec.describe "PATCH /api/v0/roles/:id", type: :request do
   context "when permission_ids contains invalid IDs" do
     let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
     let(:updated_name) { nil }
-    let(:updated_permission_ids) { [99999] }
+    let(:updated_permission_ids) { [ 99999 ] }
 
     it "returns unprocessable entity (422) status" do
       expect(response).to have_http_status(:unprocessable_entity)

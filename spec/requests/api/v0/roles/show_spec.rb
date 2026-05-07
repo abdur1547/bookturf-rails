@@ -79,7 +79,7 @@ RSpec.describe "GET /api/v0/roles/:id", type: :request do
     end
 
     context "with permissions assigned" do
-      let(:permissions_to_add) { [role_permission] }
+      let(:permissions_to_add) { [ role_permission ] }
 
       it "includes associated permissions" do
         data = response.parsed_body["data"]

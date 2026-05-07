@@ -31,7 +31,7 @@ RSpec.describe "POST /api/v0/roles", type: :request do
   # ==================================================
   let(:endpoint) { "/api/v0/roles" }
   let(:role_name) { "Court Manager" }
-  let(:permission_ids) { [perm1.id, perm2.id] }
+  let(:permission_ids) { [ perm1.id, perm2.id ] }
 
   let(:request_params) do
     {
@@ -80,7 +80,7 @@ RSpec.describe "POST /api/v0/roles", type: :request do
     it "assigns the specified permissions to the role" do
       data = response.parsed_body["data"]
       returned_ids = data["permissions"].map { |p| p["id"] }
-      expect(returned_ids).to match_array([perm1.id, perm2.id])
+      expect(returned_ids).to match_array([ perm1.id, perm2.id ])
     end
 
     it "persists the role to the database" do
@@ -193,7 +193,7 @@ RSpec.describe "POST /api/v0/roles", type: :request do
 
   context "when permission_ids contains invalid IDs" do
     let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
-    let(:permission_ids) { [99999, 88888] }
+    let(:permission_ids) { [ 99999, 88888 ] }
 
     it "returns unprocessable entity (422) status" do
       expect(response).to have_http_status(:unprocessable_entity)

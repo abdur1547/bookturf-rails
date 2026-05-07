@@ -22,7 +22,7 @@ module Api::V0::Roles
       update_params = { name: params[:name], permission_ids: params[:permission_ids] }.compact
 
       if update_params[:permission_ids].present?
-        return Failure(errors: { permission_ids: ["contains invalid or non-existent IDs"] }) unless valid_permission_ids?(update_params[:permission_ids])
+        return Failure(errors: { permission_ids: [ "contains invalid or non-existent IDs" ] }) unless valid_permission_ids?(update_params[:permission_ids])
       end
 
       result = Roles::UpdateService.call(
