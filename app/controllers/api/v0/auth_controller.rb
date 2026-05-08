@@ -17,6 +17,37 @@ module Api::V0
     end
 
     api :POST, "/auth/signup", "Register a new user account"
+    description <<~DESC
+      Input — TS type
+
+        {
+          full_name: string;   // required
+          email: string;       // required, must be unique
+          password: string;    // required, minimum 6 characters
+        }
+
+      Output — TS type
+
+        type User = {
+          id: number;
+          full_name: string;
+          email: string;
+          avatar_url: string | null;
+          phone_number: string | null;
+          system_role: 'normal' | 'super_admin';
+          created_at: string;  // ISO 8601
+          updated_at: string;  // ISO 8601
+        };
+
+        {
+          success: true;
+          data: {
+            access_token: string;   // "Bearer <jwt>"
+            refresh_token: string;
+            user: User;
+          };
+        }
+    DESC
     param :full_name, String, required: true, desc: "User's full name"
     param :email, String, required: true, desc: "Unique email address"
     param :password, String, required: true, desc: "Password (minimum 6 characters)"
@@ -41,6 +72,36 @@ module Api::V0
     end
 
     api :POST, "/auth/signin", "Authenticate with email and password"
+    description <<~DESC
+      Input — TS type
+
+        {
+          email: string;     // required
+          password: string;  // required
+        }
+
+      Output — TS type
+
+        type User = {
+          id: number;
+          full_name: string;
+          email: string;
+          avatar_url: string | null;
+          phone_number: string | null;
+          system_role: 'normal' | 'super_admin';
+          created_at: string;  // ISO 8601
+          updated_at: string;  // ISO 8601
+        };
+
+        {
+          success: true;
+          data: {
+            access_token: string;   // "Bearer <jwt>"
+            refresh_token: string;
+            user: User;
+          };
+        }
+    DESC
     param :email, String, required: true, desc: "Registered email address"
     param :password, String, required: true, desc: "Account password"
     returns code: 200, desc: "Authenticated successfully" do
@@ -67,6 +128,22 @@ module Api::V0
     description <<~DESC
       The refresh token is read from the `refresh_token` cookie automatically.
       You may also pass it explicitly in the request body as a fallback.
+
+      Input — TS type
+
+        {
+          refresh_token?: string;  // optional, falls back to cookie
+        }
+
+      Output — TS type
+
+        {
+          success: true;
+          data: {
+            access_token: string;   // "Bearer <jwt>"
+            refresh_token: string;
+          };
+        }
     DESC
     param :refresh_token, String, required: false, desc: "Refresh token (falls back to cookie)"
     returns code: 200, desc: "Tokens refreshed successfully" do
@@ -89,6 +166,20 @@ module Api::V0
     end
 
     api :DELETE, "/auth/signout", "Invalidate the current session and clear auth cookies"
+    description <<~DESC
+      Input — TS type
+
+        // No request body. Authorization header required.
+
+      Output — TS type
+
+        {
+          success: true;
+          data: {
+            message: string;  // e.g. "Signed out successfully"
+          };
+        }
+    DESC
     header "Authorization", "Bearer <access_token>", required: true
     returns code: 200, desc: "Signed out successfully" do
       property :success, [ true ], desc: "Always true on success"
@@ -114,6 +205,21 @@ module Api::V0
     description <<~DESC
       Always returns a success response regardless of whether the email exists,
       to prevent user enumeration attacks.
+
+      Input — TS type
+
+        {
+          email: string;  // required
+        }
+
+      Output — TS type
+
+        {
+          success: true;
+          data: {
+            message: string;  // generic confirmation, same whether email exists or not
+          };
+        }
     DESC
     param :email, String, required: true, desc: "Email address of the account to reset"
     returns code: 200, desc: "Reset email dispatched (or silently skipped if account not found)" do
@@ -132,6 +238,24 @@ module Api::V0
     end
 
     api :POST, "/auth/verify_reset_otp", "Verify OTP and set a new password"
+    description <<~DESC
+      Input — TS type
+
+        {
+          email: string;     // required
+          otp_code: string;  // required, 6-digit code received via email
+          password: string;  // required, new password (minimum 6 characters)
+        }
+
+      Output — TS type
+
+        {
+          success: true;
+          data: {
+            message: string;  // e.g. "Password reset successfully"
+          };
+        }
+    DESC
     param :email, String, required: true, desc: "Email address of the account"
     param :otp_code, String, required: true, desc: "6-digit OTP code received via email"
     param :password, String, required: true, desc: "New password (minimum 6 characters)"
@@ -148,6 +272,56 @@ module Api::V0
         success_response(result.value)
       else
         unprocessable_entity(result.errors)
+      end
+    end
+
+    api :POST, "/auth/session", "Return the currently authenticated user"
+    description <<~DESC
+      Use this endpoint to hydrate the frontend session on app load.
+      Reads the Authorization header to identify the caller.
+
+      Input — TS type
+
+        // No request body. Authorization header required.
+
+      Output — TS type
+
+        type User = {
+          id: number;
+          full_name: string;
+          email: string;
+          avatar_url: string | null;
+          phone_number: string | null;
+          system_role: 'normal' | 'super_admin';
+          created_at: string;  // ISO 8601
+          updated_at: string;  // ISO 8601
+        };
+
+        {
+          success: true;
+          data: User;
+        }
+    DESC
+    header "Authorization", "Bearer <access_token>", required: true
+    returns code: 200, desc: "Authenticated user" do
+      property :success, [ true ], desc: "Always true on success"
+      property :data, Hash, desc: "User object" do
+        property :id, Integer
+        property :full_name, String
+        property :email, String
+        property :avatar_url, String, required: false
+        property :phone_number, String, required: false
+        property :system_role, String, desc: "'normal' or 'super_admin'"
+        property :created_at, String, desc: "ISO 8601 timestamp"
+        property :updated_at, String, desc: "ISO 8601 timestamp"
+      end
+    end
+    error code: 401, desc: "Not authenticated or token invalid/expired"
+    def session
+      if current_user
+        success_response(Api::V0::UserBlueprint.render_as_hash(current_user))
+      else
+        unauthenticated_response
       end
     end
 

@@ -270,6 +270,34 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "7. Session",
+          "id": "507209b8-1719-47fa-be6e-d821e0f1cc94",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{api_v0_base_url}}/auth/session",
+              "host": [
+                "{{api_v0_base_url}}"
+              ],
+              "path": [
+                "auth",
+                "session"
+              ]
+            }
+          },
+          "response": []
         }
       ],
       "id": "2164c6b9-f7bb-40ec-9145-52620aef8d43"
