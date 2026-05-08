@@ -49,9 +49,9 @@ module Api::V0
       DESC
     end
 
-    api :GET, "/venues", "List all active venues for current logged-in weather user is staff member with view permissions or owner"
+    api :GET, "/venues", "List all active + inactive venues for current logged-in weather user is staff member with view permissions or owner"
     description <<~DESC
-      Returns a paginated list of venues. Defaults to active venues only.
+      Returns a paginated list of venues. Defaults to all active + inactive venues.
 
       Query Params — TS type
 
@@ -60,7 +60,7 @@ module Api::V0
         city?: string | null;
         state?: string | null;
         country?: string | null;
-        is_active?: boolean | null;       // default: true
+        is_active?: boolean | null;       // default: null (no filter, return both active and inactive)
         search?: string | null;           // searches name, address, city, description
         sort_by?:
           | 'id' | 'address' | 'city' | 'country' | 'created_at' | 'currency'
@@ -75,7 +75,7 @@ module Api::V0
     param :city, String, required: false, desc: "Filter by city (exact match)"
     param :state, String, required: false, desc: "Filter by state (exact match)"
     param :country, String, required: false, desc: "Filter by country (exact match)"
-    param :is_active, :bool, required: false, desc: "Filter by active status (default: true)"
+    param :is_active, :bool, required: false, desc: "Filter by active status (default: null)"
     param :search, String, required: false, desc: "Full-text search across name, address, city, description"
     param :sort, %w[name city created_at], required: false, desc: "Sort field (default: name)"
     param :order, %w[asc desc], required: false, desc: "Sort direction (default: asc)"

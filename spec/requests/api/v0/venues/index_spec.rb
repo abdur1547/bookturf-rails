@@ -77,7 +77,7 @@ RSpec.describe "GET /api/v0/venues", type: :request do
       expect(response).to match_json_schema("venues/index_response")
     end
 
-    it "returns only their own active venues" do
+    it "returns only their own venues" do
       data = response.parsed_body["data"]
       expect(data.length).to eq(1)
       expect(data.first["name"]).to eq("Alpha Sports Arena")
@@ -394,8 +394,11 @@ RSpec.describe "GET /api/v0/venues", type: :request do
       expect(response).to have_http_status(:ok)
     end
 
-    it "returns empty list by default (inactive venue excluded by default active filter)" do
-      expect(response.parsed_body["data"]).to eq([])
+    it "returns their inactive venue by default (no active filter applied)" do
+      data = response.parsed_body["data"]
+      expect(data.length).to eq(1)
+      expect(data.first["name"]).to eq("Gamma Fitness Center")
+      expect(data.first["is_active"]).to be false
     end
 
     context "when filtering by is_active=false" do

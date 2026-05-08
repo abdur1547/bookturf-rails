@@ -48,8 +48,6 @@ module Api::V0::Venues
         elsif params[:is_active] == false || params[:is_active] == "false"
           @venues = venues.inactive
         end
-      else
-        @venues = venues.active
       end
 
       @venues = venues.where(city: params[:city]) if params[:city].present?
