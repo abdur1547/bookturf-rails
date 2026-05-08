@@ -11,7 +11,7 @@ namespace :api do
       delete :signout, to: "auth#signout"
       post :reset_password, to: "auth#reset_password"
       post :verify_reset_otp, to: "auth#verify_reset_otp"
-      post :session, to: "auth#session"
+      get :session, to: "auth#session"
     end
 
     resources :staffs, only: API_ONLY_ROUTES

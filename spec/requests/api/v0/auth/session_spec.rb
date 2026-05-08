@@ -7,16 +7,16 @@ RSpec.describe "Api::V0::Auth::Session", type: :request do
   let(:user) { create(:user) }
 
   # ==================================================
-  # POST /api/v0/auth/session
+  # GET /api/v0/auth/session
   # ==================================================
-  describe "POST /api/v0/auth/session" do
+  describe "GET /api/v0/auth/session" do
     let(:endpoint) { "/api/v0/auth/session" }
     let(:request_headers) { headers }
     let(:setup) { nil }
 
     before do
       setup
-      post endpoint, headers: request_headers
+      get endpoint, headers: request_headers
     end
 
     # SUCCESS PATHS

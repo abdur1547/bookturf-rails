@@ -275,7 +275,7 @@ module Api::V0
       end
     end
 
-    api :POST, "/auth/session", "Return the currently authenticated user"
+    api :GET, "/auth/session", "Return the currently authenticated user"
     description <<~DESC
       Use this endpoint to hydrate the frontend session on app load.
       Reads the Authorization header to identify the caller.
