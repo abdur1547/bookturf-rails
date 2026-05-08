@@ -21,7 +21,7 @@ module Api::V0::Venues
       @current_user = current_user
 
       @venues = current_user.owned_and_member_venues
-      return Failure(:not_found) if venues.empty?
+      return Success(venues: [], json: {}) if venues.empty?
       return Failure(:forbidden) unless authorize?
       @venues = filter_venues(params)
       @venues = search_venues(params[:search]) if params[:search].present?

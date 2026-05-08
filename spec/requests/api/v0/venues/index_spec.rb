@@ -494,7 +494,7 @@ RSpec.describe "GET /api/v0/venues", type: :request do
     let(:request_headers) { headers.merge("Authorization" => auth_token_for(unaffiliated_user)) }
 
     it "returns not found" do
-      expect(response).to have_http_status(:not_found)
+      expect(response).to be_ok
     end
   end
 end
