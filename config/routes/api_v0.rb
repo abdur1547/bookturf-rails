@@ -25,7 +25,11 @@ namespace :api do
         get :search
       end
     end
-    resources :courts, only: API_ONLY_ROUTES
+    resources :courts, only: API_ONLY_ROUTES do
+      collection do
+        get :search
+      end
+    end
     resources :pricing_rules, only: API_ONLY_ROUTES
 
     resources :bookings, only: API_ONLY_ROUTES do

@@ -2,11 +2,13 @@
 
 class CourtPolicy < ApplicationPolicy
   def index?
-    true
+    return false unless user.present?
+
+    user.super_admin? || venue_owner? || staff_have_permission?("read")
   end
 
   def show?
-    true
+    index?
   end
 
   def create?

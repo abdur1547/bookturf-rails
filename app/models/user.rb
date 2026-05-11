@@ -8,6 +8,7 @@ class User < ApplicationRecord
 
   has_many :venue_memberships, dependent: :destroy
   has_many :venues, through: :venue_memberships
+  has_many :courts, through: :venues
 
   has_many :owned_venues, class_name: "Venue", foreign_key: "owner_id", dependent: :restrict_with_error
 
@@ -36,6 +37,12 @@ class User < ApplicationRecord
 
   def owned_and_member_venues
     Venue.where("owner_id = :user_id OR id IN (SELECT venue_id FROM venue_memberships WHERE user_id = :user_id)", user_id: id)
+  end
+
+  def owned_and_member_courts
+    Court.joins(:venue)
+         .joins("LEFT OUTER JOIN venue_memberships ON venue_memberships.venue_id = venues.id")
+         .where("venue_memberships.user_id = :user_id OR venues.owner_id = :user_id", user_id: id)
   end
 
   def self.from_omniauth(auth)

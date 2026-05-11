@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Api::V0::Courts
-  class ListCourtsOperation < BaseOperation
+  class SearchCourtsOperation < BaseOperation
     contract do
       params do
         optional(:page).maybe(:integer, gt?: 0)
@@ -20,9 +20,7 @@ module Api::V0::Courts
       @params = params
       @current_user = current_user
 
-      @courts = current_user.owned_and_member_courts.includes(:pricing_rules, :court_type).distinct
-      return Success(courts: [], json: []) if @courts.empty?
-      return Failure(:forbidden) unless authorize?
+      @courts = Court.includes(:court_type, :venue, :pricing_rules).all
 
       # Apply filters
       @courts = @courts.where(venue_id: params[:venue_id]) if params[:venue_id].present?
@@ -45,10 +43,6 @@ module Api::V0::Courts
     private
 
     attr_reader :params, :current_user, :courts
-
-    def authorize?
-      CourtPolicy.new(current_user, courts.first).index?
-    end
 
     def search_courts(courts, query)
       courts.joins(:venue).where(

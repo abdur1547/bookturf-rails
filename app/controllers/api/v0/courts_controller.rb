@@ -2,7 +2,7 @@
 
 module Api::V0
   class CourtsController < ApiController
-    skip_before_action :authenticate_user!, only: %i[index show]
+    skip_before_action :authenticate_user!, only: %i[show search]
 
     resource_description do
       resource_id "Courts"
@@ -51,9 +51,9 @@ module Api::V0
       DESC
     end
 
-    api :GET, "/courts", "List courts with optional filtering, sorting, and pagination"
+    api :GET, "/courts", "List all active + inactive courts for current logged-in user if they are a staff member with view permissions or owner"
     description <<~DESC
-      Public endpoint — no authentication required. Returns all courts by default.
+      Private endpoint — authentication required. Returns all courts of current user by default.
       Use `is_active` to restrict by active/inactive status. Supports filtering by
       venue, court type, and city, free-text search, sorting by any court column,
       and offset-based pagination.
@@ -107,6 +107,66 @@ module Api::V0
     error code: 422, desc: "Invalid query parameter (e.g. unrecognised sort field, invalid order direction, page or per_page ≤ 0)"
     def index
       result = Api::V0::Courts::ListCourtsOperation.call(params.to_unsafe_h, current_user)
+
+      handle_operation_response(result)
+    end
+
+    api :GET, "/courts/search", "Search courts across all venues with optional filters and pagination, public endpoint"
+    description <<~DESC
+      Public endpoint — no authentication required. Returns all courts by default.
+      Use `is_active` to restrict by active/inactive status. Supports filtering by
+      venue, court type, and city, free-text search, sorting by any court column,
+      and offset-based pagination.
+
+      Query Params — TS type
+
+        page?: number | null;             // default: 1
+        per_page?: number | null;         // default: 10, max: 100
+        venue_id?: number | null;
+        court_type_id?: number | null;
+        city?: string | null;
+        is_active?: boolean | null;       // omitting returns all courts
+        search?: string | null;           // searches name, description, venue name
+        sort?: string | null;             // valid court column name, default: 'name'
+        order?: 'asc' | 'desc' | null;   // default: 'asc'
+    DESC
+    param :venue_id, Integer, required: false, desc: "Filter by parent venue ID"
+    param :court_type_id, Integer, required: false, desc: "Filter by court type ID"
+    param :city, String, required: false, desc: "Filter by city name of the parent venue"
+    param :is_active, :bool, required: false, desc: "Filter by active status; omitting returns all courts"
+    param :search, String, required: false, desc: "Search term matched against court name, description, or venue name"
+    param :sort, String, required: false, desc: "Column to sort by (must be a valid court column name; defaults to name)"
+    param :order, String, required: false, desc: "Sort direction: asc or desc (default: asc)"
+    param :page, Integer, required: false, desc: "Page number, must be greater than 0 (default: 1)"
+    param :per_page, Integer, required: false, desc: "Results per page, 1–100, must be greater than 0 (default: 10)"
+    returns code: 200, desc: "Courts retrieved successfully" do
+      property :success, [ true ], desc: "Always true on success"
+      property :data, Array, desc: "Array of court objects" do
+        property :id, Integer
+        property :name, String
+        property :description, String, required: false
+        property :court_type_id, Integer
+        property :venue_id, Integer
+        property :slot_interval, Integer, desc: "Booking slot duration in minutes"
+        property :requires_approval, :bool
+        property :is_active, :bool
+        property :court_type_name, String, required: false
+        property :venue_name, String, required: false
+        property :city, String, required: false
+        property :price_range, Hash do
+          property :min, Float
+          property :max, Float
+        end
+        property :images, Array do
+          property :id, Integer
+          property :url, String
+        end
+        property :pricing_rules, Array, desc: "Pricing rules for this court"
+      end
+    end
+    error code: 422, desc: "Invalid query parameter (e.g. unrecognised sort field, invalid order direction, page or per_page ≤ 0)"
+    def search
+      result = Api::V0::Courts::SearchCourtsOperation.call(params.to_unsafe_h, current_user)
 
       handle_operation_response(result)
     end

@@ -2,16 +2,14 @@
 
 require 'rails_helper'
 
-RSpec.describe "GET /api/v0/courts", type: :request do
+RSpec.describe "GET /api/v0/courts/search", type: :request do
   # ==================================================
   # SHARED TEST DATA SETUP
   # ==================================================
   let(:headers) { { "Content-Type" => "application/json" } }
 
   let(:owner_user) { create(:user, email: "owner@example.com") }
-  let(:super_admin_user) { create(:user, :super_admin, email: "admin@example.com") }
-  let(:customer_user) { create(:user, email: "customer@example.com") }
-  let(:staff_user) { create(:user, email: "staff@example.com") }
+  let(:other_owner) { create(:user, email: "other_owner@example.com") }
 
   let!(:court_type_badminton) { create(:court_type, name: "Badminton", slug: "badminton") }
   let!(:court_type_cricket) { create(:court_type, name: "Cricket", slug: "cricket") }
@@ -20,102 +18,48 @@ RSpec.describe "GET /api/v0/courts", type: :request do
     create(:venue, name: "Alpha Arena", city: "Karachi", is_active: true, owner: owner_user)
   end
   let!(:venue_lahore) do
-    create(:venue, name: "Beta Complex", city: "Lahore", is_active: true, owner: super_admin_user)
+    create(:venue, name: "Beta Complex", city: "Lahore", is_active: true, owner: other_owner)
   end
 
-  # owner_user's courts (venue_karachi)
-  let!(:court_alpha) do
+  let!(:court_active_1) do
     create(:court, venue: venue_karachi, court_type: court_type_badminton,
                    name: "Court Alpha", is_active: true)
   end
-  let!(:court_beta) do
-    create(:court, venue: venue_karachi, court_type: court_type_cricket,
+  let!(:court_active_2) do
+    create(:court, venue: venue_lahore, court_type: court_type_cricket,
                    name: "Court Beta", is_active: true)
   end
-  let!(:court_gamma) do
+  let!(:court_inactive) do
     create(:court, venue: venue_karachi, court_type: court_type_badminton,
                    name: "Court Gamma", is_active: false)
   end
 
-  # super_admin_user's court (venue_lahore) — should NOT be visible to owner_user
-  let!(:court_lahore) do
-    create(:court, venue: venue_lahore, court_type: court_type_cricket,
-                   name: "Court Lahore", is_active: true)
-  end
-
-  let(:read_courts_permission) { create(:permission, :read_courts) }
-  let(:staff_role_with_perm) { create(:role, name: "Staff Role With Perm", venue: venue_karachi) }
-  let(:staff_role_without_perm) { create(:role, name: "Staff Role No Perm", venue: venue_karachi) }
-
   # ==================================================
   # ENDPOINT AND PARAMETER SETUP
   # ==================================================
-  let(:endpoint) { "/api/v0/courts" }
+  let(:endpoint) { "/api/v0/courts/search" }
   let(:query_params) { {} }
   let(:request_headers) { headers }
 
-  # Sentinel let — overridden in contexts that need DB setup before the request fires
-  let(:pre_setup) { nil }
-
   before do
-    pre_setup
     params_string = query_params.present? ? "?#{query_params.to_query}" : ""
     get "#{endpoint}#{params_string}", headers: request_headers
   end
 
   # ==================================================
-  # FAILURE PATHS — Authentication
+  # SUCCESS PATHS — Public access (no auth required)
   # ==================================================
 
-  context "when not authenticated" do
-    it "returns unauthorized (401) status" do
-      expect(response).to have_http_status(:unauthorized)
-    end
-
-    it "returns success: false" do
-      expect(response.parsed_body["success"]).to be false
-    end
-
-    it "matches the error response schema" do
-      expect(response).to match_json_schema("error_response")
-    end
-  end
-
-  context "when authenticated with an invalid token" do
-    let(:request_headers) { headers.merge("Authorization" => "Bearer invalid.token.xyz") }
-
-    it "returns unauthorized (401) status" do
-      expect(response).to have_http_status(:unauthorized)
-    end
-
-    it "returns success: false" do
-      expect(response.parsed_body["success"]).to be false
-    end
-
-    it "matches the error response schema" do
-      expect(response).to match_json_schema("error_response")
-    end
-  end
-
-  # ==================================================
-  # SUCCESS PATHS — Owner
-  # ==================================================
-
-  context "when authenticated as venue owner" do
-    let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
+  context "when not authenticated (public access)" do
+    let(:request_headers) { headers }
 
     it "returns success (200) status" do
       expect(response).to have_http_status(:ok)
     end
 
-    it "returns only courts belonging to owned venues" do
+    it "returns all courts with no default is_active filter" do
       data = response.parsed_body["data"]
       expect(data.length).to eq(3)
-    end
-
-    it "excludes courts from other users' venues" do
-      data = response.parsed_body["data"]
-      expect(data.none? { |c| c["name"] == "Court Lahore" }).to be true
     end
 
     it "matches the courts index response schema" do
@@ -124,14 +68,14 @@ RSpec.describe "GET /api/v0/courts", type: :request do
 
     it "includes the correct court_type_name for each court" do
       data = response.parsed_body["data"]
-      alpha = data.find { |c| c["name"] == "Court Alpha" }
-      expect(alpha["court_type_name"]).to eq("Badminton")
+      alpha_court = data.find { |c| c["name"] == "Court Alpha" }
+      expect(alpha_court["court_type_name"]).to eq("Badminton")
     end
 
     it "includes the correct venue_name for each court" do
       data = response.parsed_body["data"]
-      alpha = data.find { |c| c["name"] == "Court Alpha" }
-      expect(alpha["venue_name"]).to eq("Alpha Arena")
+      alpha_court = data.find { |c| c["name"] == "Court Alpha" }
+      expect(alpha_court["venue_name"]).to eq("Alpha Arena")
     end
 
     # --------------------------------------------------
@@ -143,8 +87,13 @@ RSpec.describe "GET /api/v0/courts", type: :request do
 
       it "returns only courts belonging to that venue" do
         data = response.parsed_body["data"]
-        expect(data.length).to eq(3)
+        expect(data.length).to eq(2)
         expect(data).to all(include("venue_id" => venue_karachi.id))
+      end
+
+      it "excludes courts from other venues" do
+        data = response.parsed_body["data"]
+        expect(data.none? { |c| c["venue_id"] == venue_lahore.id }).to be true
       end
     end
 
@@ -168,8 +117,13 @@ RSpec.describe "GET /api/v0/courts", type: :request do
 
       it "returns only courts at venues in that city" do
         data = response.parsed_body["data"]
-        expect(data.length).to eq(3)
+        expect(data.length).to eq(2)
         expect(data).to all(include("city" => "Karachi"))
+      end
+
+      it "excludes courts at venues in other cities" do
+        data = response.parsed_body["data"]
+        expect(data.none? { |c| c["city"] == "Lahore" }).to be true
       end
     end
 
@@ -196,6 +150,11 @@ RSpec.describe "GET /api/v0/courts", type: :request do
         expect(data.length).to eq(1)
         expect(data).to all(include("is_active" => false))
       end
+
+      it "excludes active courts" do
+        data = response.parsed_body["data"]
+        expect(data.none? { |c| c["is_active"] == true }).to be true
+      end
     end
 
     context "with search matching court name" do
@@ -208,21 +167,22 @@ RSpec.describe "GET /api/v0/courts", type: :request do
       end
     end
 
-    context "with search matching venue name" do
-      let(:query_params) { { search: "Alpha Arena" } }
-
-      it "returns all courts from that venue" do
-        data = response.parsed_body["data"]
-        expect(data.length).to eq(3)
-      end
-    end
-
     context "with search matching court description" do
       let(:query_params) { { search: "Premium indoor" } }
 
       it "returns courts matching the description term" do
         data = response.parsed_body["data"]
         expect(data.length).to be >= 1
+      end
+    end
+
+    context "with search matching venue name" do
+      let(:query_params) { { search: "Beta Complex" } }
+
+      it "returns courts belonging to the matching venue" do
+        data = response.parsed_body["data"]
+        expect(data.length).to eq(1)
+        expect(data.first["venue_name"]).to eq("Beta Complex")
       end
     end
 
@@ -312,20 +272,20 @@ RSpec.describe "GET /api/v0/courts", type: :request do
     context "with combined venue_id and is_active=true filters" do
       let(:query_params) { { venue_id: venue_karachi.id, is_active: true } }
 
-      it "returns only active courts in that venue" do
+      it "returns only the single active court in that venue" do
         data = response.parsed_body["data"]
-        expect(data.length).to eq(2)
-        expect(data).to all(include("venue_id" => venue_karachi.id, "is_active" => true))
+        expect(data.length).to eq(1)
+        expect(data.first).to include("venue_id" => venue_karachi.id, "is_active" => true)
       end
     end
 
     context "with combined court_type_id and is_active=true filters" do
-      let(:query_params) { { court_type_id: court_type_badminton.id, is_active: true } }
+      let(:query_params) { { court_type_id: court_type_cricket.id, is_active: true } }
 
-      it "returns only the active badminton courts" do
+      it "returns only the active cricket court" do
         data = response.parsed_body["data"]
         expect(data.length).to eq(1)
-        expect(data.first).to include("court_type_id" => court_type_badminton.id, "is_active" => true)
+        expect(data.first).to include("court_type_id" => court_type_cricket.id, "is_active" => true)
       end
     end
 
@@ -351,71 +311,19 @@ RSpec.describe "GET /api/v0/courts", type: :request do
   end
 
   # ==================================================
-  # SUCCESS PATHS — Super admin (sees only own venues' courts)
+  # SUCCESS PATHS — Auth token is accepted but not required
   # ==================================================
 
-  context "when authenticated as super admin" do
-    let(:request_headers) { headers.merge("Authorization" => auth_token_for(super_admin_user)) }
+  context "when authenticated as owner" do
+    let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
 
     it "returns success (200) status" do
       expect(response).to have_http_status(:ok)
     end
 
-    it "returns only courts from admin's owned venues" do
-      data = response.parsed_body["data"]
-      expect(data.length).to eq(1)
-      expect(data.first["name"]).to eq("Court Lahore")
-    end
-
-    it "excludes courts from other owners' venues" do
-      data = response.parsed_body["data"]
-      expect(data.none? { |c| c["venue_id"] == venue_karachi.id }).to be true
-    end
-
-    it "matches the index response schema" do
-      expect(response).to match_json_schema("courts/index_response")
-    end
-  end
-
-  # ==================================================
-  # SUCCESS PATHS — Customer with no venues
-  # ==================================================
-
-  context "when authenticated as customer with no venues or memberships" do
-    let(:request_headers) { headers.merge("Authorization" => auth_token_for(customer_user)) }
-
-    it "returns success (200) status" do
-      expect(response).to have_http_status(:ok)
-    end
-
-    it "returns an empty data array" do
-      expect(response.parsed_body["data"]).to eq([])
-    end
-
-    it "matches the index response schema" do
-      expect(response).to match_json_schema("courts/index_response")
-    end
-  end
-
-  # ==================================================
-  # SUCCESS PATHS — Staff with read permission
-  # ==================================================
-
-  context "when authenticated as staff with courts read permission" do
-    let(:pre_setup) do
-      staff_role_with_perm.permissions << read_courts_permission
-      create(:venue_membership, user: staff_user, venue: venue_karachi, role: staff_role_with_perm)
-    end
-    let(:request_headers) { headers.merge("Authorization" => auth_token_for(staff_user)) }
-
-    it "returns success (200) status" do
-      expect(response).to have_http_status(:ok)
-    end
-
-    it "returns courts from the member venue" do
+    it "returns all courts (not scoped to owner)" do
       data = response.parsed_body["data"]
       expect(data.length).to eq(3)
-      expect(data).to all(include("venue_id" => venue_karachi.id))
     end
 
     it "matches the index response schema" do
@@ -423,35 +331,24 @@ RSpec.describe "GET /api/v0/courts", type: :request do
     end
   end
 
-  # ==================================================
-  # FAILURE PATHS — Staff without read permission
-  # ==================================================
+  context "with an invalid Bearer token (public endpoint — token is ignored)" do
+    let(:request_headers) { headers.merge("Authorization" => "Bearer invalid.token.xyz") }
 
-  context "when authenticated as staff without courts read permission" do
-    let(:pre_setup) do
-      create(:venue_membership, user: staff_user, venue: venue_karachi, role: staff_role_without_perm)
-    end
-    let(:request_headers) { headers.merge("Authorization" => auth_token_for(staff_user)) }
-
-    it "returns forbidden (403) status" do
-      expect(response).to have_http_status(:forbidden)
+    it "returns success (200) status" do
+      expect(response).to have_http_status(:ok)
     end
 
-    it "returns success: false" do
-      expect(response.parsed_body["success"]).to be false
-    end
-
-    it "matches the error response schema" do
-      expect(response).to match_json_schema("error_response")
+    it "returns all courts" do
+      data = response.parsed_body["data"]
+      expect(data.length).to eq(3)
     end
   end
 
   # ==================================================
-  # EDGE CASES — Invalid parameters (authenticated)
+  # EDGE CASES — Invalid parameters
   # ==================================================
 
   context "with an invalid sort field" do
-    let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
     let(:query_params) { { sort: "invalid_column" } }
 
     it "returns unprocessable entity (422) status" do
@@ -468,16 +365,18 @@ RSpec.describe "GET /api/v0/courts", type: :request do
   end
 
   context "with an invalid order direction" do
-    let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
     let(:query_params) { { order: "random" } }
 
     it "returns unprocessable entity (422) status" do
       expect(response).to have_http_status(:unprocessable_entity)
     end
+
+    it "returns an error response" do
+      expect(response.parsed_body).to include("success" => false)
+    end
   end
 
   context "with a negative page number (contract requires gt: 0)" do
-    let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
     let(:query_params) { { page: -1 } }
 
     it "returns unprocessable entity (422) status" do
@@ -486,7 +385,6 @@ RSpec.describe "GET /api/v0/courts", type: :request do
   end
 
   context "with per_page of zero (contract requires gt: 0)" do
-    let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
     let(:query_params) { { per_page: 0 } }
 
     it "returns unprocessable entity (422) status" do
