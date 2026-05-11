@@ -20,7 +20,7 @@ module Api::V0::Courts
       @params = params
       @current_user = current_user
 
-      @courts = current_user.owned_and_member_courts.includes(:pricing_rules, :court_type).distinct
+      @courts = current_user.owned_and_member_courts.includes(:pricing_rules, :court_type, :venue).distinct
       return Success(courts: [], json: []) if @courts.empty?
       return Failure(:forbidden) unless authorize?
 
@@ -47,7 +47,8 @@ module Api::V0::Courts
     attr_reader :params, :current_user, :courts
 
     def authorize?
-      CourtPolicy.new(current_user, courts.first).index?
+      court = current_user.owned_and_member_courts.includes(:venue).first
+      CourtPolicy.new(current_user, court).index?
     end
 
     def search_courts(courts, query)

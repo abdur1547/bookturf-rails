@@ -72,10 +72,8 @@ class Court < ApplicationRecord
   end
 
   def price_range
-    rules = pricing_rules
-    min_price = rules.minimum(:price_per_hour) || 0
-    max_price = rules.maximum(:price_per_hour) || 0
-    { min: min_price.to_f, max: max_price.to_f }
+    prices = pricing_rules.map(&:price_per_hour)
+    { min: (prices.min || 0).to_f, max: (prices.max || 0).to_f }
   end
 
   def available_at?(start_time, end_time)
