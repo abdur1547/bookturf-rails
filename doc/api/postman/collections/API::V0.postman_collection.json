@@ -549,7 +549,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"page\": 1,\n    \"per_page\": 10,\n    \"venue_id\": 1,\n    \"court_type_id\": 1,\n    \"is_active\": true,\n    \"search\": \"\",\n    \"sort_by\": \"\",\n    \"order_by\": \"\"\n}",
+              "raw": "{\n    // \"page\": 1,\n    // \"per_page\": 10,\n    // \"venue_id\": 1,\n    // \"court_type_id\": 1,\n    // \"is_active\": true,\n    // \"search\": \"\",\n    // \"sort_by\": \"\",\n    // \"order_by\": \"\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -683,6 +683,37 @@
               ],
               "path": [
                 "courts"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "1. Search",
+          "id": "e1437bf7-3988-4028-8fdc-859c6dacd995",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    // \"page\": 1,\n    // \"per_page\": 10,\n    // \"venue_id\": 1,\n    // \"court_type_id\": 1,\n    // \"is_active\": true,\n    // \"search\": \"\",\n    // \"sort_by\": \"\",\n    // \"order_by\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{api_v0_base_url}}/courts/search",
+              "host": [
+                "{{api_v0_base_url}}"
+              ],
+              "path": [
+                "courts",
+                "search"
               ]
             }
           },
@@ -1007,37 +1038,37 @@
   },
   "variable": [
     {
-      "id": "84dad7ad-f3c9-44d0-a39b-7bd78273bc17",
+      "id": "7da353af-ad6d-44e9-b499-6dd1126d0fe1",
       "key": "name",
       "value": ""
     },
     {
-      "id": "ff4fa6f0-22fa-4670-9ef6-6678974584c3",
+      "id": "65930dda-02cf-4694-aba3-92c3b8a09c7d",
       "key": "email",
       "value": ""
     },
     {
-      "id": "65ba4585-74a2-47c6-9915-cc63893298dc",
+      "id": "04fc230a-cc6f-40d1-be90-65f4833999a9",
       "key": "password",
       "value": ""
     },
     {
-      "id": "a6f93b1f-36d1-4728-9577-05983b1d63d1",
+      "id": "a0454d22-ec1f-4e11-9a74-197f76944f2b",
       "key": "access_token",
       "value": ""
     },
     {
-      "id": "6f0a1734-b5f8-4eb0-92c1-c3665d5de360",
+      "id": "51e37c04-4d9f-482f-97e5-711a33c96b25",
       "key": "refresh_token",
       "value": ""
     },
     {
-      "id": "0aa1b034-94c7-4d82-bfe6-0b274fbe921d",
+      "id": "e9392b76-1aeb-43bd-9007-aedb53da9c15",
       "key": "create_new_user",
       "value": ""
     },
     {
-      "id": "30bae78c-370a-4b00-9da0-c0811a49573d",
+      "id": "6dd35cc4-165a-4839-9af0-85857fa146c3",
       "key": "api_v0_base_url",
       "value": ""
     }
