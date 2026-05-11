@@ -32,12 +32,26 @@ RSpec.describe CourtPolicy, type: :policy do
     context "when user is nil" do
       let(:user) { nil }
 
+      it_behaves_like "denies access", :index
+      it_behaves_like "denies access", :show
+    end
+
+    context "when user is any authenticated user with no venue relationship" do
+      let(:user) { create(:user) }
+
+      it_behaves_like "denies access", :index
+      it_behaves_like "denies access", :show
+    end
+
+    context "when user is a super admin" do
+      let(:user) { create(:user, :super_admin) }
+
       it_behaves_like "grants access", :index
       it_behaves_like "grants access", :show
     end
 
-    context "when user is any authenticated user" do
-      let(:user) { create(:user) }
+    context "when user is the venue owner" do
+      let(:user) { owner }
 
       it_behaves_like "grants access", :index
       it_behaves_like "grants access", :show

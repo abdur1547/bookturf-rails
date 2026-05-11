@@ -29,28 +29,38 @@ RSpec.describe 'API V0 Courts', type: :request do
   end
 
   describe 'GET /api/v0/courts' do
-    before do
-      get '/api/v0/courts', headers: headers
+    context 'when not authenticated' do
+      before { get '/api/v0/courts', headers: headers }
+
+      it 'returns unauthorized status' do
+        expect(response).to have_http_status(:unauthorized)
+      end
     end
 
-    it 'returns success status' do
-      expect(response).to have_http_status(:ok)
-    end
+    context 'when authenticated as owner' do
+      before do
+        get '/api/v0/courts', headers: headers.merge('Authorization' => auth_token_for(owner_user))
+      end
 
-    it 'returns court list' do
-      data = response.parsed_body['data']
-      expect(data).to be_an(Array)
-      expect(data.size).to eq(2)
-    end
+      it 'returns success status' do
+        expect(response).to have_http_status(:ok)
+      end
 
-    it 'includes court_type_name' do
-      data = response.parsed_body['data'].first
-      expect(data['court_type_name']).to eq('Badminton')
-    end
+      it 'returns court list' do
+        data = response.parsed_body['data']
+        expect(data).to be_an(Array)
+        expect(data.size).to eq(2)
+      end
 
-    it 'includes venue_name' do
-      data = response.parsed_body['data'].first
-      expect(data['venue_name']).to eq('Alpha Arena')
+      it 'includes court_type_name' do
+        data = response.parsed_body['data'].first
+        expect(data['court_type_name']).to eq('Badminton')
+      end
+
+      it 'includes venue_name' do
+        data = response.parsed_body['data'].first
+        expect(data['venue_name']).to eq('Alpha Arena')
+      end
     end
   end
 
