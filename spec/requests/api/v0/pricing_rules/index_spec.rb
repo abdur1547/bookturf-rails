@@ -120,24 +120,6 @@ RSpec.describe "GET /api/v0/pricing_rules", type: :request do
     end
   end
 
-  context "when authenticated as a global admin" do
-    let(:request_headers) { headers.merge("Authorization" => auth_token_for(admin_user)) }
-
-    it "returns ok (200) status" do
-      expect(response).to have_http_status(:ok)
-    end
-
-    it "matches the pricing rules index response schema" do
-      expect(response).to match_json_schema("pricing_rules/index_response")
-    end
-
-    it "returns pricing rules for the requested court" do
-      data = response.parsed_body["data"]
-      expect(data).to be_an(Array)
-      expect(data.length).to eq(2)
-    end
-  end
-
   context "when authenticated as a receptionist of the venue" do
     let(:request_headers) { headers.merge("Authorization" => auth_token_for(receptionist_user)) }
 

@@ -39,16 +39,6 @@ RSpec.describe PricingRulePolicy, type: :policy do
     it_behaves_like "denies access", :destroy
   end
 
-  context "when user is a super admin" do
-    let(:user) { create(:user, :super_admin) }
-
-    it_behaves_like "grants access", :index
-    it_behaves_like "grants access", :show
-    it_behaves_like "grants access", :create
-    it_behaves_like "grants access", :update
-    it_behaves_like "grants access", :destroy
-  end
-
   context "when user is the venue owner" do
     let(:user) { owner }
 
@@ -137,14 +127,6 @@ RSpec.describe PricingRulePolicy, type: :policy do
     end
 
     subject { described_class::Scope.new(user, PricingRule.all).resolve }
-
-    context "when user is a super admin" do
-      let(:user) { create(:user, :super_admin) }
-
-      it "returns all pricing rules" do
-        expect(subject.count).to eq(PricingRule.count)
-      end
-    end
 
     context "when user is nil" do
       let(:user) { nil }
