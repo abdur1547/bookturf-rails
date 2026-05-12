@@ -42,9 +42,11 @@ puts "\n  📍 Creating roles for venue: #{venue.name}"
 # Manager role — full operational access
 manager_role = Role.find_or_create_by!(name: "Manager", venue: venue)
 manager_permissions = %w[
-  manage:bookings manage:courts create:users read:users update:users
-  read:roles manage:reports read:settings update:settings manage:pricing
-  manage:closures read:notifications create:notifications read:venues update:venues
+  read:venues update:venues
+  create:bookings read:bookings update:bookings
+  create:courts read:courts update:courts delete:courts
+  create:roles read:roles update:roles delete:roles
+  read:users update:users create:users delete:users
 ]
 manager_permissions.each do |key|
   manager_role.add_permission(permissions[key]) if permissions[key]
@@ -53,10 +55,7 @@ puts "  ✅ Created role: Manager (#{manager_role.permissions.count} permissions
 
 # Receptionist role — booking and closure management
 receptionist_role = Role.find_or_create_by!(name: "Receptionist", venue: venue)
-receptionist_permissions = %w[
-  manage:bookings read:courts create:closures read:closures
-  read:users read:reports read:settings read:notifications
-]
+receptionist_permissions = %w[read:venues create:bookings read:bookings update:bookings read:courts read:roles read:users]
 receptionist_permissions.each do |key|
   receptionist_role.add_permission(permissions[key]) if permissions[key]
 end
