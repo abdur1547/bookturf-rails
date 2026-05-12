@@ -10,9 +10,11 @@ class User < ApplicationRecord
   has_many :venues, through: :venue_memberships
   has_many :courts, through: :venues
 
-  has_many :owned_venues, class_name: "Venue", foreign_key: "owner_id", dependent: :restrict_with_error
+  # TODO: think how to handle venues when user is deleted. Should we delete them or prevent deletion if there are active venues?
+  has_many :owned_venues, class_name: "Venue", foreign_key: "owner_id", dependent: :destroy
 
-  has_many :bookings, dependent: :restrict_with_error
+  # TODO: think how to handle bookings when user is deleted. Should we delete them or prevent deletion if there are active bookings?
+  has_many :bookings, dependent: :destroy
   has_many :created_bookings, class_name: "Booking", foreign_key: "created_by_id", dependent: :nullify
   has_many :cancelled_bookings, class_name: "Booking", foreign_key: "cancelled_by_id", dependent: :nullify
   has_many :checked_in_bookings, class_name: "Booking", foreign_key: "checked_in_by_id", dependent: :nullify

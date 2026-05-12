@@ -8,7 +8,7 @@ class Venue < ApplicationRecord
   has_many :roles, dependent: :destroy
   has_many :courts, dependent: :destroy
   has_many :pricing_rules, dependent: :destroy
-  has_many :bookings, dependent: :restrict_with_error
+  has_many :bookings, dependent: :destroy
   has_many :court_closures, dependent: :destroy
   has_many :notifications, dependent: :destroy
 

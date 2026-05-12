@@ -12,34 +12,25 @@ module Api::V0::Venues
       @params = params
       @current_user = current_user
 
-      @venue = find_venue(params[:id])
-      return Failure(:not_found) unless @venue
+      @venue = current_user.owned_and_member_venues.find_by(id: params[:id])
+      return Failure(:not_found) unless venue
 
-      return Failure(:forbidden) unless authorize
+      return Failure(:forbidden) unless authorize?
 
-      result = Venues::VenueDestroyerService.call(venue: @venue)
+      result = Venues::VenueDestroyerService.call(venue: venue)
 
       return Failure(result.error) unless result.success?
 
       json_data = serialize
 
-      Success(venue: @venue, json: json_data)
+      Success(venue: venue, json: json_data)
     end
 
     private
 
     attr_reader :params, :current_user, :venue
 
-    def find_venue(id)
-      # Support both ID and slug
-      if id.to_s =~ /\A\d+\z/
-        Venue.find_by(id: id)
-      else
-        Venue.find_by(slug: id)
-      end
-    end
-
-    def authorize
+    def authorize?
       VenuePolicy.new(current_user, venue).destroy?
     end
 

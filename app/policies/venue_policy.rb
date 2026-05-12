@@ -14,15 +14,11 @@ class VenuePolicy < ApplicationPolicy
   end
 
   def update?
-    return false unless user.present?
-
-    venue_owner? || user.super_admin?
+    user.super_admin? || venue_owner? || have_permission?("update")
   end
 
   def destroy?
-    return false unless user.present?
-
-    venue_owner?
+    user.super_admin? || venue_owner? || have_permission?("delete")
   end
 
   private

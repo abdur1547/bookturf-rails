@@ -3,7 +3,8 @@ class Court < ApplicationRecord
   belongs_to :court_type
 
   has_many :pricing_rules, dependent: :destroy
-  has_many :bookings, dependent: :restrict_with_error
+  # TODO: think how to handle bookings when court is deleted. Should we delete them or prevent deletion if there are active bookings?
+  has_many :bookings, dependent: :destroy
   has_many :court_closures, dependent: :destroy
 
   validates :name, presence: true

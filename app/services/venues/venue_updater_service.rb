@@ -6,8 +6,9 @@ module Venues
       @venue = venue
       @params = params
 
-      result = validate_activation_change
-      return result if result && !result.success?
+      # TODO: what to do axisting bookings if venue is deactivated? Should we cancel them? Or just prevent new ones?
+      # result = validate_activation_change
+      # return result if result && !result.success?
 
       result = validate_operating_hours
       return result if result && !result.success?
@@ -22,11 +23,11 @@ module Venues
 
     attr_reader :venue, :params
 
-    def validate_activation_change
-      return unless params.key?(:is_active) && venue.is_active != params[:is_active]
+    # def validate_activation_change
+    #   return unless params.key?(:is_active) && venue.is_active != params[:is_active]
 
-      Venues::VenueActivationValidatorService.call(venue: venue, is_active: params[:is_active])
-    end
+    #   Venues::VenueActivationValidatorService.call(venue: venue, is_active: params[:is_active])
+    # end
 
     def validate_operating_hours
       return unless params[:venue_operating_hours].present?
