@@ -4,7 +4,7 @@ class CourtPolicy < ApplicationPolicy
   def index?
     return false unless user.present?
 
-    user.super_admin? || venue_owner? || staff_have_permission?("read")
+    venue_owner? || staff_have_permission?("read")
   end
 
   def show?
@@ -18,13 +18,13 @@ class CourtPolicy < ApplicationPolicy
   def update?
     return false unless user.present?
 
-    user.super_admin? || venue_owner? || staff_have_permission?("update")
+    venue_owner? || staff_have_permission?("update")
   end
 
   def destroy?
     return false unless user.present?
 
-    user.super_admin? || venue_owner? || staff_have_permission?("delete")
+    venue_owner? || staff_have_permission?("delete")
   end
 
   private

@@ -2,7 +2,7 @@
 
 class VenuePolicy < ApplicationPolicy
   def index?
-    user.super_admin? || venue_owner? || have_permission?("read")
+    venue_owner? || have_permission?("read")
   end
 
   def show?
@@ -14,11 +14,15 @@ class VenuePolicy < ApplicationPolicy
   end
 
   def update?
-    user.super_admin? || venue_owner? || have_permission?("update")
+    return false unless user.present?
+
+    venue_owner? || have_permission?("update")
   end
 
   def destroy?
-    user.super_admin? || venue_owner? || have_permission?("delete")
+    return false unless user.present?
+
+    venue_owner?
   end
 
   private

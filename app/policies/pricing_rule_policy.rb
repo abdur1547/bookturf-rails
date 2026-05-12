@@ -2,7 +2,7 @@
 
 class PricingRulePolicy < ApplicationPolicy
   def index?
-    user.present? && (user.super_admin? || venue_owner? || staff_have_permission?("read"))
+    user.present? && (venue_owner? || staff_have_permission?("read"))
   end
 
   def show?
@@ -10,15 +10,15 @@ class PricingRulePolicy < ApplicationPolicy
   end
 
   def create?
-    user.present? && (user.super_admin? || venue_owner? || staff_have_permission?("create"))
+    user.present? && (venue_owner? || staff_have_permission?("create"))
   end
 
   def update?
-    user.present? && (user.super_admin? || venue_owner? || staff_have_permission?("update"))
+    user.present? && (venue_owner? || staff_have_permission?("update"))
   end
 
   def destroy?
-    user.present? && (user.super_admin? || venue_owner? || staff_have_permission?("delete"))
+    user.present? && (venue_owner? || staff_have_permission?("delete"))
   end
 
   class Scope < Scope
