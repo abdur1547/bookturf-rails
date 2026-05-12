@@ -67,6 +67,9 @@ gem "pundit", "~> 2.4"
 # Activity tracking
 gem "public_activity", "~> 3.0"
 
+# Admin panel
+gem "administrate", ">= 1.0.0.beta3"
+
 # API Documentation
 gem "apipie-rails", "~> 1.4"
 

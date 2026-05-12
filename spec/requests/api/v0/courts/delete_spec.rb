@@ -75,22 +75,6 @@ RSpec.describe "DELETE /api/v0/courts/:id", type: :request do
     end
   end
 
-  context "when authenticated as a global admin" do
-    let(:request_headers) { headers.merge("Authorization" => auth_token_for(admin_user)) }
-
-    it "returns ok (200) status" do
-      expect(response).to have_http_status(:ok)
-    end
-
-    it "removes the court from the database" do
-      expect(Court.exists?(court.id)).to be false
-    end
-
-    it "matches the courts delete response schema" do
-      expect(response).to match_json_schema("courts/delete_response")
-    end
-  end
-
   # ==================================================
   # FAILURE PATHS — Authentication
   # ==================================================

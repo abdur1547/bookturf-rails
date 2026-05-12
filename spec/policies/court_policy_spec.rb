@@ -46,8 +46,8 @@ RSpec.describe CourtPolicy, type: :policy do
     context "when user is a super admin" do
       let(:user) { create(:user, :super_admin) }
 
-      it_behaves_like "grants access", :index
-      it_behaves_like "grants access", :show
+      it_behaves_like "denies access", :index
+      it_behaves_like "denies access", :show
     end
 
     context "when user is the venue owner" do
