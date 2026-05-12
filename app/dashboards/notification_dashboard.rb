@@ -15,7 +15,7 @@ class NotificationDashboard < Administrate::BaseDashboard
     sent_at: Field::DateTime,
     action_url: Field::String,
     created_at: Field::DateTime,
-    updated_at: Field::DateTime,
+    updated_at: Field::DateTime
   }.freeze
 
   COLLECTION_ATTRIBUTES = %i[
@@ -55,7 +55,7 @@ class NotificationDashboard < Administrate::BaseDashboard
   ].freeze
 
   COLLECTION_FILTERS = {
-    unread: ->(resources) { resources.where(is_read: false) },
+    unread: ->(resources) { resources.where(is_read: false) }
   }.freeze
 
   def display_resource(notification)

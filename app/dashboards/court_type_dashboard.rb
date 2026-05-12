@@ -9,7 +9,7 @@ class CourtTypeDashboard < Administrate::BaseDashboard
     description: Field::Text,
     courts: Field::HasMany,
     created_at: Field::DateTime,
-    updated_at: Field::DateTime,
+    updated_at: Field::DateTime
   }.freeze
 
   COLLECTION_ATTRIBUTES = %i[

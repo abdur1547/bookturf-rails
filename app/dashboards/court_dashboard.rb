@@ -15,7 +15,7 @@ class CourtDashboard < Administrate::BaseDashboard
     court_closures: Field::HasMany,
     pricing_rules: Field::HasMany,
     created_at: Field::DateTime,
-    updated_at: Field::DateTime,
+    updated_at: Field::DateTime
   }.freeze
 
   COLLECTION_ATTRIBUTES = %i[
@@ -53,7 +53,7 @@ class CourtDashboard < Administrate::BaseDashboard
   ].freeze
 
   COLLECTION_FILTERS = {
-    active: ->(resources) { resources.where(is_active: true) },
+    active: ->(resources) { resources.where(is_active: true) }
   }.freeze
 
   def display_resource(court)

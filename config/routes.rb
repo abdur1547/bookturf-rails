@@ -21,7 +21,7 @@ Rails.application.routes.draw do
 
     root to: "users#index"
   end
-  resource :impersonation, only: [:destroy]
+  resource :impersonation, only: [ :destroy ]
 
   # Authentication routes
   resource :session, only: %i[ new create destroy ]

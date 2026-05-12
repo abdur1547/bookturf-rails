@@ -7,7 +7,7 @@ class VenueMembershipDashboard < Administrate::BaseDashboard
     venue: Field::BelongsTo,
     role: Field::BelongsTo,
     created_at: Field::DateTime,
-    updated_at: Field::DateTime,
+    updated_at: Field::DateTime
   }.freeze
 
   COLLECTION_ATTRIBUTES = %i[

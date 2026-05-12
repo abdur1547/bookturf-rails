@@ -6,7 +6,7 @@ class RolePermissionDashboard < Administrate::BaseDashboard
     role: Field::BelongsTo,
     permission: Field::BelongsTo,
     created_at: Field::DateTime,
-    updated_at: Field::DateTime,
+    updated_at: Field::DateTime
   }.freeze
 
   COLLECTION_ATTRIBUTES = %i[

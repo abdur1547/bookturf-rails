@@ -20,7 +20,7 @@ class UserDashboard < Administrate::BaseDashboard
     bookings: Field::HasMany,
     venue_memberships: Field::HasMany,
     created_at: Field::DateTime,
-    updated_at: Field::DateTime,
+    updated_at: Field::DateTime
   }.freeze
 
   COLLECTION_ATTRIBUTES = %i[
@@ -63,7 +63,7 @@ class UserDashboard < Administrate::BaseDashboard
 
   COLLECTION_FILTERS = {
     active: ->(resources) { resources.active },
-    super_admins: ->(resources) { resources.super_admins },
+    super_admins: ->(resources) { resources.super_admins }
   }.freeze
 
   def display_resource(user)

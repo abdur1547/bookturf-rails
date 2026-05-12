@@ -8,7 +8,7 @@ class RoleDashboard < Administrate::BaseDashboard
     role_permissions: Field::HasMany,
     venue_memberships: Field::HasMany,
     created_at: Field::DateTime,
-    updated_at: Field::DateTime,
+    updated_at: Field::DateTime
   }.freeze
 
   COLLECTION_ATTRIBUTES = %i[

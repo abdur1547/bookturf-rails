@@ -7,7 +7,7 @@ class PermissionDashboard < Administrate::BaseDashboard
     action: Field::String,
     role_permissions: Field::HasMany,
     created_at: Field::DateTime,
-    updated_at: Field::DateTime,
+    updated_at: Field::DateTime
   }.freeze
 
   COLLECTION_ATTRIBUTES = %i[

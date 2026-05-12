@@ -28,7 +28,7 @@ class VenueDashboard < Administrate::BaseDashboard
     roles: Field::HasMany,
     pricing_rules: Field::HasMany,
     created_at: Field::DateTime,
-    updated_at: Field::DateTime,
+    updated_at: Field::DateTime
   }.freeze
 
   COLLECTION_ATTRIBUTES = %i[
@@ -89,7 +89,7 @@ class VenueDashboard < Administrate::BaseDashboard
 
   COLLECTION_FILTERS = {
     active: ->(resources) { resources.active },
-    inactive: ->(resources) { resources.inactive },
+    inactive: ->(resources) { resources.inactive }
   }.freeze
 
   def display_resource(venue)

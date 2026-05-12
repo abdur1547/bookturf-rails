@@ -38,7 +38,7 @@ class BookingDashboard < Administrate::BaseDashboard
     deferred_link_claimed: Field::Boolean,
     notifications: Field::HasMany,
     created_at: Field::DateTime,
-    updated_at: Field::DateTime,
+    updated_at: Field::DateTime
   }.freeze
 
   COLLECTION_ATTRIBUTES = %i[
@@ -97,7 +97,7 @@ class BookingDashboard < Administrate::BaseDashboard
   COLLECTION_FILTERS = {
     confirmed: ->(resources) { resources.confirmed },
     cancelled: ->(resources) { resources.cancelled },
-    today: ->(resources) { resources.today },
+    today: ->(resources) { resources.today }
   }.freeze
 
   def display_resource(booking)

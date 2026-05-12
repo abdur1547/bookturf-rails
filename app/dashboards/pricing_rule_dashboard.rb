@@ -18,7 +18,7 @@ class PricingRuleDashboard < Administrate::BaseDashboard
     priority: Field::Number,
     is_active: Field::Boolean,
     created_at: Field::DateTime,
-    updated_at: Field::DateTime,
+    updated_at: Field::DateTime
   }.freeze
 
   COLLECTION_ATTRIBUTES = %i[
@@ -61,7 +61,7 @@ class PricingRuleDashboard < Administrate::BaseDashboard
   ].freeze
 
   COLLECTION_FILTERS = {
-    active: ->(resources) { resources.where(is_active: true) },
+    active: ->(resources) { resources.where(is_active: true) }
   }.freeze
 
   def display_resource(pricing_rule)

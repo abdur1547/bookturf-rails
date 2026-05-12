@@ -10,7 +10,7 @@ class VenueClosureDashboard < Administrate::BaseDashboard
     end_time: Field::DateTime,
     created_by: Field::BelongsTo,
     created_at: Field::DateTime,
-    updated_at: Field::DateTime,
+    updated_at: Field::DateTime
   }.freeze
 
   COLLECTION_ATTRIBUTES = %i[
