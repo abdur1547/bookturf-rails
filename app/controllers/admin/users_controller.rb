@@ -42,5 +42,22 @@ module Admin
 
     # See https://administrate-demo.herokuapp.com/customizing_controller_actions
     # for more information
+
+    def impersonate
+      if impersonating?
+        redirect_to admin_users_path, alert: "Stop the current impersonation before starting a new one."
+        return
+      end
+
+      user = User.find(params[:id])
+
+      if user == Current.user
+        redirect_to admin_user_path(user), alert: "You cannot impersonate yourself."
+        return
+      end
+
+      start_impersonating(user)
+      redirect_to root_path, notice: "Now impersonating #{user.full_name}. Use the banner to stop."
+    end
   end
 end

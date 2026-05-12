@@ -16,6 +16,10 @@
     = stylesheet_link_tag :app, "data-turbo-track": "reload"
     = javascript_importmap_tags
   %body
+    - if impersonating?
+      .impersonation-banner{style: "background: #c0392b; color: white; padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; font-size: 14px; font-weight: 500;"}
+        %span Impersonating: #{Current.user.full_name} (#{Current.user.email})
+        = button_to "Stop Impersonating", impersonation_path, method: :delete, style: "background: white; color: #c0392b; border: none; padding: 6px 14px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 13px;"
     - if flash.notice
       .notice{style: "color: green; padding: 1rem; margin: 1rem; background: #d4edda; border-radius: 4px;"}
         = flash.notice

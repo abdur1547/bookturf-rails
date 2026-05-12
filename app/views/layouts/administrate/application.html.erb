@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="<%= I18n.locale %>">
+<head>
+  <meta charset="utf-8">
+  <meta name="ROBOTS" content="NOODP">
+  <meta name="viewport" content="initial-scale=1">
+  <title>
+    <%= content_for(:title) %> - <%= application_title %>
+  </title>
+  <%= render "stylesheet" %>
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag if defined?(csp_meta_tag) %>
+  <%= render "javascript" %>
+</head>
+<body>
+  <%= render "icons" %>
+
+  <% if impersonating? %>
+    <div style="background: #c0392b; color: white; padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; font-size: 14px; font-weight: 500;">
+      <span>Impersonating: <%= Current.user.full_name %> (<%= Current.user.email %>)</span>
+      <%= button_to "Stop Impersonating", impersonation_path, method: :delete, style: "background: white; color: #c0392b; border: none; padding: 6px 14px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 13px;" %>
+    </div>
+  <% end %>
+
+  <div class="app-container">
+    <%= render "navigation" -%>
+
+    <main class="main-content">
+      <%= render "flashes" -%>
+      <%= yield %>
+    </main>
+  </div>
+</body>
+</html>

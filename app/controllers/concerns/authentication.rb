@@ -3,7 +3,7 @@ module Authentication
 
   included do
     before_action :require_authentication
-    helper_method :authenticated?
+    helper_method :authenticated?, :impersonating?
   end
 
   class_methods do
@@ -48,5 +48,31 @@ module Authentication
     def terminate_session
       Current.session.destroy
       cookies.delete(:session_id)
+    end
+
+    def impersonating?
+      cookies.signed[:impersonator_session_id].present?
+    end
+
+    def start_impersonating(user)
+      cookies.signed.permanent[:impersonator_session_id] = {
+        value: Current.session.id,
+        httponly: true,
+        same_site: :lax
+      }
+      start_new_session_for(user)
+    end
+
+    def stop_impersonating
+      admin_session_id = cookies.signed[:impersonator_session_id]
+      cookies.delete(:impersonator_session_id)
+      Current.session.destroy
+
+      if (admin_session = Session.find_by(id: admin_session_id))
+        Current.session = admin_session
+        cookies.signed.permanent[:session_id] = { value: admin_session.id, httponly: true, same_site: :lax }
+      else
+        cookies.delete(:session_id)
+      end
     end
 end

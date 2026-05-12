@@ -1,6 +1,10 @@
 Rails.application.routes.draw do
   namespace :admin do
-    resources :users
+    resources :users do
+      member do
+        post :impersonate
+      end
+    end
     resources :venues
     resources :courts
     resources :bookings
@@ -17,6 +21,8 @@ Rails.application.routes.draw do
 
     root to: "users#index"
   end
+  resource :impersonation, only: [:destroy]
+
   # Authentication routes
   resource :session, only: %i[ new create destroy ]
   resources :passwords, param: :token, only: %i[ new create edit update ]
