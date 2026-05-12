@@ -198,16 +198,16 @@ RSpec.describe "DELETE /api/v0/courts/:id", type: :request do
     let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
     let(:court_id) { court_with_bookings.id }
 
-    it "returns unprocessable entity (422) status" do
-      expect(response).to have_http_status(:unprocessable_entity)
+    it "returns ok (200) status" do
+      expect(response).to have_http_status(:ok)
     end
 
-    it "does not delete the court" do
-      expect(Court.exists?(court_with_bookings.id)).to be true
+    it "deletes the court and its bookings" do
+      expect(Court.exists?(court_with_bookings.id)).to be false
     end
 
-    it "matches the error response schema" do
-      expect(response).to match_json_schema("error_response")
+    it "matches the courts delete response schema" do
+      expect(response).to match_json_schema("courts/delete_response")
     end
   end
 end

@@ -8,7 +8,7 @@ RSpec.describe User, type: :model do
     it { should have_many(:password_reset_tokens).dependent(:delete_all) }
     it { should have_many(:venue_memberships).dependent(:destroy) }
     it { should have_many(:venues).through(:venue_memberships) }
-    it { should have_many(:owned_venues).class_name('Venue').with_foreign_key('owner_id').dependent(:restrict_with_error) }
+    it { should have_many(:owned_venues).class_name('Venue').with_foreign_key('owner_id').dependent(:destroy) }
   end
 
   describe 'validations' do
