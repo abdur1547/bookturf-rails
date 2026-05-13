@@ -8,6 +8,7 @@ class VenueOperatingHourDashboard < Administrate::BaseDashboard
     opens_at: Field::Time,
     closes_at: Field::Time,
     is_closed: Field::Boolean,
+    is_open_24h: Field::Boolean,
     created_at: Field::DateTime,
     updated_at: Field::DateTime
   }.freeze
@@ -18,6 +19,7 @@ class VenueOperatingHourDashboard < Administrate::BaseDashboard
     opens_at
     closes_at
     is_closed
+    is_open_24h
   ].freeze
 
   SHOW_PAGE_ATTRIBUTES = %i[
@@ -27,6 +29,7 @@ class VenueOperatingHourDashboard < Administrate::BaseDashboard
     opens_at
     closes_at
     is_closed
+    is_open_24h
     created_at
     updated_at
   ].freeze
@@ -37,6 +40,7 @@ class VenueOperatingHourDashboard < Administrate::BaseDashboard
     opens_at
     closes_at
     is_closed
+    is_open_24h
   ].freeze
 
   COLLECTION_FILTERS = {}.freeze

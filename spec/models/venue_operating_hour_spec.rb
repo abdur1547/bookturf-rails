@@ -39,6 +39,16 @@ RSpec.describe VenueOperatingHour, type: :model do
       expect(hour).to be_valid
     end
 
+    it 'allows nil opens_at when is_open_24h' do
+      hour = build(:venue_operating_hour, :open_24h)
+      expect(hour).to be_valid
+    end
+
+    it 'allows nil closes_at when is_open_24h' do
+      hour = build(:venue_operating_hour, :open_24h)
+      expect(hour).to be_valid
+    end
+
     describe 'closes_after_opens validation' do
       it 'is valid when closes_at is before opens_at (past-midnight scenario)' do
         hour = build(:venue_operating_hour, opens_at: '18:00', closes_at: '09:00')
@@ -58,6 +68,11 @@ RSpec.describe VenueOperatingHour, type: :model do
 
       it 'skips validation when is_closed is true' do
         hour = build(:venue_operating_hour, :closed, opens_at: '18:00', closes_at: '09:00')
+        expect(hour).to be_valid
+      end
+
+      it 'skips validation when is_open_24h is true' do
+        hour = build(:venue_operating_hour, :open_24h)
         expect(hour).to be_valid
       end
     end
@@ -158,6 +173,11 @@ RSpec.describe VenueOperatingHour, type: :model do
       it 'returns Closed when is_closed is true' do
         hour = build(:venue_operating_hour, :closed)
         expect(hour.formatted_hours).to eq('Closed')
+      end
+
+      it 'returns Open 24 Hours when is_open_24h is true' do
+        hour = build(:venue_operating_hour, :open_24h)
+        expect(hour.formatted_hours).to eq('Open 24 Hours')
       end
 
       it 'returns formatted time range when open' do

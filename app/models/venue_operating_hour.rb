@@ -13,8 +13,8 @@ class VenueOperatingHour < ApplicationRecord
 
   validates :day_of_week, presence: true, inclusion: { in: 0..6 }
   validates :day_of_week, uniqueness: { scope: :venue_id }
-  validates :opens_at, presence: true, unless: :is_closed?
-  validates :closes_at, presence: true, unless: :is_closed?
+  validates :opens_at, presence: true, unless: -> { is_closed? || is_open_24h? }
+  validates :closes_at, presence: true, unless: -> { is_closed? || is_open_24h? }
 
   validate :closes_after_opens
 
@@ -27,13 +27,14 @@ class VenueOperatingHour < ApplicationRecord
 
   def formatted_hours
     return "Closed" if is_closed?
-    "#{opens_at.strftime('%I:%M %p')} - #{closes_at.strftime('%I:%M %p')}"
+    return "Open 24 Hours" if is_open_24h?
+    "#{opens_at.strftime(Constants::API_TIME_FORMAT)} - #{closes_at.strftime(Constants::API_TIME_FORMAT)}"
   end
 
   private
 
   def closes_after_opens
-    return if is_closed? || opens_at.blank? || closes_at.blank?
+    return if is_closed? || is_open_24h? || opens_at.blank? || closes_at.blank?
 
     # closes_at < opens_at means past-midnight closing (e.g., opens 20:00, closes 02:00), which is valid
     # only reject when they're exactly equal

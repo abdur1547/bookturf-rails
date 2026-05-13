@@ -15,7 +15,7 @@ module Api::V0::Venues
 
       result = Venues::VenueUpdaterService.call(
         venue: @venue,
-        params: params[:venue] || {}
+        params: params || {}
       )
 
       return Failure(result.error) unless result.success?

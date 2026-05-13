@@ -13,6 +13,12 @@ FactoryBot.define do
       is_closed { true }
     end
 
+    trait :open_24h do
+      opens_at { nil }
+      closes_at { nil }
+      is_open_24h { true }
+    end
+
     trait :weekend do
       day_of_week { 6 } # Sunday
       opens_at { "08:00" }

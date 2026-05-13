@@ -2,6 +2,8 @@
 
 module Venues
   class VenueCreatorService < BaseService
+    include Venues::Helpers
+
     def call(params:, owner:)
       @params = params
       @owner = owner
@@ -49,17 +51,8 @@ module Venues
 
     def venue_hours_params
       return default_operating_hours unless params[:venue_operating_hours].present?
-      params[:venue_operating_hours]
-    end
-
-    def default_operating_hours
-      (0..6).map do |day|
-        {
-          day_of_week: day,
-          opens_at: "09:00",
-          closes_at: "23:00",
-          is_closed: false
-        }
+      params[:venue_operating_hours].map do |hours|
+        operating_hours_params(hours)
       end
     end
   end

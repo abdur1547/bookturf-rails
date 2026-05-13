@@ -4,9 +4,10 @@ class CreateVenueOperatingHours < ActiveRecord::Migration[8.1]
       t.references :venue, null: false, foreign_key: true
 
       t.integer :day_of_week, null: false # 0=Sunday, 6=Saturday
-      t.time :opens_at, null: false
-      t.time :closes_at, null: false
+      t.time :opens_at
+      t.time :closes_at
       t.boolean :is_closed, default: false, null: false
+      t.boolean :is_open_24h, default: false, null: false
 
       t.timestamps
     end

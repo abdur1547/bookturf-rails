@@ -2,6 +2,8 @@
 
 module Venues
   class VenueUpdaterService < BaseService
+    include Venues::Helpers
+
     def call(venue:, params:)
       @venue = venue
       @params = params
@@ -49,19 +51,19 @@ module Venues
       venue.update!(venue_params) if venue_params.present?
     end
 
+    def venue_params
+      allowed_keys = %i[name description address city state country postal_code
+                        latitude longitude phone_number email timezone currency is_active]
+      params.slice(*allowed_keys).compact
+    end
+
     def update_operating_hours
       return unless params[:venue_operating_hours].present?
 
       params[:venue_operating_hours].each do |hours|
         existing = venue.venue_operating_hours.find_by(day_of_week: hours[:day_of_week])
-        existing.update!(hours) if existing
+        existing.update!(operating_hours_params(hours)) if existing
       end
-    end
-
-    def venue_params
-      allowed_keys = %i[name description address city state country postal_code
-                        latitude longitude phone_number email timezone currency is_active]
-      params.slice(*allowed_keys)
     end
   end
 end

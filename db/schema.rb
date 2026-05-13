@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_29_095634) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_13_070723) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -289,11 +289,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_29_095634) do
   end
 
   create_table "venue_operating_hours", force: :cascade do |t|
-    t.time "closes_at", null: false
+    t.time "closes_at"
     t.datetime "created_at", null: false
     t.integer "day_of_week", null: false
     t.boolean "is_closed", default: false, null: false
-    t.time "opens_at", null: false
+    t.boolean "is_open_24h", default: false, null: false
+    t.time "opens_at"
     t.datetime "updated_at", null: false
     t.bigint "venue_id", null: false
     t.index ["venue_id", "day_of_week"], name: "index_venue_operating_hours_on_venue_id_and_day_of_week", unique: true

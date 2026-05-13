@@ -54,7 +54,7 @@ RSpec.describe "PATCH /api/v0/venues/:id", type: :request do
   end
 
   let(:request_params) do
-    venue_hash = {
+    result = {
       name: updated_name,
       description: updated_description,
       city: updated_city,
@@ -64,10 +64,9 @@ RSpec.describe "PATCH /api/v0/venues/:id", type: :request do
       is_active: updated_is_active
     }.compact
 
-    venue_hash[:venue_setting] = updated_setting_params if updated_setting_params
-    venue_hash[:venue_operating_hours] = updated_operating_hours_params if updated_operating_hours_params
+    result[:venue_operating_hours] = updated_operating_hours_params if updated_operating_hours_params
 
-    { venue: venue_hash }
+    result
   end
 
   before do
@@ -122,7 +121,7 @@ RSpec.describe "PATCH /api/v0/venues/:id", type: :request do
         monday = test_venue.venue_operating_hours.find_by(day_of_week: 1)
 
         expect(sunday.is_closed).to be true
-        expect(monday.opens_at.strftime("%H:%M")).to eq("08:00")
+        expect(monday.opens_at.strftime(Constants::API_TIME_FORMAT)).to eq("08:00 AM")
       end
 
       it "includes updated operating hours in response" do
@@ -143,11 +142,7 @@ RSpec.describe "PATCH /api/v0/venues/:id", type: :request do
       let(:updated_operating_hours_params) { nil }
 
       let(:request_params) do
-        {
-          venue: {
-            name: updated_name
-          }
-        }
+        { name: updated_name }
       end
 
       it "updates only the specified field" do
@@ -201,15 +196,53 @@ RSpec.describe "PATCH /api/v0/venues/:id", type: :request do
       end
     end
 
+    context "when setting a day to open 24 hours" do
+      let(:updated_name) { nil }
+      let(:updated_description) { nil }
+      let(:updated_city) { nil }
+      let(:updated_state) { nil }
+      let(:updated_phone) { nil }
+      let(:updated_email) { nil }
+      let(:updated_is_active) { nil }
+      let(:updated_setting_params) { nil }
+
+      let(:updated_operating_hours_params) do
+        [
+          { day_of_week: 0, is_open_24h: true },
+          { day_of_week: 1, opens_at: "09:00", closes_at: "23:00", is_closed: false },
+          { day_of_week: 2, opens_at: "09:00", closes_at: "23:00", is_closed: false },
+          { day_of_week: 3, opens_at: "09:00", closes_at: "23:00", is_closed: false },
+          { day_of_week: 4, opens_at: "09:00", closes_at: "23:00", is_closed: false },
+          { day_of_week: 5, opens_at: "09:00", closes_at: "23:00", is_closed: false },
+          { day_of_week: 6, opens_at: "09:00", closes_at: "23:00", is_closed: false }
+        ]
+      end
+
+      it "returns success status" do
+        expect(response).to have_http_status(:ok)
+      end
+
+      it "marks the day as open 24 hours" do
+        test_venue.reload
+        monday = test_venue.venue_operating_hours.find_by(day_of_week: 0)
+        expect(monday.is_open_24h).to be true
+      end
+
+      it "returns is_open_24h and correct formatted_hours in response" do
+        data = response.parsed_body["data"]
+        monday_hours = data["venue_operating_hours"].find { |h| h["day_of_week"] == 0 }
+        expect(monday_hours["is_open_24h"]).to be true
+        expect(monday_hours["formatted_hours"]).to eq("Open 24 Hours")
+      end
+    end
+
     context "when updating slug (should be ignored)" do
       let(:original_slug) { test_venue.slug }
 
       let(:request_params) do
         {
-          venue: {
-            slug: "should-not-change",
-            name: "New Name"
-          }
+          slug: "should-not-change",
+          name: "New Name"
         }
       end
 
@@ -228,10 +261,8 @@ RSpec.describe "PATCH /api/v0/venues/:id", type: :request do
     context "when updating owner_id (should be ignored)" do
       let(:request_params) do
         {
-          venue: {
-            owner_id: another_owner.id,
-            name: "New Name"
-          }
+          owner_id: another_owner.id,
+          name: "New Name"
         }
       end
 
@@ -383,7 +414,7 @@ RSpec.describe "PATCH /api/v0/venues/:id", type: :request do
     end
   end
 
-  context "when operating hours have invalid time order" do
+  context "when operating hours have closes_at equal to opens_at (auto 24h detection)" do
     let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
     let(:updated_operating_hours_params) do
       [
@@ -397,13 +428,16 @@ RSpec.describe "PATCH /api/v0/venues/:id", type: :request do
       ]
     end
 
-    it "returns unprocessable entity status" do
-      expect(response).to have_http_status(:unprocessable_entity)
+    it "returns success status" do
+      expect(response).to have_http_status(:ok)
     end
 
-    it "includes validation error" do
-      errors = response.parsed_body["errors"]
-      expect(errors.to_s).to include("must be different")
+    it "treats the day with equal times as open 24 hours" do
+      test_venue.reload
+      day = test_venue.venue_operating_hours.find_by(day_of_week: 0)
+      expect(day.is_open_24h).to be true
+      expect(day.opens_at).to be_nil
+      expect(day.closes_at).to be_nil
     end
   end
 
@@ -413,7 +447,7 @@ RSpec.describe "PATCH /api/v0/venues/:id", type: :request do
 
   context "with empty request body" do
     let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
-    let(:request_params) { { venue: {} } }
+    let(:request_params) { {} }
 
     it "returns success status (no changes)" do
       expect(response).to have_http_status(:ok)
@@ -429,10 +463,8 @@ RSpec.describe "PATCH /api/v0/venues/:id", type: :request do
     let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
     let(:request_params) do
       {
-        venue: {
-          latitude: 25.1234,
-          longitude: 68.5678
-        }
+        latitude: 25.1234,
+        longitude: 68.5678
       }
     end
 
@@ -449,26 +481,28 @@ RSpec.describe "PATCH /api/v0/venues/:id", type: :request do
     end
   end
 
-  context "when setting coordinates to null" do
+  context "when passing null coordinates" do
     let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
     let(:request_params) do
       {
-        venue: {
-          latitude: nil,
-          longitude: nil
-        }
+        latitude: nil,
+        longitude: nil
       }
     end
 
-    it "clears the coordinates" do
-      test_venue.reload
-      expect(test_venue.latitude).to be_nil
-      expect(test_venue.longitude).to be_nil
+    it "returns success status" do
+      expect(response).to have_http_status(:ok)
     end
 
-    it "returns null google_maps_url" do
+    it "keeps existing coordinates unchanged (nil values are ignored)" do
+      test_venue.reload
+      expect(test_venue.latitude).to eq(24.8175)
+      expect(test_venue.longitude).to eq(67.0297)
+    end
+
+    it "returns the existing google_maps_url unchanged" do
       data = response.parsed_body["data"]
-      expect(data["google_maps_url"]).to be_nil
+      expect(data["google_maps_url"]).to include("24.8175")
     end
   end
 end

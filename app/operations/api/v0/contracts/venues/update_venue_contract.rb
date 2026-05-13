@@ -24,6 +24,7 @@ module Api::V0::Contracts::Venues
             optional(:opens_at).maybe(:string)
             optional(:closes_at).maybe(:string)
             optional(:is_closed).maybe(:bool)
+            optional(:is_open_24h).maybe(:bool)
           end
         end
       end

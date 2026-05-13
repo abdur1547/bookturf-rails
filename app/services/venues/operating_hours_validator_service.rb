@@ -33,8 +33,11 @@ module Venues
     def validate_single_day(hours)
       day = hours[:day_of_week] || hours["day_of_week"]
       is_closed = hours[:is_closed] || hours["is_closed"]
+      is_open_24h = hours[:is_open_24h] || hours["is_open_24h"] || false
       opens_at = hours[:opens_at] || hours["opens_at"]
       closes_at = hours[:closes_at] || hours["closes_at"]
+
+      return success(true) if is_open_24h
 
       # If not closed, must have opens_at and closes_at
       unless is_closed
@@ -53,8 +56,8 @@ module Venues
 
             # After adjusting for next day, check if it's actually valid
             # (e.g., opens 23:00, closes 09:00 is valid - 10 hour shift)
-            if closes == opens
-              return failure("Day #{day}: closes_at must be different from opens_at")
+            if closes < opens
+              return failure("Day #{day}: closes_at must be after opens_at (unless it's open 24h)")
             end
           rescue ArgumentError
             return failure("Day #{day}: Invalid time format")

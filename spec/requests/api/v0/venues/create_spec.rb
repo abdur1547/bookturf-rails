@@ -178,6 +178,46 @@ RSpec.describe "POST /api/v0/venues", type: :request do
       end
     end
 
+    context "with some days marked as open 24 hours" do
+      let(:venue_operating_hours_params) do
+        [
+          { day_of_week: 0, is_open_24h: true },
+          { day_of_week: 1, is_open_24h: true },
+          { day_of_week: 2, opens_at: "09:00", closes_at: "23:00", is_closed: false },
+          { day_of_week: 3, opens_at: "09:00", closes_at: "23:00", is_closed: false },
+          { day_of_week: 4, opens_at: "09:00", closes_at: "23:00", is_closed: false },
+          { day_of_week: 5, opens_at: "09:00", closes_at: "23:00", is_closed: false },
+          { day_of_week: 6, is_closed: true }
+        ]
+      end
+
+      it "creates the venue successfully" do
+        expect(response).to have_http_status(:created)
+      end
+
+      it "marks specified days as open 24 hours" do
+        new_venue = Venue.find_by(name: venue_name)
+        monday = new_venue.venue_operating_hours.find_by(day_of_week: 0)
+        tuesday = new_venue.venue_operating_hours.find_by(day_of_week: 1)
+        expect(monday.is_open_24h).to be true
+        expect(tuesday.is_open_24h).to be true
+      end
+
+      it "returns is_open_24h in response operating hours" do
+        data = response.parsed_body["data"]
+        monday_hours = data["venue_operating_hours"].find { |h| h["day_of_week"] == 0 }
+        expect(monday_hours["is_open_24h"]).to be true
+        expect(monday_hours["formatted_hours"]).to eq("Open 24 Hours")
+      end
+
+      it "does not require opens_at/closes_at for 24h days" do
+        new_venue = Venue.find_by(name: venue_name)
+        monday = new_venue.venue_operating_hours.find_by(day_of_week: 0)
+        expect(monday.opens_at).to be_nil
+        expect(monday.closes_at).to be_nil
+      end
+    end
+
     context "with some closed days in operating hours" do
       let(:venue_operating_hours_params) do
         [
@@ -420,7 +460,7 @@ RSpec.describe "POST /api/v0/venues", type: :request do
     end
   end
 
-  context "when operating hours have closes_at equal to opens_at" do
+  context "when operating hours have closes_at equal to opens_at (auto 24h detection)" do
     let(:request_headers) { headers.merge("Authorization" => auth_token_for(new_user)) }
     let(:venue_operating_hours_params) do
       [
@@ -434,13 +474,16 @@ RSpec.describe "POST /api/v0/venues", type: :request do
       ]
     end
 
-    it "returns unprocessable entity status" do
-      expect(response).to have_http_status(:unprocessable_entity)
+    it "creates the venue successfully" do
+      expect(response).to have_http_status(:created)
     end
 
-    it "includes validation error about time order" do
-      errors = response.parsed_body["errors"]
-      expect(errors.to_s).to include("must be different")
+    it "treats the day with equal times as open 24 hours" do
+      new_venue = Venue.find_by(name: venue_name)
+      day = new_venue.venue_operating_hours.find_by(day_of_week: 0)
+      expect(day.is_open_24h).to be true
+      expect(day.opens_at).to be_nil
+      expect(day.closes_at).to be_nil
     end
   end
 

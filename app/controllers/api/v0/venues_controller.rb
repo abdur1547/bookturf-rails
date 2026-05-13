@@ -20,10 +20,11 @@ module Api::V0
           venue_id: number;
           day_of_week: number;     // 0 = Monday … 6 = Sunday
           day_name: string;
-          opens_at: string;        // ISO 8601
-          closes_at: string;       // ISO 8601
-          formatted_hours: string; // e.g. "08:00 AM - 10:00 PM" or "Closed"
+          opens_at: string;        // ISO 8601 — null when is_open_24h is true
+          closes_at: string;       // ISO 8601 — null when is_open_24h is true
+          formatted_hours: string; // e.g. "08:00 AM - 10:00 PM", "Closed", or "Open 24 Hours"
           is_closed: boolean;
+          is_open_24h: boolean;
 
         Venue type
           id: number;
@@ -257,9 +258,10 @@ module Api::V0
           is_active?: boolean | null;            // default: false
           venue_operating_hours?: Array<{
             day_of_week: number;                 // 0 = Monday … 6 = Sunday, required
-            opens_at?: string | null;            // HH:MM
-            closes_at?: string | null;           // HH:MM
+            opens_at?: string | null;            // HH:MM — ignored when is_open_24h is true
+            closes_at?: string | null;           // HH:MM — ignored when is_open_24h is true
             is_closed?: boolean | null;
+            is_open_24h?: boolean | null;        // true = open all day; opens_at/closes_at not required, default: false
           }> | null;
         }
     DESC
@@ -279,9 +281,10 @@ module Api::V0
     param :is_active, :bool, required: false, desc: "Whether the venue is publicly visible (default: false)"
     param :venue_operating_hours, Array, desc: "Operating hours per day" do
       param :day_of_week, Integer, required: true, desc: "0 = Monday … 6 = Sunday"
-      param :opens_at, String, required: false, desc: "Opening time (HH:MM)"
-      param :closes_at, String, required: false, desc: "Closing time (HH:MM)"
+      param :opens_at, String, required: false, desc: "Opening time (HH:MM) — not required when is_open_24h is true"
+      param :closes_at, String, required: false, desc: "Closing time (HH:MM) — not required when is_open_24h is true"
       param :is_closed, :bool, required: false, desc: "Mark day as closed"
+      param :is_open_24h, :bool, required: false, desc: "Mark day as open 24 hours (opens_at/closes_at not required), default: false"
     end
     returns code: 201, desc: "Venue created" do
       property :success, [ true ]
@@ -351,9 +354,10 @@ module Api::V0
           is_active?: boolean | null;
           venue_operating_hours?: Array<{
             day_of_week: number;                 // 0 = Monday … 6 = Sunday, required
-            opens_at?: string | null;            // HH:MM
-            closes_at?: string | null;           // HH:MM
+            opens_at?: string | null;            // HH:MM — ignored when is_open_24h is true
+            closes_at?: string | null;           // HH:MM — ignored when is_open_24h is true
             is_closed?: boolean | null;
+            is_open_24h?: boolean | null;        // true = open all day; opens_at/closes_at not required, default: false
           }> | null;
         }
     DESC
@@ -374,9 +378,10 @@ module Api::V0
     param :is_active, :bool, required: false, desc: "Publicly visible toggle"
     param :venue_operating_hours, Array, desc: "Operating hours per day", required: false do
       param :day_of_week, Integer, required: true, desc: "0 = Monday … 6 = Sunday"
-      param :opens_at, String, required: false, desc: "Opening time (HH:MM)"
-      param :closes_at, String, required: false, desc: "Closing time (HH:MM)"
+      param :opens_at, String, required: false, desc: "Opening time (HH:MM) — not required when is_open_24h is true"
+      param :closes_at, String, required: false, desc: "Closing time (HH:MM) — not required when is_open_24h is true"
       param :is_closed, :bool, required: false, desc: "Mark day as closed"
+      param :is_open_24h, :bool, required: false, desc: "Mark day as open 24 hours (opens_at/closes_at not required), default: false"
     end
     returns code: 200, desc: "Updated venue" do
       property :success, [ true ]

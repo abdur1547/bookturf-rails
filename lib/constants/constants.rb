@@ -8,5 +8,5 @@ module Constants
   DEFAULT_PAGE = 1
   ORDER_DIRECTIONS = %w[asc ASC desc DESC].freeze
   API_DATE_FORMAT = "%d/%m/%Y"
-  API_TIME_FORMAT = "%H:%M"
+  API_TIME_FORMAT = "%I:%M %p"
 end
