@@ -19,6 +19,7 @@ class CreatePricingRules < ActiveRecord::Migration[7.1]
       # Priority and status
       t.integer :priority, default: 0, null: false
       t.boolean :is_active, default: true, null: false
+      t.boolean :base_rule, :boolean, default: false, null: false
 
       t.timestamps
     end

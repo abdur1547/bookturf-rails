@@ -18,6 +18,7 @@ class PricingRule < ApplicationRecord
   validates :name, presence: true
   validates :price_per_hour, presence: true, numericality: { greater_than_or_equal_to: 0 }
   validates :priority, presence: true, numericality: { only_integer: true }
+  validates :base_rule, uniqueness: { scope: :court_id, message: "already exists for this court" }, if: :base_rule?
 
   validate :end_time_after_start_time
   validate :end_date_after_start_date

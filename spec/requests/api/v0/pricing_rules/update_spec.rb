@@ -438,4 +438,82 @@ RSpec.describe "PATCH /api/v0/pricing_rules/:id", type: :request do
       expect(pricing_rule.reload.start_date).to be_nil
     end
   end
+
+  # ==================================================
+  # BASE RULE RESTRICTIONS
+  # ==================================================
+
+  context "when updating a base rule with only name and price_per_hour" do
+    let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
+    let!(:base_pricing_rule) do
+      create(:pricing_rule,
+             venue: venue,
+             court: court,
+             name: "Regular Price",
+             price_per_hour: 1500.0,
+             day_of_week: "all_days",
+             priority: 0,
+             is_active: true,
+             base_rule: true)
+    end
+    let(:pricing_rule_id) { base_pricing_rule.id }
+    let(:request_params)  { { name: "Base Renamed", price_per_hour: 2000.0 } }
+
+    it "returns ok (200) status" do
+      expect(response).to have_http_status(:ok)
+    end
+
+    it "persists the new name" do
+      expect(base_pricing_rule.reload.name).to eq("Base Renamed")
+    end
+
+    it "persists the new price_per_hour" do
+      expect(base_pricing_rule.reload.price_per_hour.to_f).to eq(2000.0)
+    end
+
+    it "still has base_rule true in the response" do
+      expect(response.parsed_body["data"]["base_rule"]).to be true
+    end
+  end
+
+  context "when updating a base rule with restricted fields (day_of_week, priority, is_active)" do
+    let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
+    let!(:base_pricing_rule) do
+      create(:pricing_rule,
+             venue: venue,
+             court: court,
+             name: "Regular Price",
+             price_per_hour: 1500.0,
+             day_of_week: "all_days",
+             priority: 0,
+             is_active: true,
+             base_rule: true)
+    end
+    let(:pricing_rule_id) { base_pricing_rule.id }
+    let(:request_params) do
+      { name: "Still Regular", price_per_hour: 1800.0, day_of_week: "monday", priority: 10, is_active: false }
+    end
+
+    it "returns ok (200) status" do
+      expect(response).to have_http_status(:ok)
+    end
+
+    it "updates name and price_per_hour" do
+      base_pricing_rule.reload
+      expect(base_pricing_rule.name).to eq("Still Regular")
+      expect(base_pricing_rule.price_per_hour.to_f).to eq(1800.0)
+    end
+
+    it "ignores day_of_week — keeps all_days" do
+      expect(base_pricing_rule.reload.day_of_week).to eq("all_days")
+    end
+
+    it "ignores priority — keeps 0" do
+      expect(base_pricing_rule.reload.priority).to eq(0)
+    end
+
+    it "ignores is_active — stays true" do
+      expect(base_pricing_rule.reload.is_active).to be true
+    end
+  end
 end

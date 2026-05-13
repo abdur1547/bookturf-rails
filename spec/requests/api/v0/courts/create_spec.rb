@@ -34,6 +34,7 @@ RSpec.describe "POST /api/v0/courts", type: :request do
   let(:court_slot_interval) { 60 }
   let(:court_requires_approval) { false }
   let(:court_is_active) { true }
+  let(:court_price_per_hour) { 1500.0 }
 
   let(:request_params) do
     {
@@ -43,7 +44,8 @@ RSpec.describe "POST /api/v0/courts", type: :request do
       description: court_description,
       slot_interval: court_slot_interval,
       requires_approval: court_requires_approval,
-      is_active: court_is_active
+      is_active: court_is_active,
+      price_per_hour: court_price_per_hour
     }
   end
 
@@ -105,9 +107,32 @@ RSpec.describe "POST /api/v0/courts", type: :request do
       expect(data["venue_name"]).to eq(venue.name)
     end
 
-    it "returns pricing_rules as an empty array" do
+    it "returns pricing_rules with one base rule" do
       data = response.parsed_body["data"]
-      expect(data["pricing_rules"]).to eq([])
+      expect(data["pricing_rules"].length).to eq(1)
+    end
+
+    it "auto-creates a base pricing rule with the correct attributes" do
+      court = Court.find_by(name: court_name)
+      base_rule = court.pricing_rules.find_by(base_rule: true)
+      expect(base_rule).to be_present
+      expect(base_rule.name).to eq("Regular Price")
+      expect(base_rule.price_per_hour).to eq(court_price_per_hour)
+      expect(base_rule.day_of_week).to eq("all_days")
+      expect(base_rule.priority).to eq(0)
+      expect(base_rule.is_active).to be true
+      expect(base_rule.start_time).to be_nil
+      expect(base_rule.end_time).to be_nil
+      expect(base_rule.start_date).to be_nil
+      expect(base_rule.end_date).to be_nil
+    end
+
+    it "returns the base rule in the pricing_rules array with base_rule: true" do
+      data = response.parsed_body["data"]
+      base_rule = data["pricing_rules"].first
+      expect(base_rule["base_rule"]).to be true
+      expect(base_rule["name"]).to eq("Regular Price")
+      expect(base_rule["price_per_hour"].to_f).to eq(court_price_per_hour)
     end
 
     it "returns an images array" do
@@ -138,7 +163,8 @@ RSpec.describe "POST /api/v0/courts", type: :request do
       {
         venue_id: court_venue_id,
         court_type_id: court_court_type_id,
-        name: court_name
+        name: court_name,
+        price_per_hour: court_price_per_hour
       }
     end
 
@@ -428,6 +454,38 @@ RSpec.describe "POST /api/v0/courts", type: :request do
 
     it "returns unprocessable entity (422) status" do
       expect(response).to have_http_status(:unprocessable_entity)
+    end
+  end
+
+  context "when price_per_hour is missing" do
+    let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
+    let(:request_params) do
+      {
+        venue_id: court_venue_id,
+        court_type_id: court_court_type_id,
+        name: court_name
+      }
+    end
+
+    it "returns unprocessable entity (422) status" do
+      expect(response).to have_http_status(:unprocessable_entity)
+    end
+
+    it "does not create a court" do
+      expect(Court.find_by(name: court_name)).to be_nil
+    end
+  end
+
+  context "when price_per_hour is negative" do
+    let(:request_headers) { headers.merge("Authorization" => auth_token_for(owner_user)) }
+    let(:court_price_per_hour) { -100.0 }
+
+    it "returns unprocessable entity (422) status" do
+      expect(response).to have_http_status(:unprocessable_entity)
+    end
+
+    it "does not create a court" do
+      expect(Court.find_by(name: court_name)).to be_nil
     end
   end
 end

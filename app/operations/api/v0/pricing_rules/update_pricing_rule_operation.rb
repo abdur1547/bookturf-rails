@@ -27,9 +27,13 @@ module Api::V0::PricingRules
       @venue = @pricing_rule.venue
       return Failure(:forbidden) unless VenuePolicy.new(current_user, @venue).update?
 
-      update_params = params.slice(:name, :price_per_hour, :day_of_week,
-                                   :start_time, :end_time, :start_date, :end_date,
-                                   :priority, :is_active)
+      update_params = if @pricing_rule.base_rule?
+        params.slice(:name, :price_per_hour)
+      else
+        params.slice(:name, :price_per_hour, :day_of_week,
+                     :start_time, :end_time, :start_date, :end_date,
+                     :priority, :is_active)
+      end
       result = PricingRules::UpdateService.call(pricing_rule: @pricing_rule, params: update_params)
       return Failure(result.error) unless result.success?
 

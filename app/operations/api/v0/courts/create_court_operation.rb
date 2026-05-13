@@ -7,6 +7,7 @@ module Api::V0::Courts
         required(:name).filled(:string)
         required(:venue_id).filled(:integer)
         required(:court_type_id).filled(:integer)
+        required(:price_per_hour).filled(:float, gteq?: 0)
         optional(:description).maybe(:string)
         optional(:slot_interval).maybe(:integer)
         optional(:requires_approval).maybe(:bool)
@@ -34,7 +35,7 @@ module Api::V0::Courts
         :court_type_id
       ).compact
 
-      result = Courts::CreateService.call(params: court_params)
+      result = Courts::CreateService.call(params: court_params, price_per_hour: params[:price_per_hour])
       return Failure(result.error) unless result.success?
 
       @court = result.data

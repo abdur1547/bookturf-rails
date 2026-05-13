@@ -29,6 +29,7 @@ module Api::V0
           end_date: string | null;      // ISO 8601
           priority: number;
           is_active: boolean;
+          base_rule: boolean;           // true = system-generated rule, cannot be deleted
           time_range: string;           // formatted e.g. "08:00 AM - 10:00 PM"
           created_at: string;           // ISO 8601
           updated_at: string;           // ISO 8601
@@ -213,6 +214,9 @@ module Api::V0
     header "Authorization", "Bearer <access_token>", required: true
     description <<~DESC
       Creates a new court under the specified venue. Requires venue-owner or admin permissions.
+      A base pricing rule (name: "Regular Price", day_of_week: all_days, priority: 0) is
+      automatically created using price_per_hour. This rule cannot be deleted — only its
+      name and price_per_hour may be updated via the pricing rules update endpoint.
 
       Body Params — TS type
 
@@ -220,6 +224,7 @@ module Api::V0
           venue_id: number;                // required
           court_type_id: number;           // required
           name: string;                    // required
+          price_per_hour: number;          // required — sets the base pricing rule price
           description?: string | null;
           slot_interval?: number | null;   // minutes, default: 60
           requires_approval?: boolean | null; // default: false
@@ -229,6 +234,7 @@ module Api::V0
     param :venue_id, Integer, required: true, desc: "ID of the venue this court belongs to"
     param :court_type_id, Integer, required: true, desc: "ID of the court type (e.g. cricket, football)"
     param :name, String, required: true, desc: "Court name"
+    param :price_per_hour, Float, required: true, desc: "Base price per hour — creates a system-generated base pricing rule"
     param :description, String, required: false, desc: "Optional court description"
     param :slot_interval, Integer, required: false, desc: "Booking slot duration in minutes (default: 60)"
     param :requires_approval, :bool, required: false, desc: "Whether bookings require manual approval (default: false)"

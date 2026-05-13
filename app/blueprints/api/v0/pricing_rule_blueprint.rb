@@ -15,6 +15,7 @@ module Api::V0
            :end_date,
            :priority,
            :is_active,
+           :base_rule,
            :day_name,
            :time_range,
            :created_at,

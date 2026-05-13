@@ -27,6 +27,7 @@ module Api::V0
           end_date: string | null;      // YYYY-MM-DD, null for permanent rules
           priority: number;             // higher value wins when rules overlap
           is_active: boolean;
+          base_rule: boolean;           // true = system-generated, cannot be deleted; only name & price_per_hour may be updated
           day_name: string;             // e.g. "Monday", "All days", "Weekends"
           time_range: string;           // e.g. "08:00 AM - 12:00 PM" or "All day"
           created_at: string;           // ISO 8601
@@ -70,6 +71,7 @@ module Api::V0
         property :end_date, String, desc: "End date (YYYY-MM-DD), null for permanent rules"
         property :priority, Integer, desc: "Rule priority — higher value wins when multiple rules overlap"
         property :is_active, :bool, desc: "Whether this rule is currently active"
+        property :base_rule, :bool, desc: "Whether this is a system-generated base rule (cannot be deleted; only name & price_per_hour may be updated)"
         property :day_name, String, desc: "Human-readable day label (e.g. Monday, All Days)"
         property :time_range, String, desc: "Formatted time window (e.g. 08:00 AM - 12:00 PM) or All day"
         property :created_at, String, desc: "ISO 8601 creation timestamp"
@@ -111,6 +113,7 @@ module Api::V0
         property :end_date, String, desc: "End date (YYYY-MM-DD), null for permanent rules"
         property :priority, Integer, desc: "Rule priority — higher value wins when multiple rules overlap"
         property :is_active, :bool, desc: "Whether this rule is currently active"
+        property :base_rule, :bool, desc: "Whether this is a system-generated base rule (cannot be deleted; only name & price_per_hour may be updated)"
         property :day_name, String, desc: "Human-readable day label (e.g. Monday, All Days)"
         property :time_range, String, desc: "Formatted time window (e.g. 08:00 AM - 12:00 PM) or All day"
         property :created_at, String, desc: "ISO 8601 creation timestamp"
@@ -181,6 +184,7 @@ module Api::V0
         property :end_date, String, desc: "End date string (YYYY-MM-DD), null if not set"
         property :priority, Integer, desc: "Rule priority"
         property :is_active, :bool, desc: "Whether this rule is currently active"
+        property :base_rule, :bool, desc: "Whether this is a system-generated base rule (cannot be deleted; only name & price_per_hour may be updated)"
         property :day_name, String, desc: "Human-readable day label (e.g. Monday, All Days)"
         property :time_range, String, desc: "Formatted time window (e.g. 08:00 AM - 12:00 PM) or All day"
         property :created_at, String, desc: "ISO 8601 creation timestamp"
@@ -205,6 +209,9 @@ module Api::V0
       rule's venue or a global admin. Only the fields provided in the request are
       updated — omitting a field leaves its current value unchanged.
 
+      For base rules (base_rule: true), only name and price_per_hour may be updated;
+      all other fields are silently ignored.
+
       Only start_time and end_time, or start_date and end_date, may be cleared together.
       Partial time or date pairs are validated the same way as on creation.
 
@@ -213,6 +220,7 @@ module Api::V0
         {
           name?: string | null;
           price_per_hour?: number | null;           // must be > 0
+          // fields below are ignored for base rules
           day_of_week?: 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday'
             | 'saturday' | 'sunday' | 'all_days' | 'weekdays' | 'weekends' | null;
           start_time?: string | null;               // HH:MM
@@ -250,6 +258,7 @@ module Api::V0
         property :end_date, String, desc: "End date string, null if not set"
         property :priority, Integer, desc: "Rule priority"
         property :is_active, :bool, desc: "Whether this rule is currently active"
+        property :base_rule, :bool, desc: "Whether this is a system-generated base rule (cannot be deleted; only name & price_per_hour may be updated)"
         property :day_name, String, desc: "Human-readable day label"
         property :time_range, String, desc: "Formatted time window or All day"
         property :created_at, String, desc: "ISO 8601 creation timestamp"
@@ -268,6 +277,11 @@ module Api::V0
     end
 
     api :DELETE, "/pricing_rules/:id", "Delete a pricing rule by ID"
+    description <<~DESC
+      Deletes a pricing rule by ID. The authenticated user must be the venue owner or a
+      global admin. Base rules (base_rule: true) are system-generated and cannot be deleted
+      — the endpoint returns 422 for such requests.
+    DESC
     header "Authorization", "Bearer <access_token>", required: true
     param :id, Integer, required: true, desc: "ID of the pricing rule to delete"
     returns code: 200, desc: "Pricing rule deleted successfully" do
@@ -277,6 +291,7 @@ module Api::V0
     error code: 401, desc: "Not authenticated"
     error code: 403, desc: "Authenticated user is not the venue owner or a global admin"
     error code: 404, desc: "Pricing rule not found"
+    error code: 422, desc: "Attempted to delete a base rule"
     # DELETE /api/v0/pricing_rules/:id
     def destroy
       result = Api::V0::PricingRules::DeletePricingRuleOperation.call(params.to_unsafe_h, current_user)

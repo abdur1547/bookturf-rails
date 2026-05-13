@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_13_070723) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_29_095634) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -179,6 +179,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_13_070723) do
   end
 
   create_table "pricing_rules", force: :cascade do |t|
+    t.boolean "base_rule", default: false, null: false
+    t.boolean "boolean", default: false, null: false
     t.bigint "court_id", null: false
     t.datetime "created_at", null: false
     t.integer "day_of_week", default: 7, null: false

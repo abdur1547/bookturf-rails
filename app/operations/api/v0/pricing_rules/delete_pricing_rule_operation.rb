@@ -15,6 +15,7 @@ module Api::V0::PricingRules
       @pricing_rule = find_pricing_rule(params[:id])
       return Failure(:not_found) unless @pricing_rule
       return Failure(:forbidden) unless authorize?
+      return Failure([ "Base rules cannot be deleted" ]) if @pricing_rule.base_rule?
 
       result = PricingRules::DeleteService.call(pricing_rule: @pricing_rule)
       return Failure(result.error) unless result.success?
@@ -41,7 +42,7 @@ module Api::V0::PricingRules
     end
 
     def serialize
-      Api::V0::PricingRuleBlueprint.render_as_hash(pricing_rule, view: :detailed)
+      Api::V0::PricingRuleBlueprint.render_as_hash(pricing_rule)
     end
   end
 end

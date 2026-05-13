@@ -28,6 +28,7 @@
                 "day_of_week",
                 "priority",
                 "is_active",
+                "base_rule",
                 "day_name",
                 "time_range",
                 "created_at",
@@ -95,6 +96,9 @@
                     "type": "integer"
                 },
                 "is_active": {
+                    "type": "boolean"
+                },
+                "base_rule": {
                     "type": "boolean"
                 },
                 "day_name": {
